@@ -88,6 +88,9 @@ public class RobotContainer {
     // private final LEDs leds;
     private final ObjectDetector objectDetector;
 
+    // Reusable composite command to stop/stow/eject used in multiple bindings
+    private final Command stopAllShooterAndRetract;
+
     // Controller
     private final CommandXboxControllerExtended controller =
             new CommandXboxControllerExtended(0).withDeadband(0.1);
@@ -111,6 +114,14 @@ public class RobotContainer {
         // VisionOdometryCharacterizer.enable();
         // leds = LEDsConstants.get();
         objectDetector = ObjectDetectorConstants.get();
+
+        stopAllShooterAndRetract =
+        Commands.parallel(
+                shooter.stopAndStow(),
+                indexer.stopCommand(),
+                tower.stopCommand(),
+                intake.extendIntake(),
+                shooter.retractHood());
 
         if (RobotBase.isSimulation()) {
             RobotSim.getInstance().addMechanismData(drive, shooter, indexer, intake);
@@ -206,13 +217,7 @@ public class RobotContainer {
                                         Commands.waitSeconds(0.05),
                                         Commands.waitUntil(readyToShootAtCurrentTarget),
                                         Commands.parallel(indexer.shoot(), tower.shoot()))))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract);
 
         // Tap Right Bumper while Right Trigger held: Manually cycle intake
         controller
@@ -248,13 +253,7 @@ public class RobotContainer {
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.TRENCH_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract);
 
         // Driver Y: Midline Feed/Pass (No-Vision Fallback)
         controller
@@ -265,13 +264,7 @@ public class RobotContainer {
                                 Commands.sequence(
                                         Commands.waitUntil(shooter.profileComplete),
                                         Commands.parallel(indexer.shoot(), tower.shoot()))))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract);
 
         // Driver A: Shot From Back of Robot Against Tower (No-Vision Fallback)
         controller
@@ -282,13 +275,7 @@ public class RobotContainer {
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.Tower.TOWER_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract);
         controller
                 .start()
                 .and(controller.back())
