@@ -276,6 +276,7 @@ public class RobotContainer {
                                         FieldConstants.Tower.TOWER_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                 .onFalse(stopAllShooterAndRetract);
+
         controller
                 .start()
                 .and(controller.back())
