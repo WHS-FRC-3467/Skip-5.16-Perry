@@ -20,7 +20,7 @@ import frc.lib.util.FieldUtil;
 import frc.robot.RobotState;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.indexer.IndexerSuperstructure;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakeSuperstructure;
 import frc.robot.subsystems.shooter.ShooterSuperstructure;
 import frc.robot.subsystems.tower.Tower;
@@ -68,7 +68,7 @@ public class AutoCommands {
     public static Command shootCommand(
             Drive drive,
             IntakeSuperstructure intake,
-            IndexerSuperstructure indexer,
+            Indexer indexer,
             Tower tower,
             ShooterSuperstructure shooter,
             double timeoutDuration) {

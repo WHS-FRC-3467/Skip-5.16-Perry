@@ -34,9 +34,9 @@ import frc.robot.Ports;
 import frc.robot.Robot;
 
 /** Add your docs here. */
-public class IndexerFloorConstants {
+public class IndexerConstants {
 
-    public static String NAME = "Indexer Floor";
+    public static String NAME = "Indexer";
 
     public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(30.0);
     public static final AngularAcceleration MAX_ACCELERATION =
@@ -97,7 +97,7 @@ public class IndexerFloorConstants {
      *
      * @return A fully configured IndexerSuperstructure subsystem
      */
-    public static FlywheelMechanism<?> get() {
+    public static FlywheelMechanism<?> getMechanism() {
         FlywheelMechanism<?> mechanism;
         switch (Constants.currentMode) {
             case REAL:
@@ -128,5 +128,14 @@ public class IndexerFloorConstants {
         mechanism.enableTunablePID(PIDSlot.SLOT_0, SLOT0_PID);
         mechanism.withRadius(RADIUS);
         return mechanism;
+    }
+
+    /**
+     * Creates and configures a complete IndexerSuperstructure subsystem.
+     *
+     * @return configured IndexerSuperstructure instance
+     */
+    public static Indexer get() {
+        return new Indexer(getMechanism());
     }
 }

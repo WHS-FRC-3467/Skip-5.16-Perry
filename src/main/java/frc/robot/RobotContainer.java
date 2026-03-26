@@ -45,8 +45,8 @@ import frc.robot.commands.autos.tuning.WheelCharacterizationAuto;
 import frc.robot.commands.autos.tuning.WheelSlipAuto;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.indexer.IndexerSuperstructure;
-import frc.robot.subsystems.indexer.IndexerSuperstructureConstants;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerConstants;
 import frc.robot.subsystems.intake.IntakeLinearConstants;
 import frc.robot.subsystems.intake.IntakeSuperstructure;
 import frc.robot.subsystems.intake.IntakeSuperstructureConstants;
@@ -77,7 +77,7 @@ public class RobotContainer {
     public final Drive drive;
     final ShooterSuperstructure shooter;
     private final IntakeSuperstructure intake;
-    private final IndexerSuperstructure indexer;
+    private final Indexer indexer;
     private final Tower tower;
     // private final LEDs leds;
     // private final ObjectDetector objectDetector;
@@ -99,7 +99,7 @@ public class RobotContainer {
         drive = DriveConstants.get();
         shooter = ShooterSuperstructureConstants.get();
         intake = IntakeSuperstructureConstants.get();
-        indexer = IndexerSuperstructureConstants.get();
+        indexer = IndexerConstants.get();
         tower = TowerConstants.get();
         VisionConstants.create();
         // VisionOdometryCharacterizer.enable();
@@ -322,11 +322,10 @@ public class RobotContainer {
     private void initializeDashboard() {
 
         // Indexer Commands
-        SmartDashboard.putData(IndexerSuperstructureConstants.NAME + "/Shoot", indexer.shoot());
-        SmartDashboard.putData(IndexerSuperstructureConstants.NAME + "/Expel", indexer.eject());
-        SmartDashboard.putData(IndexerSuperstructureConstants.NAME + "/Feed", indexer.feed());
-        SmartDashboard.putData(
-                IndexerSuperstructureConstants.NAME + "/Stop", indexer.stopCommand());
+        SmartDashboard.putData(IndexerConstants.NAME + "/Shoot", indexer.shoot());
+        SmartDashboard.putData(IndexerConstants.NAME + "/Expel", indexer.eject());
+        SmartDashboard.putData(IndexerConstants.NAME + "/Feed", indexer.feed());
+        SmartDashboard.putData(IndexerConstants.NAME + "/Stop", indexer.stopCommand());
 
         // Intake Commands
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
