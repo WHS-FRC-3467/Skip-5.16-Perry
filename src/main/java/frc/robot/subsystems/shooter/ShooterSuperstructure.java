@@ -39,6 +39,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.mechanisms.rotary.RotaryMechanism;
+import frc.lib.util.LoggedDouble;
+import frc.lib.util.LoggedInt;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
@@ -154,6 +156,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     // Fuel counts
     private @Getter int totalFuelCount = 0;
 
+    // Logged counters to avoid repeated identical writes
+    private LoggedInt totalFuelLogger;
+
+    // Logged trim value
+    private LoggedDouble loggedFlywheelTrimRPS;
+
     // Trigger for whether we are at the static shooting state (shooter ready, robot stationary &
     // aligned to target)
     private final LoggedTrigger staticShotState =
@@ -204,6 +212,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public ShooterSuperstructure(RotaryMechanism<?, ?> hoodIO, FlywheelMechanism<?> flywheelIO) {
         this.hoodIO = hoodIO;
         this.flywheelIO = flywheelIO;
+
+        // Initialize logged-on-change counters and numeric loggers that depend on the subsystem
+        // name
+        this.totalFuelLogger = new LoggedInt(getName() + "/TotalFuelCount");
+        this.loggedFlywheelTrimRPS = new LoggedDouble(getName() + "/FlywheelTrimRPS");
+
         attachBallTriggers();
     }
 
@@ -474,7 +488,13 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                 Commands.runOnce(
                         () -> {
                             totalFuelCount++;
-                            Logger.recordOutput(getName() + "/TotalFuelCount", totalFuelCount);
+                            // Log count only on change
+                            if (totalFuelLogger != null) {
+                                totalFuelLogger.log(totalFuelCount);
+                            } else {
+                                Logger.recordOutput(
+                                        getName() + "/TotalFuelCount", totalFuelCount);
+                            }
                         }));
     }
 
@@ -507,8 +527,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                 getName() + "/TotalDrawWatts",
                 flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent()));
 
-        Logger.recordOutput(
-                getName() + "/FlywheelTrimRPS", getFlywheelTrim().in(RotationsPerSecond));
+        if (loggedFlywheelTrimRPS != null) {
+            loggedFlywheelTrimRPS.log(getFlywheelTrim().in(RotationsPerSecond));
+        } else {
+            Logger.recordOutput(
+                    getName() + "/FlywheelTrimRPS", getFlywheelTrim().in(RotationsPerSecond));
+        }
     }
 
     /** Closes all underlying mechanisms and releases resources. */
