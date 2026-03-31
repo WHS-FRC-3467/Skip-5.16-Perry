@@ -157,10 +157,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private @Getter int totalFuelCount = 0;
 
     // Logged counters to avoid repeated identical writes
-    private LoggedInt totalFuelLogger;
+    private final LoggedInt totalFuelLogger;
 
     // Logged trim value
-    private LoggedDouble loggedFlywheelTrimRPS;
+    private final LoggedDouble loggedFlywheelTrimRPS;
 
     // Trigger for whether we are at the static shooting state (shooter ready, robot stationary &
     // aligned to target)
@@ -489,12 +489,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                         () -> {
                             totalFuelCount++;
                             // Log count only on change
-                            if (totalFuelLogger != null) {
-                                totalFuelLogger.log(totalFuelCount);
-                            } else {
-                                Logger.recordOutput(
-                                        getName() + "/TotalFuelCount", totalFuelCount);
-                            }
+                            totalFuelLogger.log(totalFuelCount);
                         }));
     }
 
@@ -527,12 +522,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                 getName() + "/TotalDrawWatts",
                 flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent()));
 
-        if (loggedFlywheelTrimRPS != null) {
-            loggedFlywheelTrimRPS.log(getFlywheelTrim().in(RotationsPerSecond));
-        } else {
-            Logger.recordOutput(
-                    getName() + "/FlywheelTrimRPS", getFlywheelTrim().in(RotationsPerSecond));
-        }
+        loggedFlywheelTrimRPS.log(getFlywheelTrim().in(RotationsPerSecond));
     }
 
     /** Closes all underlying mechanisms and releases resources. */
