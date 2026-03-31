@@ -34,8 +34,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
+import frc.lib.util.DashboardBoolean;
+import frc.lib.util.DashboardDouble;
+import frc.lib.util.DashboardDoubleArray;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
+import frc.lib.util.LoggedValue;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
@@ -59,8 +63,6 @@ import frc.robot.subsystems.tower.TowerConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.HubState;
 import frc.robot.util.RobotSim;
-
-import org.littletonrobotics.junction.Logger;
 
 import java.util.Optional;
 import java.util.Set;
@@ -101,6 +103,13 @@ public class RobotContainer {
     private final LoggedDashboardChooser<AutoOption> autoChooser;
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
+    // Change-only loggers for auto start pose checks
+    private final LoggedValue<String> loggedStartPose;
+    private final DashboardDouble dashboardInchesFromStart;
+    private final DashboardBoolean dashboardPositionWithinStartTolerance;
+    private final DashboardDouble dashboardDegreesFromStart;
+    private final DashboardBoolean dashboardRotationWithinStartTolerance;
+    private final DashboardDoubleArray dashboardStartPoseArray;
 
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
@@ -132,6 +141,16 @@ public class RobotContainer {
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices");
         SmartDashboard.putData("Auto Preview", autoPreviewField);
+
+        // Initialize change-only loggers for start-pose checks
+        this.loggedStartPose = new LoggedValue<>("Auto/StartPose");
+        this.dashboardInchesFromStart = new DashboardDouble("Auto Pose Check/Inches from Start");
+        this.dashboardPositionWithinStartTolerance =
+                new DashboardBoolean("Auto Pose Check/Robot Position Within Tolerance");
+        this.dashboardDegreesFromStart = new DashboardDouble("Auto Pose Check/Degrees from Start");
+        this.dashboardRotationWithinStartTolerance =
+                new DashboardBoolean("Auto Pose Check/Robot Rotation Within Tolerance");
+        this.dashboardStartPoseArray = new DashboardDoubleArray("Start Pose (x, y, degrees)");
 
         // Default - No Auto
         autoChooser.addDefaultOption("None", NoneAuto.create());
@@ -437,7 +456,8 @@ public class RobotContainer {
                 return;
             }
 
-            Logger.recordOutput("Auto/StartPose", startPose);
+            // Record start pose only when it changes to reduce NT traffic
+            loggedStartPose.log(startPose.toString());
             autoPreviewField.getObject("startPose").setPose(startPose);
 
             Pose2d robotPose = robotState.getEstimatedPose();
@@ -449,20 +469,15 @@ public class RobotContainer {
             double[] startPoseArray = {
                 startPose.getX(), startPose.getY(), startPose.getRotation().getDegrees()
             };
-            SmartDashboard.putNumberArray("Start Pose (x, y, degrees)", startPoseArray);
+            dashboardStartPoseArray.put(startPoseArray);
 
-            SmartDashboard.putNumber(
-                    "Auto Pose Check/Inches from Start",
+            dashboardInchesFromStart.put(
                     (int) Math.round(distanceFromStartPose.in(Inches) * 100.0) / 100.0);
-            SmartDashboard.putBoolean(
-                    "Auto Pose Check/Robot Position Within Tolerance",
+            dashboardPositionWithinStartTolerance.put(
                     distanceFromStartPose.in(Inches)
                             < Constants.STARTING_POSE_DRIVE_TOLERANCE.in(Inches));
-            SmartDashboard.putNumber(
-                    "Auto Pose Check/Degrees from Start",
-                    (int) Math.round(degreesFromStartPose * 100.0) / 100.0);
-            SmartDashboard.putBoolean(
-                    "Auto Pose Check/Robot Rotation Within Tolerance",
+            dashboardDegreesFromStart.put((int) Math.round(degreesFromStartPose * 100.0) / 100.0);
+            dashboardRotationWithinStartTolerance.put(
                     degreesFromStartPose
                             < Constants.STARTING_POSE_ROT_TOLERANCE_DEGREES.in(Degrees));
         }
