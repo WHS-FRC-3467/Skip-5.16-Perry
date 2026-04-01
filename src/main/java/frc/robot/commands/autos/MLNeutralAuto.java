@@ -33,6 +33,8 @@ import frc.robot.subsystems.objectdetector.ObjectDetector;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import org.littletonrobotics.junction.Logger;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -49,7 +51,7 @@ public final class MLNeutralAuto {
     private static AutoTrajectory laneTrajectory = null;
 
     /**
-     * Builds the selected neutral auto variant.
+     * Builds the selected neutral ML auto variant.
      *
      * @param shouldMirror Whether to mirror the route for the opposite starting side
      * @param isSafe Whether to use the safer first segment instead of the aggressive one
@@ -59,19 +61,19 @@ public final class MLNeutralAuto {
         List<String> names =
                 isSafe
                         ? List.of(
-                                ChoreoTraj.Neutral1ML_1_Safe.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe1.name(),
-                                ChoreoTraj.Neutral2ML_1.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe1.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe2.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe3.name())
+                                ChoreoTraj.NeutralBump_ML_Start.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeRight.name(),
+                                ChoreoTraj.NeutralBump_ML_Decision.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeLeft.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeMiddle.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeRight.name())
                         : List.of(
-                                ChoreoTraj.Neutral1ML_1_Safe.name(), // Placeholders for now
-                                ChoreoTraj.Neutral2ML_1_Safe1.name(),
-                                ChoreoTraj.Neutral2ML_1.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe1.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe2.name(),
-                                ChoreoTraj.Neutral2ML_1_Safe3.name());
+                                ChoreoTraj.NeutralBump_ML_Start.name(), // Placeholders for now
+                                ChoreoTraj.NeutralBump_ML_SafeRight.name(),
+                                ChoreoTraj.NeutralBump_ML_Decision.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeLeft.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeMiddle.name(),
+                                ChoreoTraj.NeutralBump_ML_SafeRight.name());
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
         if (trajectories == null) {
@@ -125,33 +127,51 @@ public final class MLNeutralAuto {
                                                             Set.of()),
                                                     start.spawnCmd()));
 
-                            start.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, decision)); // works up to here
+                            start.done()
+                                    .onTrue(
+                                            AutoCommands.shootThenFollow(
+                                                    ctx, 3.0, decision)); // works up to here
 
-                            // ML loop: path to decision -> decicde -> follow best lane -> shoot
+                            // ML loop: decicde on lane -> follow best lane -> shoot -> path to
+                            // decision pose
                             decision.done()
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.runOnce(
-                                                            () -> {
-                                                                int lane =
-                                                                        AutoCommands.getBestLane(
-                                                                                        objectDetector)
-                                                                                .orElse(-1);
-                                                                laneTrajectory =
-                                                                        switch (lane) {
-                                                                            case 0 -> laneOne;
-                                                                            case 1 -> laneTwo;
-                                                                            case 2 -> laneThree;
-                                                                            default -> fallback;
-                                                                        };
-                                                            }),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    AutoCommands.followThenShoot(
-                                                                            ctx,
-                                                                            3.0,
-                                                                            laneTrajectory),
-                                                            Set.of()))); // SEEMS to work up to here, but needs more testing
+                                                            Commands.waitSeconds(0.1),
+                                                            Commands.runOnce(
+                                                                    () -> {
+                                                                        int lane =
+                                                                                AutoCommands
+                                                                                        .getBestLane(
+                                                                                                objectDetector)
+                                                                                        .orElse(-1);
+                                                                        laneTrajectory =
+                                                                                switch (lane) {
+                                                                                    case 0 ->
+                                                                                            laneOne;
+                                                                                    case 1 ->
+                                                                                            laneTwo;
+                                                                                    case 2 ->
+                                                                                            laneThree;
+                                                                                    default ->
+                                                                                            fallback;
+                                                                                };
+                                                                        Logger.recordOutput(
+                                                                                "Detection/ChosenLane",
+                                                                                laneTrajectory
+                                                                                        .toString());
+                                                                    }),
+                                                            Commands.defer(
+                                                                    () ->
+                                                                            AutoCommands
+                                                                                    .followThenShoot(
+                                                                                            ctx,
+                                                                                            3.0,
+                                                                                            laneTrajectory),
+                                                                    Set.of()),
+                                                            decision.spawnCmd(),
+                                                            Commands.waitUntil(decision.done()))
+                                                    .repeatedly());
 
                             return routine;
                         }));

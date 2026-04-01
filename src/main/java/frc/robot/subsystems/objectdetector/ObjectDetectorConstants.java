@@ -60,12 +60,13 @@ public class ObjectDetectorConstants {
     public static final String CAMERA0_NAME = "Detection Camera #0";
     public static final Transform3d CAMERA0_TRANSFORM =
             new Transform3d(
-                    Units.Inches.of(12.806),
+                    Units.Inches.of(-12.806),
                     Units.Inches.of(0.0),
                     Units.Inches.of(19.608),
                     new Rotation3d(
-                            Units.Degrees.of(0.0), Units.Degrees.of(25.0), Units.Degrees.of(0.0)));
-
+                            Units.Degrees.of(0.0),
+                            Units.Degrees.of(25.0),
+                            Units.Degrees.of(180.0)));
 
     // Intrinsics
     public static final int CAMERA0_RESOLUTION_WIDTH = 1280;

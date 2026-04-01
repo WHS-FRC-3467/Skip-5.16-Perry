@@ -138,13 +138,16 @@ public class AutoCommands {
     }
 
     /**
-     * Starts the given trajectory then shoots the currently held FUEL. Spins down the shooter and
+     * Follows the given trajectory then shoots the currently held FUEL. Spins down the shooter and
      * retracts the intake afterwards.
      */
     public static Command followThenShoot(
             AutoContext ctx, double timeoutSeconds, AutoTrajectory current) {
         return Commands.sequence(
-                current.spawnCmd(), Commands.waitUntil(current.done()), shootOnly(ctx, timeoutSeconds), retractIntake(ctx));
+                current.spawnCmd(),
+                Commands.waitUntil(current.done()),
+                shootOnly(ctx, timeoutSeconds),
+                retractIntake(ctx));
     }
 
     /**
