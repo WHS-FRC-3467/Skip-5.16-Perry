@@ -151,6 +151,27 @@ public class AutoCommands {
     }
 
     /**
+     * Shoots the held note, then performs the post-shot cleanup before another trigger continues.
+     */
+    public static Command shootThenPrep(AutoContext ctx, double timeoutSeconds) {
+        return Commands.sequence(
+                shootOnly(ctx, timeoutSeconds), stowHood(ctx.shooter()), retractIntake(ctx));
+    }
+
+    /**
+     * Follows the lane path, shoots, and retracts the intake. Continuation is intended to be bound
+     * separately on a trigger once this command has finished.
+     */
+    public static Command followThenPrep(
+            AutoContext ctx, double timeoutSeconds, AutoTrajectory current) {
+        return Commands.sequence(
+                current.spawnCmd(),
+                Commands.waitUntil(current.done()),
+                shootOnly(ctx, timeoutSeconds),
+                retractIntake(ctx));
+    }
+
+    /**
      * Return the int corresponding to the lane most populated with FUEL according to the object
      * detector, if the lane exists. Currently factored for just 3 ML lanes indexed 0-2.
      *

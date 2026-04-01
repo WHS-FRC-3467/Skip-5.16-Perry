@@ -19,7 +19,6 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MomentOfInertia;
-import edu.wpi.first.wpilibj.RobotBase;
 
 import frc.lib.io.motor.MotorIO;
 import frc.lib.io.motor.MotorIO.PIDSlot;
@@ -30,6 +29,7 @@ import frc.lib.mechanisms.rotary.RotaryMechanism.RotaryAxis;
 import frc.lib.mechanisms.rotary.RotaryMechanism.RotaryMechCharacteristics;
 import frc.lib.util.PID;
 import frc.robot.Constants;
+import frc.robot.Constants.Mode;
 import frc.robot.Ports;
 import frc.robot.Robot;
 
@@ -55,7 +55,7 @@ public class HoodConstants {
     public static final Angle MIN_ANGLE_OFFSET = Degrees.of(15.0);
 
     public static final Angle MIN_ANGLE = Degrees.of(0.0);
-    public static final Angle MAX_ANGLE = Degrees.of(24.0);
+    public static final Angle MAX_ANGLE = Degrees.of(27.0);
     public static final Angle STARTING_ANGLE = Degrees.of(0.0);
     public static final Distance ARM_LENGTH = Inches.of(6.9);
 
@@ -67,10 +67,12 @@ public class HoodConstants {
     public static final MomentOfInertia MOI = KilogramSquareMeters.of(0.01);
 
     private static PID getPID() {
-        if (RobotBase.isReal()) {
+        if (Constants.currentMode != Mode.SIM) {
             return new PID(1000.0, 0.0, 60.0).withS(2.0).withG(12.0);
         } else {
-            return new PID(5.0, 0.0, 0.0).withS(8.0);
+            // The arm sim does not model static friction, so kS causes output sign flips and
+            // visible chatter around the hood setpoint.
+            return new PID(5.0, 0.0, 0.0);
         }
     }
 

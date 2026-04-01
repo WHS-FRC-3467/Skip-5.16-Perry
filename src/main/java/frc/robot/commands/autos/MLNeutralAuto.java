@@ -38,6 +38,8 @@ import org.littletonrobotics.junction.Logger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /** Native Choreo routine for the neutral-zone multi-piece autonomous variants. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -48,7 +50,6 @@ public final class MLNeutralAuto {
     private static final Alert OBJECT_DETECTOR_MISSING =
             new Alert(
                     "ML Neutral Auto Object Detector Missing, Auto Unavailable", AlertType.kError);
-    private static AutoTrajectory laneTrajectory = null;
 
     /**
      * Builds the selected neutral ML auto variant.
@@ -86,9 +87,6 @@ public final class MLNeutralAuto {
         }
         ObjectDetector objectDetector = ctx.objectDetector().get();
 
-        Optional<Trajectory<SwerveSample>> tunnelTrajectory =
-                AutoUtil.loadTrajectory(ChoreoTraj.TunnelPath.name(), shouldMirror);
-
         return Optional.of(
                 AutoUtil.trajectoryOption(
                         trajectories,
@@ -106,8 +104,23 @@ public final class MLNeutralAuto {
                             AutoTrajectory laneOne = routine.trajectory(trajectories.get(3));
                             AutoTrajectory laneTwo = routine.trajectory(trajectories.get(4));
                             AutoTrajectory laneThree = routine.trajectory(trajectories.get(5));
-                            Optional<AutoTrajectory> tunnel =
-                                    tunnelTrajectory.map(routine::trajectory);
+
+                            // Atomic types act as atomically mutable owned references to heap
+                            // memory on the stack,
+                            // similar to Box in Rust or std::unique_ptr in C++. Lambdas capture the
+                            // reference
+                            // rather than the value, allowing for interactions similar to class
+                            // members in a lambda.
+
+                            // Notifier for when to make a descision. There should only be one
+                            // reader,
+                            // and it should always set this back to false immediately after it has
+                            // finished.
+                            AtomicBoolean queueDecision = new AtomicBoolean(false);
+
+                            // The descision that has been made
+                            AtomicReference<AutoTrajectory> selectedLane =
+                                    new AtomicReference<>(fallback);
 
                             AutoUtil.bindEvents(
                                     ctx, start, decision, laneOne, laneTwo, laneThree, fallback);
@@ -127,50 +140,50 @@ public final class MLNeutralAuto {
                                                             Set.of()),
                                                     start.spawnCmd()));
 
+                            routine.observe(queueDecision::get)
+                                    .onTrue(
+                                            Commands.sequence(
+                                                    Commands.runOnce(
+                                                            () -> queueDecision.set(false)),
+                                                    decision.spawnCmd()));
+
                             start.done()
                                     .onTrue(
-                                            AutoCommands.shootThenFollow(
-                                                    ctx, 3.0, decision)); // works up to here
+                                            Commands.sequence(
+                                                    AutoCommands.shootThenPrep(ctx, 3.0),
+                                                    Commands.runOnce(
+                                                            () -> queueDecision.set(true))));
 
-                            // ML loop: decicde on lane -> follow best lane -> shoot -> path to
-                            // decision pose
                             decision.done()
                                     .onTrue(
                                             Commands.sequence(
-                                                            Commands.waitSeconds(0.05),
-                                                            Commands.runOnce(
-                                                                    () -> {
-                                                                        int lane =
-                                                                                AutoCommands
-                                                                                        .getBestLane(
-                                                                                                objectDetector)
-                                                                                        .orElse(-1);
-                                                                        laneTrajectory =
-                                                                                switch (lane) {
-                                                                                    case 0 ->
-                                                                                            laneOne;
-                                                                                    case 1 ->
-                                                                                            laneTwo;
-                                                                                    case 2 ->
-                                                                                            laneThree;
-                                                                                    default ->
-                                                                                            fallback;
-                                                                                };
-                                                                        Logger.recordOutput(
-                                                                                "Detection/ChosenLane",
-                                                                                lane);
-                                                                    }),
-                                                            Commands.defer(
-                                                                    () ->
-                                                                            AutoCommands
-                                                                                    .followThenShoot(
-                                                                                            ctx,
-                                                                                            3.0,
-                                                                                            laneTrajectory),
-                                                                    Set.of()),
-                                                            decision.spawnCmd(),
-                                                            Commands.waitUntil(decision.done()))
-                                                    .repeatedly()); // WIP
+                                                    Commands.waitSeconds(0.05),
+                                                    Commands.runOnce(
+                                                            () -> {
+                                                                int lane =
+                                                                        AutoCommands.getBestLane(
+                                                                                        objectDetector)
+                                                                                .orElse(-1);
+                                                                selectedLane.set(
+                                                                        switch (lane) {
+                                                                            case 0 -> laneOne;
+                                                                            case 1 -> laneTwo;
+                                                                            case 2 -> laneThree;
+                                                                            default -> fallback;
+                                                                        });
+                                                                Logger.recordOutput(
+                                                                        "Detection/ChosenLane",
+                                                                        lane);
+                                                            }),
+                                                    Commands.defer(
+                                                            () ->
+                                                                    AutoCommands.followThenPrep(
+                                                                            ctx,
+                                                                            3.0,
+                                                                            selectedLane.get()),
+                                                            Set.of()),
+                                                    Commands.runOnce(
+                                                            () -> queueDecision.set(true))));
 
                             return routine;
                         }));
