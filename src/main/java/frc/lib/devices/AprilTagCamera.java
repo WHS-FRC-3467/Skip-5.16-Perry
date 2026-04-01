@@ -228,25 +228,12 @@ public class AprilTagCamera {
 
         CameraOutput cameraOutput = findCameraOutput(frame, cameraIndex);
         if (cameraOutput == null) {
-            long resolvedCaptureTimestampUs =
-                    captureTimestampUs != 0 ? captureTimestampUs : frame.timestampUs();
-            long resolvedPublishTimestampUs =
-                    publishTimestampUs != 0 ? publishTimestampUs : resolvedCaptureTimestampUs;
-            return createEmptyC2Result(resolvedCaptureTimestampUs, resolvedPublishTimestampUs);
+            return createEmptyC2Result(captureTimestampUs, publishTimestampUs);
         }
-
-        long resolvedCaptureTimestampUs =
-                captureTimestampUs != 0
-                        ? captureTimestampUs
-                        : (cameraOutput.timestampUs() != 0
-                                ? cameraOutput.timestampUs()
-                                : frame.timestampUs());
-        long resolvedPublishTimestampUs =
-                publishTimestampUs != 0 ? publishTimestampUs : resolvedCaptureTimestampUs;
 
         CameraObservation observation = cameraOutput.cameraObservation();
         if (observation == null || observation.solution0() == null) {
-            return createEmptyC2Result(resolvedCaptureTimestampUs, resolvedPublishTimestampUs);
+            return createEmptyC2Result(captureTimestampUs, publishTimestampUs);
         }
 
         PoseSolution primarySolution = observation.solution0();
@@ -313,8 +300,8 @@ public class AprilTagCamera {
 
         return new PhotonPipelineResult(
                 c2SequenceId++,
-                resolvedCaptureTimestampUs,
-                resolvedPublishTimestampUs,
+                captureTimestampUs,
+                publishTimestampUs,
                 0,
                 targets,
                 multitagResult);
