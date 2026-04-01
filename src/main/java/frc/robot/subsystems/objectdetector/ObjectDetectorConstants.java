@@ -189,9 +189,7 @@ public class ObjectDetectorConstants {
         RobotState robotState = RobotState.getInstance();
         switch (Constants.currentMode) {
             case REAL:
-                // Real IO, inputs = PhotonVision implementation of ObjectDetectionIO
-                return new ObjectDetector(
-                        CAMERA0_NAME, new ObjectDetectionIOPhotonVision(CAMERA0_NAME));
+                return new ObjectDetector(CAMERA0_NAME, new ObjectDetectionIOC2());
             case SIM:
                 // Sim IO, inputs = sim implementation of ObjectionDetectionIO
                 return new ObjectDetector(

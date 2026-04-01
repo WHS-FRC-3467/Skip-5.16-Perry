@@ -19,8 +19,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.common.dataflow.structures.Packet;
 import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.util.List;
 
@@ -29,6 +29,8 @@ import java.util.List;
  * PhotonVision library to detect objects.
  */
 public class ObjectDetectionIOPhotonVision implements ObjectDetectionIO {
+    private static final byte[] PHOTON_RESULT_MAGIC = new byte[] {'P', 'H', 'O', 'T', 'O', 'N', 1};
+
     protected final PhotonCamera camera;
     protected final String cameraName;
     private final Alert disconnectedAlert;
@@ -57,6 +59,9 @@ public class ObjectDetectionIOPhotonVision implements ObjectDetectionIO {
         inputs.connected = camera.isConnected();
         if (!inputs.connected) {
             disconnectedAlert.set(true);
+            inputs.rawResults = new byte[0][];
+            inputs.captureTimestampsUs = new long[0];
+            inputs.publishTimestampsUs = new long[0];
             return;
         }
         /* Update results. */
@@ -65,14 +70,41 @@ public class ObjectDetectionIOPhotonVision implements ObjectDetectionIO {
         // List retrieved via .getAllUnreadResults() is FIFO, max size 20, and each call clears
         // the queue. Call once per loop().
         List<PhotonPipelineResult> result = camera.getAllUnreadResults();
-        // Manipulating targets data when result is empty may result in null pointer exception.
         if (result.isEmpty()) {
+            inputs.rawResults = new byte[0][];
+            inputs.captureTimestampsUs = new long[0];
+            inputs.publishTimestampsUs = new long[0];
             return;
         }
-        // Update latestTargets field of ObjectDetectionIOInputs class with most recent set of
-        // targets.
-        inputs.latestTargets =
-                // Array of PhotonTrackedTargets from latest pipeline result.
-                result.get(0).getTargets().toArray(PhotonTrackedTarget[]::new);
+
+        inputs.rawResults =
+                result.stream()
+                        .map(ObjectDetectionIOPhotonVision::packPhotonResult)
+                        .toArray(byte[][]::new);
+        inputs.captureTimestampsUs =
+                result.stream()
+                        .mapToLong(unread -> unread.metadata.captureTimestampMicros)
+                        .toArray();
+        inputs.publishTimestampsUs =
+                result.stream()
+                        .mapToLong(unread -> unread.metadata.publishTimestampMicros)
+                        .toArray();
+    }
+
+    public static byte[] getPhotonResultMagic() {
+        byte[] copy = new byte[PHOTON_RESULT_MAGIC.length];
+        System.arraycopy(PHOTON_RESULT_MAGIC, 0, copy, 0, PHOTON_RESULT_MAGIC.length);
+        return copy;
+    }
+
+    private static byte[] packPhotonResult(PhotonPipelineResult result) {
+        Packet packet = new Packet(512);
+        PhotonPipelineResult.photonStruct.pack(packet, result);
+        byte[] packedResult = packet.getWrittenDataCopy();
+        byte[] rawResult = new byte[PHOTON_RESULT_MAGIC.length + packedResult.length];
+        System.arraycopy(PHOTON_RESULT_MAGIC, 0, rawResult, 0, PHOTON_RESULT_MAGIC.length);
+        System.arraycopy(
+                packedResult, 0, rawResult, PHOTON_RESULT_MAGIC.length, packedResult.length);
+        return rawResult;
     }
 }

@@ -299,12 +299,7 @@ public class AprilTagCamera {
         }
 
         return new PhotonPipelineResult(
-                c2SequenceId++,
-                captureTimestampUs,
-                publishTimestampUs,
-                0,
-                targets,
-                multitagResult);
+                c2SequenceId++, captureTimestampUs, publishTimestampUs, 0, targets, multitagResult);
     }
 
     private CameraOutput findCameraOutput(Frame frame, int cameraIndex) {

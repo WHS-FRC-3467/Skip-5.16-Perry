@@ -28,10 +28,19 @@ import edu.wpi.first.units.measure.Distance;
 
 import frc.lib.io.objectdetection.ObjectDetectionIO;
 import frc.lib.io.objectdetection.ObjectDetectionIO.ObjectDetectionIOInputs;
+import frc.lib.io.objectdetection.ObjectDetectionIOPhotonVision;
+
+import objectdetections.Detection;
+import objectdetections.DetectionFrame;
 
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.common.dataflow.structures.Packet;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.targeting.TargetCorner;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,11 +53,16 @@ import java.util.Optional;
  * ML object detection as well as HSV Color detection.
  */
 public class ObjectDetection {
+    private static final byte[] PHOTON_RESULT_MAGIC =
+            ObjectDetectionIOPhotonVision.getPhotonResultMagic();
+    private static final List<TargetCorner> EMPTY_DETECTED_CORNERS = List.of();
+
     // Inputs data structure
     private final ObjectDetectionIOInputs inputs = new ObjectDetectionIOInputs();
     // IO implementation of ObjectDetectionIO (how inputs data structure is populated)
     private final ObjectDetectionIO io;
     private final String cameraName;
+    private PhotonTrackedTarget[] latestTargets = new PhotonTrackedTarget[0];
 
     /**
      * Represents an Object Detection observation.
@@ -95,6 +109,15 @@ public class ObjectDetection {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs(cameraName, inputs);
+        if (!inputs.connected) {
+            latestTargets = new PhotonTrackedTarget[0];
+            return;
+        }
+
+        PhotonTrackedTarget[] decodedTargets = decodeLatestTargets();
+        if (decodedTargets != null) {
+            latestTargets = decodedTargets;
+        }
     }
 
     /**
@@ -103,7 +126,88 @@ public class ObjectDetection {
      * @return Array of object information from latest pipeline result
      */
     public PhotonTrackedTarget[] getTargets() {
-        return inputs.latestTargets;
+        return latestTargets;
+    }
+
+    private PhotonTrackedTarget[] decodeLatestTargets() {
+        for (int i = inputs.rawResults.length - 1; i >= 0; i--) {
+            PhotonTrackedTarget[] decodedTargets = decodeTargets(inputs.rawResults[i]);
+            if (decodedTargets != null) {
+                return decodedTargets;
+            }
+        }
+        return null;
+    }
+
+    private PhotonTrackedTarget[] decodeTargets(byte[] rawResult) {
+        if (rawResult == null || rawResult.length == 0) {
+            return null;
+        }
+        if (isPhotonResult(rawResult)) {
+            return decodePhotonTargets(rawResult);
+        }
+        return decodeC2Targets(rawResult);
+    }
+
+    private static boolean isPhotonResult(byte[] rawResult) {
+        return rawResult.length > PHOTON_RESULT_MAGIC.length
+                && Arrays.equals(
+                        PHOTON_RESULT_MAGIC, Arrays.copyOf(rawResult, PHOTON_RESULT_MAGIC.length));
+    }
+
+    private static PhotonTrackedTarget[] decodePhotonTargets(byte[] rawResult) {
+        try {
+            byte[] serializedResult =
+                    Arrays.copyOfRange(rawResult, PHOTON_RESULT_MAGIC.length, rawResult.length);
+            return org.photonvision.targeting.PhotonPipelineResult.photonStruct
+                    .unpack(new Packet(serializedResult))
+                    .getTargets()
+                    .toArray(PhotonTrackedTarget[]::new);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static PhotonTrackedTarget[] decodeC2Targets(byte[] rawResult) {
+        DetectionFrame frame;
+        try {
+            frame = DetectionFrame.getRootAsDetectionFrame(ByteBuffer.wrap(rawResult));
+        } catch (RuntimeException e) {
+            return null;
+        }
+
+        PhotonTrackedTarget[] targets = new PhotonTrackedTarget[frame.detectionsLength()];
+        for (int i = 0; i < frame.detectionsLength(); i++) {
+            Detection detection = frame.detections(i);
+            if (detection == null) {
+                return null;
+            }
+            targets[i] = toPhotonTarget(detection);
+        }
+        return targets;
+    }
+
+    private static PhotonTrackedTarget toPhotonTarget(Detection detection) {
+        List<TargetCorner> minAreaRectCorners =
+                List.of(
+                        new TargetCorner(detection.x0(), detection.y0()),
+                        new TargetCorner(detection.x1(), detection.y0()),
+                        new TargetCorner(detection.x1(), detection.y1()),
+                        new TargetCorner(detection.x0(), detection.y1()));
+
+        return new PhotonTrackedTarget(
+                detection.yawDeg(),
+                detection.pitchDeg(),
+                detection.areaPx(),
+                0.0,
+                -1,
+                detection.classId(),
+                (float) detection.confidence(),
+                Transform3d.kZero,
+                Transform3d.kZero,
+                0.0,
+                minAreaRectCorners,
+                EMPTY_DETECTED_CORNERS);
     }
 
     /**

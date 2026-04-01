@@ -17,7 +17,6 @@ package frc.lib.io.objectdetection;
 
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
  * Standardized interface for ObjectDetection-IO used in FRC. This interface is often implemented
@@ -35,33 +34,35 @@ public interface ObjectDetectionIO {
         /** Whether the camera is connected. */
         public boolean connected = false;
 
-        /**
-         * Each index of latestPhotonTrackedTargets is a single {@link PhotonTrackedTarget} with all
-         * the data needed for each target
-         */
-        public PhotonTrackedTarget[] latestTargets = new PhotonTrackedTarget[0];
+        /** Raw unread frame payloads from the detector since last update. */
+        public byte[][] rawResults = new byte[0][];
+
+        /** Capture timestamps for unread results, in microseconds. */
+        public long[] captureTimestampsUs = new long[0];
+
+        /** Publish timestamps for unread results, in microseconds. */
+        public long[] publishTimestampsUs = new long[0];
 
         @Override
         public void toLog(LogTable table) {
-            int targetsLength = latestTargets.length;
-            table.put("TargetsLength", targetsLength);
-
-            String targetsPrefix = "Targets/";
-            for (int i = 0; i < targetsLength; i++) {
-                String targetKey = targetsPrefix + i;
-                table.put(targetKey, latestTargets[i]);
+            table.put("Connected", connected);
+            table.put("ResultsLength", rawResults.length);
+            table.put("CaptureTimestampsUs", captureTimestampsUs);
+            table.put("PublishTimestampsUs", publishTimestampsUs);
+            for (int i = 0; i < rawResults.length; i++) {
+                table.put("RawResult/" + i, rawResults[i]);
             }
         }
 
         @Override
         public void fromLog(LogTable table) {
-            int targetsLength = table.get("TargetsLength", 0);
-            latestTargets = new PhotonTrackedTarget[targetsLength];
-
-            String targetsPrefix = "Targets/";
-            for (int i = 0; i < targetsLength; i++) {
-                String targetKey = targetsPrefix + i;
-                latestTargets[i] = table.get(targetKey, (PhotonTrackedTarget) null);
+            connected = table.get("Connected", false);
+            int resultsLength = table.get("ResultsLength", 0);
+            rawResults = new byte[resultsLength][];
+            captureTimestampsUs = table.get("CaptureTimestampsUs", new long[0]);
+            publishTimestampsUs = table.get("PublishTimestampsUs", new long[0]);
+            for (int i = 0; i < resultsLength; i++) {
+                rawResults[i] = table.get("RawResult/" + i, new byte[0]);
             }
         }
     }
