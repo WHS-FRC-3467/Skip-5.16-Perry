@@ -35,13 +35,6 @@ public record ChoreoTraj(
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(-1.5708)),
         new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
     );
-    public static final ChoreoTraj NeutralBump_ML_Start = new ChoreoTraj(
-        "NeutralBump_ML_Start",
-        OptionalInt.empty(),
-        5.62225,
-        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.06667, 5.47686, Rotation2d.fromRadians(-0.80285))
-    );
     public static final ChoreoTraj Neutral1Nashoba = new ChoreoTraj(
         "Neutral1Nashoba",
         OptionalInt.empty(),
@@ -56,60 +49,39 @@ public record ChoreoTraj(
         new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368)),
         new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
     );
-    public static final ChoreoTraj NeutralTrench_ML_Decision = new ChoreoTraj(
-        "NeutralTrench_ML_Decision",
-        OptionalInt.empty(),
-        2.19337,
-        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368)),
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708))
-    );
-    public static final ChoreoTraj NeutralTrench_ML_SafeLeft = new ChoreoTraj(
-        "NeutralTrench_ML_SafeLeft",
-        OptionalInt.empty(),
-        5.04474,
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
-    );
-    public static final ChoreoTraj NeutralTrench_ML_SafeMiddle = new ChoreoTraj(
-        "NeutralTrench_ML_SafeMiddle",
-        OptionalInt.empty(),
-        4.67093,
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
-    );
-    public static final ChoreoTraj NeutralTrench_ML_SafeRight = new ChoreoTraj(
-        "NeutralTrench_ML_SafeRight",
-        OptionalInt.empty(),
-        5.18264,
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
-    );
     public static final ChoreoTraj NeutralBump_ML_Decision = new ChoreoTraj(
         "NeutralBump_ML_Decision",
         OptionalInt.empty(),
-        2.77952,
+        2.80353,
         new Pose2d(3.06667, 5.47686, Rotation2d.fromRadians(-0.80285)),
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708))
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708))
     );
     public static final ChoreoTraj NeutralBump_ML_SafeLeft = new ChoreoTraj(
         "NeutralBump_ML_SafeLeft",
         OptionalInt.empty(),
-        4.5983,
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
+        4.63964,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.02006, 5.56034, Rotation2d.fromRadians(-0.80285))
     );
     public static final ChoreoTraj NeutralBump_ML_SafeMiddle = new ChoreoTraj(
         "NeutralBump_ML_SafeMiddle",
         OptionalInt.empty(),
-        4.62671,
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
+        4.59899,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.06667, 5.47686, Rotation2d.fromRadians(-0.80285))
     );
     public static final ChoreoTraj NeutralBump_ML_SafeRight = new ChoreoTraj(
         "NeutralBump_ML_SafeRight",
         OptionalInt.empty(),
-        4.69984,
-        new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
+        4.6642,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.06667, 5.47686, Rotation2d.fromRadians(-0.80285))
+    );
+    public static final ChoreoTraj NeutralBump_ML_Start = new ChoreoTraj(
+        "NeutralBump_ML_Start",
+        OptionalInt.empty(),
+        5.62225,
+        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.06667, 5.47686, Rotation2d.fromRadians(-0.80285))
     );
     public static final ChoreoTraj NeutralSafe1 = new ChoreoTraj(
@@ -133,6 +105,34 @@ public record ChoreoTraj(
         new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368)),
         new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
     );
+    public static final ChoreoTraj NeutralTrench_ML_Decision = new ChoreoTraj(
+        "NeutralTrench_ML_Decision",
+        OptionalInt.empty(),
+        2.1942,
+        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368)),
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    public static final ChoreoTraj NeutralTrench_ML_SafeLeft = new ChoreoTraj(
+        "NeutralTrench_ML_SafeLeft",
+        OptionalInt.empty(),
+        5.08579,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
+    );
+    public static final ChoreoTraj NeutralTrench_ML_SafeMiddle = new ChoreoTraj(
+        "NeutralTrench_ML_SafeMiddle",
+        OptionalInt.empty(),
+        4.64744,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
+    );
+    public static final ChoreoTraj NeutralTrench_ML_SafeRight = new ChoreoTraj(
+        "NeutralTrench_ML_SafeRight",
+        OptionalInt.empty(),
+        5.13888,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
+    );
     public static final ChoreoTraj TunnelPath = new ChoreoTraj(
         "TunnelPath",
         OptionalInt.empty(),
@@ -148,20 +148,20 @@ public record ChoreoTraj(
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
         Map.entry("Depot1", Depot1),
         Map.entry("Neutral1", Neutral1),
-        Map.entry("NeutralBump_ML_Start", NeutralBump_ML_Start),
         Map.entry("Neutral1Nashoba", Neutral1Nashoba),
         Map.entry("Neutral2", Neutral2),
-        Map.entry("NeutralTrench_ML_Decision", NeutralTrench_ML_Decision),
-        Map.entry("NeutralTrench_ML_SafeLeft", NeutralTrench_ML_SafeLeft),
-        Map.entry("NeutralTrench_ML_SafeMiddle", NeutralTrench_ML_SafeMiddle),
-        Map.entry("NeutralTrench_ML_SafeRight", NeutralTrench_ML_SafeRight),
         Map.entry("NeutralBump_ML_Decision", NeutralBump_ML_Decision),
         Map.entry("NeutralBump_ML_SafeLeft", NeutralBump_ML_SafeLeft),
         Map.entry("NeutralBump_ML_SafeMiddle", NeutralBump_ML_SafeMiddle),
         Map.entry("NeutralBump_ML_SafeRight", NeutralBump_ML_SafeRight),
+        Map.entry("NeutralBump_ML_Start", NeutralBump_ML_Start),
         Map.entry("NeutralSafe1", NeutralSafe1),
         Map.entry("NeutralSafe1Nashoba", NeutralSafe1Nashoba),
         Map.entry("NeutralSafe2", NeutralSafe2),
+        Map.entry("NeutralTrench_ML_Decision", NeutralTrench_ML_Decision),
+        Map.entry("NeutralTrench_ML_SafeLeft", NeutralTrench_ML_SafeLeft),
+        Map.entry("NeutralTrench_ML_SafeMiddle", NeutralTrench_ML_SafeMiddle),
+        Map.entry("NeutralTrench_ML_SafeRight", NeutralTrench_ML_SafeRight),
         Map.entry("TunnelPath", TunnelPath)
     );
 

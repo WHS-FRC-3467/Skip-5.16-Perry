@@ -137,7 +137,7 @@ public final class MLNeutralAuto {
                             decision.done()
                                     .onTrue(
                                             Commands.sequence(
-                                                            Commands.waitSeconds(0.1),
+                                                            Commands.waitSeconds(0.05),
                                                             Commands.runOnce(
                                                                     () -> {
                                                                         int lane =
@@ -158,8 +158,7 @@ public final class MLNeutralAuto {
                                                                                 };
                                                                         Logger.recordOutput(
                                                                                 "Detection/ChosenLane",
-                                                                                laneTrajectory
-                                                                                        .toString());
+                                                                                lane);
                                                                     }),
                                                             Commands.defer(
                                                                     () ->

@@ -166,12 +166,20 @@ public class AutoCommands {
         double laneX = bestLaneTarget.get().x();
 
         // Three pre-defined ML lanes, so find the closest one to the optimal lane
+        boolean shouldFlip = FieldUtil.shouldFlip();
+        double x1 = ChoreoVars.Poses.LanePose1ML.getMeasureX().in(Meters);
+        double x2 = ChoreoVars.Poses.LanePose2ML.getMeasureX().in(Meters);
+        double x3 = ChoreoVars.Poses.LanePose3ML.getMeasureX().in(Meters);
         double[] lanes =
                 new double[] {
-                    ChoreoVars.Poses.LanePose1ML.getX(),
-                    ChoreoVars.Poses.LanePose2ML.getX(),
-                    ChoreoVars.Poses.LanePose3ML.getX()
+                    shouldFlip ? FieldUtil.applyX(x1) : x1,
+                    shouldFlip ? FieldUtil.applyX(x2) : x2,
+                    shouldFlip ? FieldUtil.applyX(x3) : x3
                 };
+
+        Logger.recordOutput("Detection/Lane1", lanes[0]);
+        Logger.recordOutput("Detection/Lane2", lanes[1]);
+        Logger.recordOutput("Detection/Lane3", lanes[2]);
 
         int bestIndex = -1;
         double bestDistance = Double.MAX_VALUE;

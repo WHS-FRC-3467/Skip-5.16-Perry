@@ -67,7 +67,7 @@ public class ObjectDetector extends SubsystemBase {
      */
     @Getter @Setter
     private static Translation2d bottomLeftCorner =
-            new Translation2d(Meters.of(5.22), Meters.of(6.49));
+            new Translation2d(Meters.of(5.5), Meters.of(6.49));
 
     /**
      * Top right coordinate of a rectangular bounding box representing the Object Detection ROI
@@ -99,7 +99,7 @@ public class ObjectDetector extends SubsystemBase {
     @Getter private Optional<LaneTarget> bestLaneTarget = Optional.empty();
 
     /** The number of arguments to the histogram. */
-    private static final int NUM_LANES = 6;
+    private static final int NUM_LANES = 3;
 
     /**
      * Constructs a new ObjectDetector subsystem with the specified IO implementation. Creates an
