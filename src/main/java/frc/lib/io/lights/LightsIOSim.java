@@ -78,10 +78,13 @@ public class LightsIOSim implements LightsIO {
     }
 
     /**
+     * Returns the value of {@code requestInfo.get(key)} if it is present, otherwise logging the
+     * error and returning {@code "EmptyKey"}
+     *
      * @param key Map Key
-     * @return Value From Map Of Key
+     * @return Value or {@code "EmptyKey"} if unset
      */
-    String checkAndGet(String key) {
+    private String checkAndGet(String key) {
         if (requestInfo.containsKey(key)) {
             return requestInfo.get(key);
         } else {
@@ -101,7 +104,7 @@ public class LightsIOSim implements LightsIO {
         if (requestInfo.containsKey("Color")) {
 
             String colorString = requestInfo.get("Color").substring(5);
-            String[] colorSplit = colorString.split(", ");
+            String[] colorSplit = colorString.split(", ", -1);
             return new Color(
                     Integer.valueOf(colorSplit[0]),
                     Integer.valueOf(colorSplit[1]),
@@ -112,8 +115,12 @@ public class LightsIOSim implements LightsIO {
         }
     }
 
+    /**
+     * Translates CTRE animation requests into wpilib animations
+     *
+     * @param request The request with animation data
+     */
     @Override
-    /** translates CTRE animation requests into wpilib animations */
     public void setAnimation(ControlRequest request) {
 
         this.requestInfo = request.getControlInfo();
