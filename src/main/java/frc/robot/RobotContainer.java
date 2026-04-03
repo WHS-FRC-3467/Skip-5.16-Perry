@@ -193,13 +193,7 @@ public class RobotContainer {
                         () -> -controller.getRightX()));
 
         HubState hubState = HubState.getInstance();
-        shooter.setDefaultCommand(
-                Commands.either(
-                        shooter.spinUpShooter(),
-                        Commands.none(),
-                        hubState.getEnablingSoon()
-                                .or(hubState.getHubActive())
-                                .or(DriverStation::isAutonomous)));
+        shooter.setDefaultCommand(shooter.spinUpShooter());
 
         Trigger readyToShootAtCurrentTarget =
                 shooter.profileComplete.and(
@@ -344,7 +338,10 @@ public class RobotContainer {
         // Operator Y: Manual Spinup
         operatorController
                 .y()
-                .whileTrue(shooter.shoot().withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+                .whileTrue(
+                        shooter.spinUpShooter()
+                                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+
         controller
                 .rightTrigger()
                 .negate()

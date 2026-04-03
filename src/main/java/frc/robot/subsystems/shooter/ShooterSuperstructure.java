@@ -38,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.mechanisms.rotary.RotaryMechanism;
+import frc.lib.util.AlwaysTunableNumber;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
@@ -126,8 +127,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new LoggedTunableNumber(getName() + "/Tuning/HoodAngleDegrees", 0.0);
 
     // Default trim to apply
-    private final LoggedTunableNumber flywheelTrimDefaultRPS =
-            new LoggedTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 1.0);
+    private final AlwaysTunableNumber flywheelTrimDefaultRPS =
+            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 0.5);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
