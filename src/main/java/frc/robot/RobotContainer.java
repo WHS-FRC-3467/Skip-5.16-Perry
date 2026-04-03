@@ -443,9 +443,6 @@ public class RobotContainer {
             /* Starting pose checker for auto */
             autoPreviewField.setRobotPose(robotState.getEstimatedPose());
 
-            /* Starting pose checker for auto */
-            autoPreviewField.setRobotPose(robotState.getEstimatedPose());
-
             if (poses == null || poses.isEmpty()) {
                 // No path defined; show defaults
                 startPose = robotState.getEstimatedPose();
