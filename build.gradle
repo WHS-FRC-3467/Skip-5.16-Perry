@@ -416,7 +416,7 @@ spotless {
     java {
         // Target all Java files
         target '**/*.java'
-        targetExclude '**/generated/**'
+        targetExclude '**/generated/**', 'third_party/**', 'C2/**'
         googleJavaFormat().reorderImports(true).aosp()
         trimTrailingWhitespace()
         endWithNewline()
@@ -435,6 +435,7 @@ spotless {
     // Configuration for miscellaneous files (e.g., Gradle files, Markdown)
     format 'misc', {
         target '**/*.gradle', '**/*.md', '**/.gitignore'
+        targetExclude 'third_party/**', 'C2/**'
         leadingTabsToSpaces()
         trimTrailingWhitespace()
         endWithNewline()
