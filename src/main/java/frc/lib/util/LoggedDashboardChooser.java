@@ -169,7 +169,7 @@ public class LoggedDashboardChooser<V> extends LoggedNetworkInput {
         }
         Logger.processInputs(prefix, inputs);
 
-        if (listener != null && !selectedValue.equals(lastSelected)) {
+        if (selectedValue != null && listener != null && !selectedValue.equals(lastSelected)) {
             listener.accept(get());
         }
         lastSelected = selectedValue;
