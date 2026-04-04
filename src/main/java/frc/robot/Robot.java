@@ -177,7 +177,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void disabledPeriodic() {
         // Update auto tab
-        robotContainer.checkStartPose();
+        robotContainer.checkStartPose(elasticDisplayCounter);
     }
 
     /**
