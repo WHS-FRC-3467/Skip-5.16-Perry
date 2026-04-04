@@ -43,8 +43,7 @@ import frc.lib.util.LoggedValue;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
-import frc.robot.commands.autos.tuning.FeedforwardCharacterizationAuto;
-import frc.robot.commands.autos.tuning.WheelCharacterizationAuto;
+import frc.robot.commands.autos.tuning.*;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
 import frc.robot.subsystems.drive.Drive;
@@ -54,8 +53,6 @@ import frc.robot.subsystems.indexer.IndexerConstants;
 import frc.robot.subsystems.intake.IntakeLinearConstants;
 import frc.robot.subsystems.intake.IntakeSuperstructure;
 import frc.robot.subsystems.intake.IntakeSuperstructureConstants;
-import frc.robot.subsystems.objectdetector.ObjectDetector;
-import frc.robot.subsystems.objectdetector.ObjectDetectorConstants;
 import frc.robot.subsystems.shooter.ShooterSuperstructure;
 import frc.robot.subsystems.shooter.ShooterSuperstructureConstants;
 import frc.robot.subsystems.tower.Tower;
@@ -64,6 +61,9 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.HubState;
 import frc.robot.util.RobotSim;
 
+import org.littletonrobotics.junction.Logger;
+
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
@@ -88,7 +88,7 @@ public class RobotContainer {
     private final Indexer indexer;
     private final Tower tower;
     // private final LEDs leds;
-    private final ObjectDetector objectDetector;
+    // private final ObjectDetector objectDetector;
 
     // Reusable composite command to stop/stow/eject used in multiple bindings
     private final Command stopAllShooterAndRetract;
@@ -102,6 +102,7 @@ public class RobotContainer {
     // Dashboard inputs
     private final LoggedDashboardChooser<AutoOption> autoChooser;
     public final Field2d autoPreviewField = new Field2d();
+    private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
     // Change-only loggers for auto start pose checks
     private final LoggedValue<String> loggedStartPose;
@@ -122,7 +123,7 @@ public class RobotContainer {
         VisionConstants.create();
         // VisionOdometryCharacterizer.enable();
         // leds = LEDsConstants.get();
-        objectDetector = ObjectDetectorConstants.get();
+        // objectDetector = ObjectDetectorConstants.get();
 
         stopAllShooterAndRetract =
                 Commands.parallel(
@@ -136,8 +137,7 @@ public class RobotContainer {
             RobotSim.getInstance().addMechanismData(drive, shooter, indexer, intake);
         }
         AutoContext ctx =
-                AutoContext.create(
-                        drive, intake, indexer, tower, shooter, Optional.of(objectDetector));
+                AutoContext.create(drive, intake, indexer, tower, shooter, Optional.empty());
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices");
         SmartDashboard.putData("Auto Preview", autoPreviewField);
@@ -163,27 +163,39 @@ public class RobotContainer {
         //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
         // Citrus Autos
-        C1678Auto.create(ctx, false, false).ifPresent(a -> autoChooser.addOption("STSE-Left", a));
-        C1678Auto.create(ctx, true, false).ifPresent(a -> autoChooser.addOption("STSE-Right", a));
-        C1678Auto.create(ctx, false, true)
-                .ifPresent(a -> autoChooser.addOption("STSE-Safe-Left", a));
-        C1678Auto.create(ctx, true, true)
-                .ifPresent(a -> autoChooser.addOption("STSE-Safe-Right", a));
+        C1678Auto.create(ctx, false, false)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
+        C1678Auto.create(ctx, true, false)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
+
+        // C1678Auto.create(ctx, false, true)
+        //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
+        // C1678Auto.create(ctx, true, true)
+        //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Right", a));
+
+        // DepotAuto.create(ctx, false, false).ifPresent(a -> autoChooser.addOption("Depot", a));
 
         autoChooser.onChange(
                 auto -> {
                     if (auto == null) {
+                        rawAutoPreviewPoses = new Pose2d[] {};
                         autoPreviewField.getObject("path").setPoses(new Pose2d[] {});
                         return;
                     }
-                    var pathPoses =
-                            auto.previewPoses().stream()
+                    var pathPoses = auto.previewPoses().toArray(Pose2d[]::new);
+                    if (pathPoses.length == 0) {
+                        rawAutoPreviewPoses = new Pose2d[] {};
+                        return;
+                    }
+                    pathPoses[0] = auto.startingPose();
+                    rawAutoPreviewPoses = pathPoses;
+
+                    // Apply alliance flip for initial preview
+                    var flippedPoses =
+                            Arrays.stream(rawAutoPreviewPoses)
                                     .map(FieldUtil::apply)
                                     .toArray(Pose2d[]::new);
-                    if (pathPoses.length == 0) return;
-                    pathPoses[0] = FieldUtil.apply(auto.startingPose());
-
-                    autoPreviewField.getObject("path").setPoses(pathPoses);
+                    autoPreviewField.getObject("path").setPoses(flippedPoses);
 
                     auto.command();
                 });
@@ -191,8 +203,8 @@ public class RobotContainer {
         autoChooser.addOption(
                 "Drive Wheel Radius Characterization", WheelCharacterizationAuto.create(ctx));
 
-        autoChooser.addOption(
-                "Feedforward Characterization", FeedforwardCharacterizationAuto.create(ctx));
+        // autoChooser.addOption(
+        //         "Feedforward Characterization", FeedforwardCharacterizationAuto.create(ctx));
 
         // Configure the button bindings
         configureButtonBindings();
@@ -211,6 +223,16 @@ public class RobotContainer {
                         () -> -controller.getLeftY(),
                         () -> -controller.getLeftX(),
                         () -> -controller.getRightX()));
+
+        HubState hubState = HubState.getInstance();
+        shooter.setDefaultCommand(
+                Commands.either(
+                        shooter.spinUpShooter(),
+                        Commands.none(),
+                        hubState.getEnablingSoon()
+                                .or(hubState.getHubActive())
+                                .or(DriverStation::isAutonomous)));
+
         Trigger readyToShootAtCurrentTarget =
                 shooter.profileComplete.and(
                         robotState
@@ -231,7 +253,7 @@ public class RobotContainer {
                                                 robotState.feedLookaheadSeconds),
                                         DriveCommands.staticAimTowardsTarget(drive),
                                         robotState.shouldFeed),
-                                shooter.spinUpShooter(),
+                                shooter.shoot(),
                                 Commands.sequence(
                                         Commands.waitSeconds(0.05),
                                         Commands.waitUntil(readyToShootAtCurrentTarget),
@@ -331,25 +353,30 @@ public class RobotContainer {
         // Operator Y: Manual Spinup
         operatorController
                 .y()
-                .whileTrue(
-                        shooter.spinUpShooter()
-                                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+                .whileTrue(shooter.shoot().withInterruptBehavior(InterruptionBehavior.kCancelSelf));
         controller
                 .rightTrigger()
                 .negate()
                 .and(operatorController.y().negate())
                 .onTrue(shooter.stopFlywheels());
 
-        HubState.getInstance()
-                .getEnablingSoon()
+        hubState.getEnablingSoon()
                 .onTrue(
                         Commands.sequence(
-                                controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                Commands.waitSeconds(0.5),
-                                controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                Commands.waitSeconds(0.5),
-                                controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                Commands.waitSeconds(0.5)));
+                                Commands.sequence(
+                                        controller.rumbleForTime(1.0, Seconds.of(0.5)),
+                                        Commands.waitSeconds(0.5),
+                                        controller.rumbleForTime(1.0, Seconds.of(0.5)),
+                                        Commands.waitSeconds(0.5),
+                                        controller.rumbleForTime(1.0, Seconds.of(0.5)),
+                                        Commands.waitSeconds(0.5)),
+                                Commands.sequence(
+                                        operatorController.rumbleForTime(1.0, Seconds.of(0.5)),
+                                        Commands.waitSeconds(0.5),
+                                        operatorController.rumbleForTime(1.0, Seconds.of(0.5)),
+                                        Commands.waitSeconds(0.5),
+                                        operatorController.rumbleForTime(1.0, Seconds.of(0.5)),
+                                        Commands.waitSeconds(0.5))));
 
         controller
                 .joysticksZeroed
@@ -364,11 +391,14 @@ public class RobotContainer {
      */
     private void initializeDashboard() {
 
+        SmartDashboard.putData(
+                "Home Intake and Shooter",
+                Commands.parallel(intake.homeLinear(), shooter.homeHood()));
+
         // Intake Commands
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Retract", intake.retractIntake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Coast", intake.linearCoast());
-        SmartDashboard.putData("Home", Commands.parallel(intake.homeLinear(), shooter.homeHood()));
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/SlowRetract", intake.slowRetract());
 
         SmartDashboard.putData(
@@ -398,18 +428,6 @@ public class RobotContainer {
                 new DriveToPose(drive, () -> startPose)
                         .withDistanceTolerance(Meters.of(0.04))
                         .withAngularTolerance(Degrees.of(3)));
-        SmartDashboard.putData(
-                "Reset to Test Pose",
-                Commands.runOnce(
-                        () ->
-                                robotState.resetPose(
-                                        FieldUtil.apply(
-                                                new Pose2d(
-                                                        FieldConstants.Hub.TOP_CENTER_POINT.getX()
-                                                                - FieldConstants.Hub
-                                                                        .HUB_SHOT_DISTANCE,
-                                                        FieldConstants.Hub.TOP_CENTER_POINT.getY(),
-                                                        Rotation2d.kZero)))));
     }
 
     /**

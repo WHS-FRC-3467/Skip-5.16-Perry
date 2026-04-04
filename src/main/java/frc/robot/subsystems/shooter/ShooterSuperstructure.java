@@ -15,7 +15,6 @@
 
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -130,15 +129,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // Default trim to apply
     private final LoggedTunableNumber flywheelTrimDefaultRPS =
-            new LoggedTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 0.0);
+            new LoggedTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 1.0);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
-
-    private final LoggedTunableNumber flywheelSlowSpinupTorque =
-            new LoggedTunableNumber(getName() + "/FlywheelSlowSpinupTorque", 16.0);
-    private final LoggedTunableNumber flywheelSlowSpinupDutyCycle =
-            new LoggedTunableNumber(getName() + "/FlywheelSlowSpinupDutyCycle", 0.3);
 
     // User-defined trim at runtime, not including default trim
     private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
@@ -151,7 +145,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     // Linear velocity drop required to detect a shot passing through the shooter, default tuned
     // from auto replay logs. Typically 0.5 - 1 m/s.
     private final LoggedTunableNumber shotDetectionThresholdMPS =
-            new LoggedTunableNumber(getName() + "/ShotDetectionThresholdMPS", 0.65);
+            new LoggedTunableNumber(getName() + "/ShotDetectionThresholdMPS", 0.30);
 
     // Fuel counts
     private @Getter int totalFuelCount = 0;
@@ -176,9 +170,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                             detectFlywheelDrop(
                                     MetersPerSecond.of(shotDetectionThresholdMPS.getAsDouble())));
 
-    // Determines whether the hopper is empty for at least 0.5s while shooting, using
+    // Determines whether the hopper is empty for at least 0.575s while shooting, using
     // staticShotState as a proxy for a shot
-    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.5, DebounceType.kRising);
+    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.575, DebounceType.kRising);
     public final LoggedTrigger hopperEmpty =
             RobotBase.isSimulation()
                     ? new LoggedTrigger(
@@ -387,25 +381,19 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     }
 
     /**
-     * Dynamically spins the flywheel and actuates the hood to the proper values for ANY target shot
-     * given current field-relative robot pose. Valid for ANY target. Perpetual command that never
-     * spins down. Therefore, to end, this should be interrupted by a parent command group or
-     * timed-out.
+     * Dynamically spins up the shooter to prepare for a shot based on the robot's current position
+     * and target. Updates flywheel velocity and hood angle continuously based on distance to
+     * target. This command runs perpetually and must be interrupted or timed out to stop.
      *
-     * @return Dynamically-updating ALL TARGET shooter spin-up command.
+     * @return Command that continuously updates shooter parameters for the current target
      */
-    public Command spinUpShooter() {
+    public Command shoot() {
         return spinUpCommand(
                 this::getDesiredFlywheelVelocity, this::getDesiredHoodAngle, "Spin-Up Shooter");
     }
 
-    public Command slowSpinup() {
-        return this.runOnce(
-                () -> {
-                    flywheelIO.runCurrent(
-                            Amps.of(flywheelSlowSpinupTorque.getAsDouble()),
-                            flywheelSlowSpinupDutyCycle.getAsDouble());
-                });
+    public Command spinUpShooter() {
+        return this.run(() -> spinFlywheel(getDesiredFlywheelVelocity()));
     }
 
     public Command fountain() {
