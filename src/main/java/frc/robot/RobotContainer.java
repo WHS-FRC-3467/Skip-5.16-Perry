@@ -193,13 +193,6 @@ public class RobotContainer {
                         () -> -controller.getRightX()));
 
         HubState hubState = HubState.getInstance();
-        shooter.setDefaultCommand(
-                Commands.either(
-                        shooter.spinUpShooter(),
-                        Commands.none(),
-                        hubState.getEnablingSoon()
-                                .or(hubState.getHubActive())
-                                .or(DriverStation::isAutonomous)));
 
         Trigger readyToShootAtCurrentTarget =
                 shooter.profileComplete.and(
