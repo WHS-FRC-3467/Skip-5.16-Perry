@@ -92,10 +92,10 @@ public abstract class Mechanism<T extends MotorIO> {
         }
         this.radiusMeters = r;
         // initialize logged outputs for linear equivalents
-        this.loggedLinearPosition = new LoggedDouble(this.name + "/LinearPosition");
-        this.loggedLinearPositionError = new LoggedDouble(this.name + "/LinearPositionError");
-        this.loggedLinearVelocity = new LoggedDouble(this.name + "/LinearVelocity");
-        this.loggedLinearVelocityError = new LoggedDouble(this.name + "/LinearVelocityError");
+        this.loggedLinearPosition = new LoggedDouble(this.name + "/LinearPosition", 0.005);
+        this.loggedLinearPositionError = new LoggedDouble(this.name + "/LinearPositionError", 0.005);
+        this.loggedLinearVelocity = new LoggedDouble(this.name + "/LinearVelocity", 0.005);
+        this.loggedLinearVelocityError = new LoggedDouble(this.name + "/LinearVelocityError", 0.005);
         return this;
     }
 
