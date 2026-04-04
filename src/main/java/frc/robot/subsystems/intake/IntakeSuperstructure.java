@@ -165,7 +165,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                                 PIDSlot.SLOT_0,
                                                 cruiseVelocity,
                                                 acceleration)),
-                        runRoller ? runRoller(60.0) : Commands.none(),
+                        runRoller ? runRoller(80.0) : Commands.none(),
                         Commands.waitUntil(
                                 () ->
                                         MathUtil.isNear(
@@ -203,7 +203,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command extendWithRoller(Supplier<AngularVelocity> rollerVelocity, String name) {
         return Commands.sequence(
-                        runRoller(60.0),
+                        runRoller(80.0),
                         moveToPosition(
                                 IntakeLinearConstants.MAX_DISTANCE,
                                 IntakeLinearConstants.CRUISE_VELOCITY,
@@ -226,7 +226,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command retractWithSpeed(LinearVelocity retractSpeed, String name) {
         return Commands.sequence(
-                        runRoller(60.0),
+                        runRoller(80.0),
                         moveToPosition(
                                 retractDistance,
                                 retractSpeed,
