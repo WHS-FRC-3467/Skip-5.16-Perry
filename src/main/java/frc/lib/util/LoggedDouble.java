@@ -6,7 +6,8 @@ import org.littletonrobotics.junction.Logger;
 public class LoggedDouble {
     private final String key;
     private final double tolerance;
-    private Double last = null;
+    private double last;
+    private boolean hasLast = false;
 
     /** No tolerance (exact change required). */
     public LoggedDouble(String key) {
@@ -26,8 +27,9 @@ public class LoggedDouble {
 
     /** Log the value if it differs from the last logged value by more than the tolerance. */
     public void log(double value) {
-        if (last == null) {
+        if (!hasLast) {
             last = value;
+            hasLast = true;
             Logger.recordOutput(key, value);
             return;
         }
@@ -42,11 +44,12 @@ public class LoggedDouble {
     /** Force a log regardless of previous value. */
     public void force(double value) {
         last = value;
+        hasLast = true;
         Logger.recordOutput(key, value);
     }
 
     /** Get last recorded value (may be null). */
     public Double getLast() {
-        return last;
+        return hasLast ? Double.valueOf(last) : null;
     }
 }
