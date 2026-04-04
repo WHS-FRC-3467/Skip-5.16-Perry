@@ -236,7 +236,8 @@ public class AutoCommands {
                                                 robotState
                                                         .getActiveTrajectoryError()
                                                         .gte(pathErrorTol))
-                                        || robotState.forcePathFind.get());
+                                        || robotState.forcePathFind.get())
+                                && robotState.getFieldRegion() == FieldRegion.NEUTRAL_ZONE;
                     }
                 });
     }
