@@ -206,19 +206,20 @@ public class RobotContainer {
                 .rightTrigger()
                 .whileTrue(
                         Commands.parallel(
-                                Commands.either(
-                                        DriveCommands.joystickDriveFacingFutureTarget(
-                                                drive,
-                                                () -> -controller.getLeftY() * 0.4,
-                                                () -> -controller.getLeftX() * 0.4,
-                                                robotState.feedLookaheadSeconds),
-                                        DriveCommands.staticAimTowardsTarget(drive),
-                                        robotState.shouldFeed),
-                                shooter.shoot(),
-                                Commands.sequence(
-                                        Commands.waitSeconds(0.05),
-                                        Commands.waitUntil(readyToShootAtCurrentTarget),
-                                        Commands.parallel(indexer.shoot(), tower.shoot()))))
+                                        Commands.either(
+                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                        drive,
+                                                        () -> -controller.getLeftY() * 0.4,
+                                                        () -> -controller.getLeftX() * 0.4,
+                                                        robotState.feedLookaheadSeconds),
+                                                DriveCommands.staticAimTowardsTarget(drive),
+                                                robotState.shouldFeed),
+                                        shooter.shoot(),
+                                        Commands.sequence(
+                                                Commands.waitSeconds(0.05),
+                                                Commands.waitUntil(readyToShootAtCurrentTarget),
+                                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
                                 shooter.stopAndStow(),
