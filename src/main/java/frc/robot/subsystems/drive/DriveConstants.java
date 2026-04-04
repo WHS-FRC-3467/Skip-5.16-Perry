@@ -393,6 +393,6 @@ public class DriveConstants {
                     12.0,
                     false);
 
-    public static final Distance ALLOWABLE_PATH_ERROR = Inches.of(12.0);
-    public static final Distance ALLOWABLE_SHOT_POSE_ERROR = Inches.of(6.0);
+    public static final Distance ALLOWABLE_PATH_ERROR = Inches.of(18.0);
+    public static final Distance ALLOWABLE_SHOT_POSE_ERROR = Inches.of(18.0);
 }

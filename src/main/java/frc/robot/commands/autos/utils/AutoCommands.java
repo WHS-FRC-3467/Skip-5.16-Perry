@@ -199,7 +199,8 @@ public class AutoCommands {
             AutoTrajectory next) {
         return Commands.sequence(
                 ctx.drive().runOnce(ctx.drive()::stop),
-                recoverTrajectory(ctx.drive(), failedTrajectory, tunnel, retractIntake(ctx)),
+                recoverTrajectory(
+                        ctx.drive(), failedTrajectory, tunnel, ctx.shooter().spinUpShooter()),
                 shootThenFollow(ctx, timeoutSeconds, next));
     }
 

@@ -340,5 +340,6 @@
   "splits":[0]
  },
  "events":[
-   {"name":"ExtendIntake", "from":{"target":1, "targetTimestamp":0.70582, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
+   {"name":"ExtendIntake", "from":{"target":1, "targetTimestamp":0.70582, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
+   {"name":"Spinup", "from":{"target":5, "targetTimestamp":4.09861, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
 }
