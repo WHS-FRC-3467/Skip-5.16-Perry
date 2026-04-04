@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.AlwaysTunableNumber;
@@ -133,8 +134,7 @@ public class AutoCommands {
             AutoContext ctx, double timeoutSeconds, AutoTrajectory next) {
         return Commands.sequence(
                 shootOnly(ctx, timeoutSeconds),
-                stowHood(ctx.shooter()),
-                retractIntake(ctx),
+                new ScheduleCommand(stowHood(ctx.shooter())),
                 next.spawnCmd());
     }
 

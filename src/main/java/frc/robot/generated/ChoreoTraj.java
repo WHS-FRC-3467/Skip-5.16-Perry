@@ -31,9 +31,9 @@ public record ChoreoTraj(
     public static final ChoreoTraj C16782 = new ChoreoTraj(
         "C16782",
         OptionalInt.empty(),
-        7.16242,
-        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.83152)),
-        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.83152))
+        7.31657,
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
     );
     public static final ChoreoTraj Neutral2ML_0 = new ChoreoTraj(
         "Neutral2ML_0",
@@ -45,9 +45,9 @@ public record ChoreoTraj(
     public static final ChoreoTraj BumpPath = new ChoreoTraj(
         "BumpPath",
         OptionalInt.empty(),
-        1.50753,
+        1.43126,
         new Pose2d(6.18074, 5.3, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.83152))
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
     public static final ChoreoTraj Neutral2ML_1 = new ChoreoTraj(
         "Neutral2ML_1",
@@ -73,9 +73,9 @@ public record ChoreoTraj(
     public static final ChoreoTraj C1678Safe1 = new ChoreoTraj(
         "C1678Safe1",
         OptionalInt.empty(),
-        5.38326,
+        5.30448,
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.83152))
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
     public static final ChoreoTraj Neutral2ML_1_Safe1 = new ChoreoTraj(
         "Neutral2ML_1_Safe1",
@@ -122,9 +122,9 @@ public record ChoreoTraj(
     public static final ChoreoTraj C16781 = new ChoreoTraj(
         "C16781",
         OptionalInt.empty(),
-        5.61319,
+        5.54429,
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.83152))
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
 
     /**
