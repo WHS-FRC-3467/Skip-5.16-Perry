@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.AlwaysTunableNumber;
 import frc.lib.util.FieldUtil;
-import frc.lib.util.LoggedTrigger;
 import frc.robot.RobotState;
 import frc.robot.RobotState.FieldRegion;
 import frc.robot.commands.DriveCommands;
@@ -253,19 +252,14 @@ public class AutoCommands {
         Debouncer goalPoseDebouncer = new Debouncer(0.25);
         Pose2d goalPose = trajectory.getFinalPose().orElse(new Pose2d());
 
-        LoggedTrigger atGoal =
-                new LoggedTrigger(
-                                "Auto/RetryAtGoal",
-                                () ->
-                                        goalPoseDebouncer.calculate(
-                                                robotState
-                                                                .getEstimatedPose()
-                                                                .getTranslation()
-                                                                .getDistance(
-                                                                        goalPose.getTranslation())
-                                                        < DriveConstants.ALLOWABLE_SHOT_POSE_ERROR
-                                                                .in(Meters)))
-                        .debounce(0.5);
+        BooleanSupplier atGoal =
+                () ->
+                        goalPoseDebouncer.calculate(
+                                robotState
+                                                .getEstimatedPose()
+                                                .getTranslation()
+                                                .getDistance(goalPose.getTranslation())
+                                        < DriveConstants.ALLOWABLE_SHOT_POSE_ERROR.in(Meters));
 
         return Commands.runOnce(
                         () -> {
@@ -320,14 +314,13 @@ public class AutoCommands {
             Optional<AutoTrajectory> tunnelTrajectory,
             BooleanSupplier successCondition,
             Command onRetry) {
-        Debouncer pathErrorDebouncer = new Debouncer(0.25);
+        Distance pathErrorTol = Meters.of(0.4572); // 18 inches
+        Debouncer pathErrorDebouncer = new Debouncer(0.5);
 
         BooleanSupplier pathErrorExceeded =
                 () ->
                         pathErrorDebouncer.calculate(
-                                robotState
-                                        .getActiveTrajectoryError()
-                                        .gte(DriveConstants.ALLOWABLE_SHOT_POSE_ERROR));
+                                robotState.getActiveTrajectoryError().gte(pathErrorTol));
 
         return Commands.repeatingSequence(
                         onRetry,

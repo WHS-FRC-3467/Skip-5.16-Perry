@@ -386,8 +386,8 @@ public class DriveConstants {
 
     public static final PathConstraints PATH_CONSTRAINTS =
             new PathConstraints(
-                    3.0,
-                    3.0,
+                    2.0,
+                    2.0,
                     RotationsPerSecond.of(2).in(RadiansPerSecond),
                     RotationsPerSecondPerSecond.of(2).in(RadiansPerSecondPerSecond),
                     12.0,
