@@ -154,7 +154,7 @@ public class Drive extends SubsystemBase {
             new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
 
     private final LoggedTunableBoolean enableSkidDetection =
-            new LoggedTunableBoolean("Drive/Enable Skid Detection", true);
+            new LoggedTunableBoolean("Drive/Enable Skid Detection", false);
 
     private SwerveDriveKinematics kinematics =
             new SwerveDriveKinematics(MODULE_TRANSLATIONS.toArray(Translation2d[]::new));
