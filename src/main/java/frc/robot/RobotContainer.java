@@ -464,10 +464,10 @@ public class RobotContainer {
             if (poses == null || poses.isEmpty()) {
                 // No path defined; show defaults
                 startPose = robotState.getEstimatedPose();
-                SmartDashboard.putNumber("Auto Pose Check/Inches from Start", -1);
-                SmartDashboard.putBoolean("Auto Pose Check/Robot Position Within Tolerance", false);
-                SmartDashboard.putNumber("Auto Pose Check/Degrees from Start", -1);
-                SmartDashboard.putBoolean("Auto Pose Check/Robot Rotation Within Tolerance", false);
+                dashboardInchesFromStart.put(-1);
+                dashboardPositionWithinStartTolerance.put(false);
+                dashboardDegreesFromStart.put(-1);
+                dashboardRotationWithinStartTolerance.put(false);
                 return;
             }
 
