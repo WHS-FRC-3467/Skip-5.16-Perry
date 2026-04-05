@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
@@ -221,8 +220,7 @@ public class RobotContainer {
                                                 robotState.shouldFeed),
                                         shooter.shoot(),
                                         Commands.sequence(
-                                                new ScheduleCommand(
-                                                        Commands.defer(
+                                                Commands.defer(
                                                                 () ->
                                                                         tower.eject()
                                                                                 .withTimeout(
@@ -231,9 +229,12 @@ public class RobotContainer {
                                                                                 .withInterruptBehavior(
                                                                                         InterruptionBehavior
                                                                                                 .kCancelSelf),
-                                                                Set.of(tower))),
-                                                Commands.waitSeconds(0.05),
-                                                Commands.waitUntil(readyToShootAtCurrentTarget),
+                                                                Set.of(tower))
+                                                        .withDeadline(
+                                                                Commands.sequence(
+                                                                        Commands.waitSeconds(0.05),
+                                                                        Commands.waitUntil(
+                                                                                readyToShootAtCurrentTarget))),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
