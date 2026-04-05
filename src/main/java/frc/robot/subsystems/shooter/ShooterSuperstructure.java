@@ -78,8 +78,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         hubFlywheelMap.put(2.5, 28.0);
         hubFlywheelMap.put(3.0, 30.0);
         hubFlywheelMap.put(3.55, 32.0);
-        hubFlywheelMap.put(4.0, 33.0);
-        hubFlywheelMap.put(5.0, 35.0);
+        hubFlywheelMap.put(4.0, 34.0);
+        hubFlywheelMap.put(5.0, 36.0);
     }
 
     /** Distance from feed pose in meters -> flywheel speed in rotations per second */
