@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.AlwaysTunableNumber;
 import frc.lib.util.FieldUtil;
+import frc.lib.util.LoggedTrigger;
 import frc.robot.RobotState;
 import frc.robot.RobotState.FieldRegion;
 import frc.robot.commands.DriveCommands;
@@ -200,7 +201,10 @@ public class AutoCommands {
         return Commands.sequence(
                 ctx.drive().runOnce(ctx.drive()::stop),
                 recoverTrajectory(
-                        ctx.drive(), failedTrajectory, tunnel, ctx.shooter().spinUpShooter()),
+                        ctx.drive(),
+                        failedTrajectory,
+                        tunnel,
+                        new ScheduleCommand(ctx.shooter().spinUpShooter())),
                 shootThenFollow(ctx, timeoutSeconds, next));
     }
 
@@ -254,14 +258,17 @@ public class AutoCommands {
         Debouncer goalPoseDebouncer = new Debouncer(0.25);
         Pose2d goalPose = trajectory.getFinalPose().orElse(new Pose2d());
 
-        BooleanSupplier atGoal =
-                () ->
-                        goalPoseDebouncer.calculate(
-                                robotState
-                                                .getEstimatedPose()
-                                                .getTranslation()
-                                                .getDistance(goalPose.getTranslation())
-                                        < DriveConstants.ALLOWABLE_SHOT_POSE_ERROR.in(Meters));
+        LoggedTrigger atGoal =
+                new LoggedTrigger(
+                        "test2",
+                        () ->
+                                goalPoseDebouncer.calculate(
+                                        robotState
+                                                        .getEstimatedPose()
+                                                        .getTranslation()
+                                                        .getDistance(goalPose.getTranslation())
+                                                < DriveConstants.ALLOWABLE_SHOT_POSE_ERROR.in(
+                                                        Meters)));
 
         return Commands.runOnce(
                         () -> {
@@ -319,10 +326,12 @@ public class AutoCommands {
         Distance pathErrorTol = Meters.of(0.4572); // 18 inches
         Debouncer pathErrorDebouncer = new Debouncer(0.5);
 
-        BooleanSupplier pathErrorExceeded =
-                () ->
-                        pathErrorDebouncer.calculate(
-                                robotState.getActiveTrajectoryError().gte(pathErrorTol));
+        LoggedTrigger pathErrorExceeded =
+                new LoggedTrigger(
+                        "test3",
+                        () ->
+                                pathErrorDebouncer.calculate(
+                                        robotState.getActiveTrajectoryError().gte(pathErrorTol)));
 
         return Commands.repeatingSequence(
                         onRetry,
