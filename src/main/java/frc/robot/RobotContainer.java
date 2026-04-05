@@ -222,7 +222,11 @@ public class RobotContainer {
                                         Commands.sequence(
                                                 Commands.defer(
                                                                 () ->
-                                                                        tower.eject()
+                                                                        Commands.parallel(
+                                                                                        tower
+                                                                                                .eject(),
+                                                                                        indexer
+                                                                                                .eject())
                                                                                 .withTimeout(
                                                                                         TOWER_TIMEOUT
                                                                                                 .get())
