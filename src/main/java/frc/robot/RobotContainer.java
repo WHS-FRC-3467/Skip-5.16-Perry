@@ -31,11 +31,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
+import frc.lib.util.LoggedTunableNumber;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
@@ -76,6 +78,9 @@ import java.util.Set;
  */
 public class RobotContainer {
     private final RobotState robotState = RobotState.getInstance();
+
+    private static final LoggedTunableNumber TOWER_TIMEOUT =
+            new LoggedTunableNumber("Tower/Timeout", 0.5);
 
     // Subsystems
     public final Drive drive;
@@ -216,6 +221,17 @@ public class RobotContainer {
                                                 robotState.shouldFeed),
                                         shooter.shoot(),
                                         Commands.sequence(
+                                                new ScheduleCommand(
+                                                        Commands.defer(
+                                                                () ->
+                                                                        tower.eject()
+                                                                                .withTimeout(
+                                                                                        TOWER_TIMEOUT
+                                                                                                .get())
+                                                                                .withInterruptBehavior(
+                                                                                        InterruptionBehavior
+                                                                                                .kCancelSelf),
+                                                                Set.of(tower))),
                                                 Commands.waitSeconds(0.05),
                                                 Commands.waitUntil(readyToShootAtCurrentTarget),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
