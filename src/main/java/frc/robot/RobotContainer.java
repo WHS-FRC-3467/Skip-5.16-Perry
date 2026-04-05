@@ -18,7 +18,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -370,22 +369,8 @@ public class RobotContainer {
                 .onTrue(shooter.stopFlywheels());
 
         hubState.getEnablingSoon()
-                .onTrue(
-                        Commands.sequence(
-                                Commands.sequence(
-                                        controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                        Commands.waitSeconds(0.5),
-                                        controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                        Commands.waitSeconds(0.5),
-                                        controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                        Commands.waitSeconds(0.5)),
-                                Commands.sequence(
-                                        operatorController.rumbleForTime(1.0, Seconds.of(0.5)),
-                                        Commands.waitSeconds(0.5),
-                                        operatorController.rumbleForTime(1.0, Seconds.of(0.5)),
-                                        Commands.waitSeconds(0.5),
-                                        operatorController.rumbleForTime(1.0, Seconds.of(0.5)),
-                                        Commands.waitSeconds(0.5))));
+                .whileTrue(
+                        Commands.parallel(controller.rumble(1.0), operatorController.rumble(1.0)));
 
         controller
                 .joysticksZeroed
