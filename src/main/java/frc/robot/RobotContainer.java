@@ -236,7 +236,7 @@ public class RobotContainer {
                                                                 Set.of(tower))
                                                         .withDeadline(
                                                                 Commands.sequence(
-                                                                        Commands.waitSeconds(0.05),
+                                                                        Commands.waitSeconds(0.001),
                                                                         Commands.waitUntil(
                                                                                 readyToShootAtCurrentTarget))),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
