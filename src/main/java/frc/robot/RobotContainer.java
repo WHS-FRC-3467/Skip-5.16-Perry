@@ -278,7 +278,11 @@ public class RobotContainer {
                 .x()
                 .whileTrue(
                         Commands.parallel(
-                                DriveCommands.stopWithX(drive),
+                                DriveCommands.joystickDrive(
+                                        drive,
+                                        () -> -controller.getLeftY() * 0.7,
+                                        () -> -controller.getLeftX() * 0.7,
+                                        () -> -controller.getRightX() * 0.7),
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.TRENCH_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
@@ -312,7 +316,11 @@ public class RobotContainer {
                 .a()
                 .whileTrue(
                         Commands.parallel(
-                                DriveCommands.stopWithX(drive),
+                                DriveCommands.joystickDrive(
+                                        drive,
+                                        () -> -controller.getLeftY() * 0.7,
+                                        () -> -controller.getLeftX() * 0.7,
+                                        () -> -controller.getRightX() * 0.7),
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.Tower.TOWER_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
