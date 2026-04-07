@@ -52,7 +52,7 @@ public class RobotSim {
                 new Trigger(
                         () ->
                                 (shooter.profileComplete.getAsBoolean()
-                                        && (indexer.getFloorSpeed() > 0.1)
+                                        && (indexer.nearSetpoint())
                                         && (fuelSim.getHeldFuel() > 0)));
 
         shootSimFuel.whileTrue(
@@ -61,7 +61,7 @@ public class RobotSim {
                         Commands.runOnce(
                                 () -> {
                                     LinearVelocity ballVelocity =
-                                            shooter.getAverageLinearVelocity()
+                                            shooter.getLinearVelocity()
                                                     .times(BALL_VELOCITY_FUDGE.get());
 
                                     fuelSim.spawnFuel(

@@ -54,7 +54,6 @@ import frc.robot.subsystems.shooter.ShooterSuperstructureConstants;
 import frc.robot.subsystems.tower.Tower;
 import frc.robot.subsystems.tower.TowerConstants;
 import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.util.HubState;
 import frc.robot.util.RobotSim;
 
 import org.littletonrobotics.junction.Logger;
@@ -195,8 +194,6 @@ public class RobotContainer {
                         () -> -controller.getLeftX(),
                         () -> -controller.getRightX()));
 
-        HubState hubState = HubState.getInstance();
-
         Trigger readyToShootAtCurrentTarget =
                 shooter.profileComplete.and(
                         robotState
@@ -245,22 +242,11 @@ public class RobotContainer {
                                 shooter.stopAndStow(),
                                 indexer.stopCommand(),
                                 tower.stopCommand(),
-                                intake.extendIntake(),
+                                intake.intake(),
                                 shooter.retractHood()));
 
         // Tap Right Bumper while Right Trigger held: Manually cycle intake
-        controller
-                .rightBumper()
-                .and(controller.x().negate())
-                .onTrue(Commands.defer(() -> intake.slowRetract(), Set.of(intake)))
-                .onFalse(intake.stopRoller());
-
-        // Tap Right Bumper while X held: Manually cycle intake within bumpers for hub shot
-        controller
-                .rightBumper()
-                .and(controller.x())
-                .onTrue(intake.hubShuffleStep())
-                .onFalse(intake.stopRoller());
+        controller.rightBumper().onTrue(Commands.defer(() -> intake.slowRetract(), Set.of(intake)));
 
         // Left Trigger: Intake
         controller.leftTrigger().onTrue(intake.intake()).onFalse(intake.stopRoller());
@@ -283,7 +269,7 @@ public class RobotContainer {
                                         () -> -controller.getLeftY() * 0.7,
                                         () -> -controller.getLeftX() * 0.7,
                                         () -> -controller.getRightX() * 0.7),
-                                shooter.spinUpShooterToFixedDistance(
+                                shooter.setShooterToFixedDistance(
                                         FieldConstants.TRENCH_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                 .onFalse(
@@ -291,7 +277,6 @@ public class RobotContainer {
                                 shooter.stopAndStow(),
                                 indexer.stopCommand(),
                                 tower.stopCommand(),
-                                intake.extendIntake(),
                                 shooter.retractHood()));
 
         // Driver Y: Midline Feed/Pass (No-Vision Fallback)
@@ -299,7 +284,8 @@ public class RobotContainer {
                 .y()
                 .whileTrue(
                         Commands.parallel(
-                                shooter.spinUpShooterMidlineFeed(),
+                                shooter.setShooterToFixedDistance(
+                                        FieldConstants.FIELD_CENTER.getMeasureX()),
                                 Commands.sequence(
                                         Commands.waitUntil(shooter.profileComplete),
                                         Commands.parallel(indexer.shoot(), tower.shoot()))))
@@ -308,7 +294,6 @@ public class RobotContainer {
                                 shooter.stopAndStow(),
                                 indexer.stopCommand(),
                                 tower.stopCommand(),
-                                intake.extendIntake(),
                                 shooter.retractHood()));
 
         // Driver A: Shot From Back of Robot Against Tower (No-Vision Fallback)
@@ -321,7 +306,7 @@ public class RobotContainer {
                                         () -> -controller.getLeftY() * 0.7,
                                         () -> -controller.getLeftX() * 0.7,
                                         () -> -controller.getRightX() * 0.7),
-                                shooter.spinUpShooterToFixedDistance(
+                                shooter.setShooterToFixedDistance(
                                         FieldConstants.Tower.TOWER_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                 .onFalse(
@@ -329,7 +314,6 @@ public class RobotContainer {
                                 shooter.stopAndStow(),
                                 indexer.stopCommand(),
                                 tower.stopCommand(),
-                                intake.extendIntake(),
                                 shooter.retractHood()));
         controller
                 .start()
@@ -367,18 +351,14 @@ public class RobotContainer {
         operatorController
                 .y()
                 .whileTrue(
-                        shooter.spinUpShooter()
+                        shooter.spinUpFlywheel()
                                 .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
         controller
                 .rightTrigger()
                 .negate()
                 .and(operatorController.y().negate())
-                .onTrue(shooter.stopFlywheels());
-
-        hubState.getEnablingSoon()
-                .whileTrue(
-                        Commands.parallel(controller.rumble(1.0), operatorController.rumble(1.0)));
+                .onTrue(shooter.coastFlywheels());
 
         controller
                 .joysticksZeroed
@@ -400,28 +380,25 @@ public class RobotContainer {
         // Indexer Commands
         SmartDashboard.putData(IndexerConstants.NAME + "/Shoot", indexer.shoot());
         SmartDashboard.putData(IndexerConstants.NAME + "/Expel", indexer.eject());
-        SmartDashboard.putData(IndexerConstants.NAME + "/Feed", indexer.feed());
         SmartDashboard.putData(IndexerConstants.NAME + "/Stop", indexer.stopCommand());
 
         // Intake Commands
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Retract", intake.retractIntake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Coast", intake.linearCoast());
-
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/SlowRetract", intake.slowRetract());
 
         // Tower Commands
         SmartDashboard.putData(TowerConstants.NAME + "/Stop", tower.stopCommand());
         SmartDashboard.putData(TowerConstants.NAME + "/Shoot", tower.shoot());
-        SmartDashboard.putData(TowerConstants.NAME + "/Feed", tower.feed());
         SmartDashboard.putData(TowerConstants.NAME + "/Eject", tower.eject());
 
         // Shooter Commands
         SmartDashboard.putData(
-                ShooterSuperstructureConstants.NAME + "/Stop", shooter.stopFlywheels());
+                ShooterSuperstructureConstants.NAME + "/Stop", shooter.coastFlywheels());
         SmartDashboard.putData(ShooterSuperstructureConstants.NAME + "/Shoot", shooter.shoot());
         SmartDashboard.putData(
-                ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpShooter());
+                ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
 
         SmartDashboard.putData(
                 "Debug/SetOdometryToTestPose",

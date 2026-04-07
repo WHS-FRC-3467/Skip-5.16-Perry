@@ -204,7 +204,7 @@ public class AutoCommands {
                         ctx.drive(),
                         failedTrajectory,
                         tunnel,
-                        new ScheduleCommand(ctx.shooter().spinUpShooter())),
+                        new ScheduleCommand(ctx.shooter().spinUpFlywheel())),
                 shootThenFollow(ctx, timeoutSeconds, next));
     }
 

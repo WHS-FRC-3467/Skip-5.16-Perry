@@ -170,14 +170,6 @@ public class RobotState {
                                 && inMotion;
                     });
 
-    /** Trigger determining whether hood is safe to actuate for a HUB shot in auto. */
-    public final LoggedTrigger hoodSafe =
-            new LoggedTrigger(
-                    "RobotState/hoodSafe",
-                    () ->
-                            getFieldRegion() == FieldRegion.ALLIANCE_ZONE
-                                    && enteringTrench.negate().getAsBoolean());
-
     public final LoggedTrigger shouldFeed =
             new LoggedTrigger(
                     "RobotState/ShouldFeed",

@@ -17,7 +17,6 @@ package frc.robot.subsystems.indexer;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -42,11 +41,6 @@ public class Indexer extends SubsystemBase {
     private static final LoggedTunableNumber EJECT_RPS =
             new LoggedTunableNumber(IndexerConstants.NAME + "/EjectRPS", -30.0);
 
-    private static final LoggedTunableNumber FEED_RPS =
-            new LoggedTunableNumber(
-                    IndexerConstants.NAME + "/FeedRPS",
-                    IndexerConstants.MAX_VELOCITY.in(RotationsPerSecond));
-
     /**
      * Constructs an Indexer subsystem.
      *
@@ -62,6 +56,10 @@ public class Indexer extends SubsystemBase {
         io.periodic();
     }
 
+    private void stop() {
+        io.runCoast();
+    }
+
     private void runVelocity(AngularVelocity velocity) {
         io.runVelocity(velocity, PIDSlot.SLOT_0);
     }
@@ -75,12 +73,8 @@ public class Indexer extends SubsystemBase {
         return this.runOnce(this::stop).withName("Stop Indexer");
     }
 
-    private void stop() {
-        io.runCoast();
-    }
-
     /**
-     * Run the indexer at the foundtain velocity (5RPS)
+     * Run the indexer at the fountain velocity
      *
      * @return a command to fountain
      */
@@ -98,17 +92,6 @@ public class Indexer extends SubsystemBase {
         return this.startEnd(
                         () -> runVelocity(RotationsPerSecond.of(SHOOT_RPS.get())), () -> stop())
                 .withName("Shoot");
-    }
-
-    /**
-     * Creates a command to run the indexer at feeding velocities to move game pieces through the
-     * robot. The indexer will stop when the command is interrupted or cancelled.
-     *
-     * @return a command that runs the indexer at feeding speed
-     */
-    public Command feed() {
-        return this.startEnd(() -> runVelocity(RotationsPerSecond.of(FEED_RPS.get())), () -> stop())
-                .withName("Feed");
     }
 
     /**
@@ -130,33 +113,6 @@ public class Indexer extends SubsystemBase {
      */
     public boolean nearSetpoint() {
         return io.getVelocityError().lte(IndexerConstants.TOLERANCE);
-    }
-
-    /**
-     * Gets the current velocity of the indexer floor motors.
-     *
-     * @return The velocity in rotations per second
-     */
-    public double getFloorSpeed() {
-        return io.getVelocity().in(RotationsPerSecond);
-    }
-
-    /**
-     * Gets the current linear velocity of the indexer motors.
-     *
-     * @return The linear velocity in meters per second.
-     */
-    public LinearVelocity getFloorLinearVelocity() {
-        return io.getLinearVelocity();
-    }
-
-    /**
-     * Sets the current linear velocities of the indexer motors.
-     *
-     * @param velocity the desired linear velocity for the mechanism (meters per second)
-     */
-    public void setLinearVelocity(LinearVelocity velocity) {
-        io.runLinearVelocity(velocity, PIDSlot.SLOT_0);
     }
 
     /** Closes the indexer mechanism and releases resources. */
