@@ -59,24 +59,24 @@ public final class MLNeutralAuto {
      */
     public static Optional<AutoOption> create(
             AutoContext ctx, boolean shouldMirror, boolean isSafe) {
-        List<String> names =
+        List<ChoreoTraj> trajectoriesData =
                 isSafe
                         ? List.of(
-                                ChoreoTraj.NeutralBump_ML_Start.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeRight.name(),
-                                ChoreoTraj.NeutralBump_ML_Decision.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeLeft.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeMiddle.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeRight.name())
+                                ChoreoTraj.NeutralBump_ML_Start,
+                                ChoreoTraj.NeutralBump_ML_SafeRight$1,
+                                ChoreoTraj.NeutralBump_ML_Decision$0,
+                                ChoreoTraj.NeutralBump_ML_SafeLeft$1,
+                                ChoreoTraj.NeutralBump_ML_SafeMiddle$1,
+                                ChoreoTraj.NeutralBump_ML_SafeRight$1)
                         : List.of(
-                                ChoreoTraj.NeutralBump_ML_Start.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeRight.name(),
-                                ChoreoTraj.NeutralBump_ML_Decision.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeLeft.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeMiddle.name(),
-                                ChoreoTraj.NeutralBump_ML_SafeRight.name());
+                                ChoreoTraj.NeutralBump_ML_Start,
+                                ChoreoTraj.NeutralBump_ML_SafeRight$1,
+                                ChoreoTraj.NeutralBump_ML_Decision$0,
+                                ChoreoTraj.NeutralBump_ML_SafeLeft$1,
+                                ChoreoTraj.NeutralBump_ML_SafeMiddle$1,
+                                ChoreoTraj.NeutralBump_ML_SafeRight$1);
         List<Trajectory<SwerveSample>> trajectories =
-                AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
+                AutoUtil.loadTrajectories(trajectoriesData, shouldMirror).orElse(null);
         if (trajectories == null) {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();

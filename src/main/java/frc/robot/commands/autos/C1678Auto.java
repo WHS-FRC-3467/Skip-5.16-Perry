@@ -40,16 +40,16 @@ public class C1678Auto {
 
     public static Optional<AutoOption> create(
             AutoContext ctx, boolean shouldMirror, boolean isSafe) {
-        List<String> names =
+        List<ChoreoTraj> trajectoriesData =
                 isSafe
-                        ? List.of(ChoreoTraj.C1678Safe1.name(), ChoreoTraj.C16782.name())
-                        : List.of(ChoreoTraj.C16781.name(), ChoreoTraj.C16782.name());
+                        ? List.of(ChoreoTraj.C1678Safe1, ChoreoTraj.C16782)
+                        : List.of(ChoreoTraj.C16781, ChoreoTraj.C16782);
 
         List<Trajectory<SwerveSample>> trajectories =
-                AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
+                AutoUtil.loadTrajectories(trajectoriesData, shouldMirror).orElse(null);
 
         Optional<Trajectory<SwerveSample>> bumpTrajectory =
-                AutoUtil.loadTrajectory(ChoreoTraj.BumpPath.name(), shouldMirror);
+                AutoUtil.loadTrajectory(ChoreoTraj.BumpPath, shouldMirror);
         if (trajectories == null) {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();

@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 import frc.robot.FieldConstants;
+import frc.robot.generated.ChoreoTraj;
 import frc.robot.generated.ChoreoVars;
 
 import lombok.AccessLevel;
@@ -32,6 +33,8 @@ import java.util.function.Supplier;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AutoUtil {
+    private static final Choreo.TrajectoryCache TRAJECTORY_CACHE = new Choreo.TrajectoryCache();
+
     /** Wraps a simple command-based auto in an {@link AutoOption} with no preview metadata. */
     public static AutoOption commandOption(Supplier<Command> commandSupplier) {
         return new AutoOption(commandSupplier, List.of(), new Pose2d());
@@ -71,13 +74,15 @@ public final class AutoUtil {
      * routine needs the opposite lane.
      */
     public static Optional<List<Trajectory<SwerveSample>>> loadTrajectories(
-            List<String> names, boolean shouldMirror) {
+            List<ChoreoTraj> trajectories, boolean shouldMirror) {
         var optionalTrajectories =
-                names.stream().map(name -> loadTrajectory(name, shouldMirror)).toList();
+                trajectories.stream()
+                        .map(trajectory -> loadTrajectory(trajectory, shouldMirror))
+                        .toList();
         if (optionalTrajectories.stream().anyMatch(Optional::isEmpty)) {
             DriverStation.reportError(
                     "Failed to load Choreo trajectory for auto. Names: "
-                            + names
+                            + trajectories.stream().map(AutoUtil::trajectoryName).toList()
                             + ", shouldMirror="
                             + shouldMirror,
                     false);
@@ -112,11 +117,34 @@ public final class AutoUtil {
 
     /** Loads a single Choreo trajectory and mirrors it when the caller requests it. */
     public static Optional<Trajectory<SwerveSample>> loadTrajectory(
+            ChoreoTraj trajectoryData, boolean shouldMirror) {
+        Optional<? extends Trajectory<?>> optionalTrajectory =
+                trajectoryData.segment().isPresent()
+                        ? TRAJECTORY_CACHE.loadTrajectory(
+                                trajectoryData.name(), trajectoryData.segment().getAsInt())
+                        : TRAJECTORY_CACHE.loadTrajectory(trajectoryData.name());
+        if (optionalTrajectory.isEmpty()) {
+            return Optional.empty();
+        }
+
+        @SuppressWarnings("unchecked")
+        Trajectory<SwerveSample> trajectory = (Trajectory<SwerveSample>) optionalTrajectory.get();
+        return Optional.of(shouldMirror ? mirror(trajectory) : trajectory);
+    }
+
+    /** Loads a single Choreo trajectory by name and mirrors it when the caller requests it. */
+    public static Optional<Trajectory<SwerveSample>> loadTrajectory(
             String name, boolean shouldMirror) {
+        ChoreoTraj trajectoryData = ChoreoTraj.ALL_TRAJECTORIES.get(name);
+        if (trajectoryData != null) {
+            return loadTrajectory(trajectoryData, shouldMirror);
+        }
+
         Trajectory<SwerveSample> trajectory =
                 Choreo.<SwerveSample>loadTrajectory(name).orElse(null);
-        if (trajectory == null) return Optional.empty();
-
+        if (trajectory == null) {
+            return Optional.empty();
+        }
         return Optional.of(shouldMirror ? mirror(trajectory) : trajectory);
     }
 
@@ -155,5 +183,11 @@ public final class AutoUtil {
             negated[i] = -values[i];
         }
         return negated;
+    }
+
+    private static String trajectoryName(ChoreoTraj trajectoryData) {
+        return trajectoryData.segment().isPresent()
+                ? trajectoryData.name() + "$" + trajectoryData.segment().getAsInt()
+                : trajectoryData.name();
     }
 }
