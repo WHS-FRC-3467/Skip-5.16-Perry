@@ -144,7 +144,6 @@ public final class MLNeutralAuto {
                             decision.done()
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.waitSeconds(0.05),
                                                     Commands.runOnce(
                                                             () -> {
                                                                 int lane =
