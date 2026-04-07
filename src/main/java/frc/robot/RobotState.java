@@ -59,6 +59,8 @@ public class RobotState {
             new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 2.0);
     private static final LoggedTunableNumber MAX_HOOD_RETRACT_TIME =
             new LoggedTunableNumber("RobotState/MaxHoodRetractTime", 0.2);
+    private static final LoggedTunableNumber MAX_HOPPER_RETRACT_TIME =
+            new LoggedTunableNumber("RobotState/MaxHoodRetractTime", 0.2);
 
     private static final double LINEAR_ODOMETRY_STD_DEV = 0.3;
     private static final double ANGULAR_ODOMETRY_STD_DEV = 0.15;
@@ -109,8 +111,9 @@ public class RobotState {
                     });
 
     /**
-     * Whether or not the robot is entering the trench in {@code MAX_HOOD_RETRACT_TIME}. For use to
-     * check whether we need to force the hood to retract to prevent decapitation.
+     * Whether or not the robot is entering the trench in {@code MAX_HOOD_RETRACT_TIME} or {@code
+     * MAX_HOPPER_RETRACT_TIME}. For use to check whether we need to force the hood and hopper to
+     * retract to prevent decapitation.
      */
     public final LoggedTrigger enteringTrench =
             new LoggedTrigger(
@@ -128,7 +131,11 @@ public class RobotState {
                         boolean inMotion = linearVelocityMPS > 0.02 || angularVelocityRadsPS > 0.03;
 
                         // Predict future pose
-                        Pose2d futurePose = getFuturePose(MAX_HOOD_RETRACT_TIME.get());
+                        Pose2d futurePose =
+                                getFuturePose(
+                                        Math.max(
+                                                MAX_HOOD_RETRACT_TIME.get(),
+                                                MAX_HOPPER_RETRACT_TIME.get()));
 
                         // Normalize to alliance frame
                         Pose2d pose = FieldUtil.apply(futurePose);

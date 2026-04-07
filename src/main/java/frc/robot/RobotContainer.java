@@ -44,6 +44,8 @@ import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperConstants;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerConstants;
 import frc.robot.subsystems.intake.IntakeLinearConstants;
@@ -86,6 +88,7 @@ public class RobotContainer {
     private final IntakeSuperstructure intake;
     private final Indexer indexer;
     private final Tower tower;
+    private final Hopper hopper;
     // private final LEDs leds;
     // private final ObjectDetector objectDetector;
 
@@ -109,6 +112,7 @@ public class RobotContainer {
         intake = IntakeSuperstructureConstants.get();
         indexer = IndexerConstants.get();
         tower = TowerConstants.get();
+        hopper = HopperConstants.get();
         VisionConstants.create();
         // VisionOdometryCharacterizer.enable();
         // leds = LEDsConstants.get();
@@ -203,6 +207,9 @@ public class RobotContainer {
                                 .shouldFeed
                                 .and(robotState.facingFeedTarget)
                                 .or(robotState.shouldFeed.negate().and(robotState.facingTarget)));
+
+        // For now, automate hopper extension/retraction around the trench
+        robotState.enteringTrench.onTrue(hopper.fastRetract()).onFalse(hopper.extend());
 
         // Right Trigger: Shoot/Pass
         controller
@@ -344,10 +351,11 @@ public class RobotContainer {
                                                                 .getTranslation(),
                                                         Rotation2d.kZero))));
 
-        // Operator A: Home Hood and Intake
+        // Operator A: Home Hood and Intake and Hopper
         operatorController
                 .a()
-                .whileTrue(Commands.parallel(intake.homeLinear(), shooter.homeHood()));
+                .whileTrue(
+                        Commands.parallel(intake.homeLinear(), shooter.homeHood(), hopper.home()));
 
         // Operator B: Eject
         operatorController
@@ -392,6 +400,11 @@ public class RobotContainer {
      * the dashboard for manual testing and debugging.
      */
     private void initializeDashboard() {
+
+        // Hopper Commands - for testing. Delete unnecessary SmartDashboard stuff when done.
+        SmartDashboard.putData(HopperConstants.NAME + "/Extend", hopper.extend());
+        SmartDashboard.putData(HopperConstants.NAME + "/FastRetract", hopper.fastRetract());
+        SmartDashboard.putData(HopperConstants.NAME + "/Coast", hopper.linearCoast());
 
         SmartDashboard.putData(
                 "Home Intake and Shooter",

@@ -38,7 +38,6 @@ public class Hopper extends SubsystemBase implements AutoCloseable {
     private final LoggedTrigger isExtended;
     private final LoggedTrigger isRetracted;
 
-    private final LinearVelocity shuffleVelocity = MetersPerSecond.of(0.8);
     private final Distance retractDistance = HopperConstants.MIN_DISTANCE;
 
     public Hopper(LinearMechanism<?> io) {
@@ -165,7 +164,8 @@ public class Hopper extends SubsystemBase implements AutoCloseable {
     /**
      * Retract the hopper.
      *
-     * @return a command to retract the hopper as fast as possible
+     * @return a command to retract the hopper as fast as possible. Does not end until within
+     *     tolerance.
      */
     public Command fastRetract() {
         return Commands.sequence(
@@ -173,7 +173,9 @@ public class Hopper extends SubsystemBase implements AutoCloseable {
                                 HopperConstants.MIN_DISTANCE,
                                 HopperConstants.CRUISE_VELOCITY,
                                 HopperConstants.MAX_ACCELERATION,
-                                "Fast Retract Hopper"))
+                                "Fast Retract Hopper"),
+                        Commands.waitUntil(
+                                () -> io.getLinearPositionError().lte(HopperConstants.TOLERANCE)))
                 .withName("Fast Retract Hopper");
     }
 
@@ -204,7 +206,7 @@ public class Hopper extends SubsystemBase implements AutoCloseable {
         return this.runOnce(io::runCoast).withName("Linear Coast");
     }
 
-    public Command homeLinear() {
+    public Command home() {
         return Commands.sequence(this.runOnce(() -> io.runDutyCycle(0.25, true)), this.idle())
                 .finallyDo(() -> io.setEncoderPosition(Rotations.of(3.7)))
                 .withName("Home Hopper");

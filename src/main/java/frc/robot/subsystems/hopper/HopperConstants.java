@@ -142,24 +142,24 @@ public class HopperConstants {
      *
      * @return A configured Hopper subsystem
      */
-    public static LinearMechanism<?> get() {
+    public static Hopper get() {
         LinearMechanism<?> mechanism;
         switch (Constants.currentMode) {
             case REAL:
                 mechanism =
                         new LinearMechanismReal(
                                 NAME,
-                                new MotorIOTalonFX(NAME, getFXConfig(), Ports.intakeLinear),
+                                new MotorIOTalonFX(NAME, getFXConfig(), Ports.hopper),
                                 CHARACTERISTICS);
                 break;
             case SIM:
                 mechanism =
                         new LinearMechanismSim(
                                 NAME,
-                                new MotorIOTalonFXSim(NAME, getFXConfig(), Ports.intakeLinear),
+                                new MotorIOTalonFXSim(NAME, getFXConfig(), Ports.hopper),
                                 DCMOTOR,
                                 CARRIAGE_MASS,
-                                false,
+                                true,
                                 CHARACTERISTICS);
                 break;
             case REPLAY:
@@ -171,6 +171,6 @@ public class HopperConstants {
         mechanism.enableTunablePID(PIDSlot.SLOT_0, SLOT0_PID);
         mechanism.enableTunablePID(PIDSlot.SLOT_1, SLOT1_PID);
         mechanism.withRadius(DRUM_RADIUS);
-        return mechanism;
+        return new Hopper(mechanism);
     }
 }
