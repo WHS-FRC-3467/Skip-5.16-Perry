@@ -35,7 +35,7 @@ public class RobotSim {
 
     /** A fudge factor to account for mechanical losses on the real robot */
     private static final LoggedTunableNumber BALL_VELOCITY_FUDGE =
-            new LoggedTunableNumber("Sim/BallVelocityFudge", 0.68);
+            new LoggedTunableNumber("Sim/BallVelocityFudge", 0.4);
 
     private final RobotState robotState = RobotState.getInstance();
 

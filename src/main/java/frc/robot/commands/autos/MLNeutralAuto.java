@@ -163,7 +163,7 @@ public final class MLNeutralAuto {
                                                             }),
                                                     Commands.defer(
                                                             () ->
-                                                                    AutoCommands.followThenPrep(
+                                                                    AutoCommands.followThenShoot(
                                                                             ctx,
                                                                             3.0,
                                                                             selectedLane.get()),

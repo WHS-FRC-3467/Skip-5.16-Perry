@@ -148,11 +148,7 @@ public class AutoCommands {
      */
     public static Command followThenShoot(
             AutoContext ctx, double timeoutSeconds, AutoTrajectory current) {
-        return Commands.sequence(
-                current.spawnCmd(),
-                Commands.waitUntil(current.done()),
-                shootOnly(ctx, timeoutSeconds),
-                retractIntake(ctx));
+        return Commands.sequence(current.cmd(), shootOnly(ctx, timeoutSeconds), retractIntake(ctx));
     }
 
     /**
@@ -161,19 +157,6 @@ public class AutoCommands {
     public static Command shootThenPrep(AutoContext ctx, double timeoutSeconds) {
         return Commands.sequence(
                 shootOnly(ctx, timeoutSeconds), stowHood(ctx.shooter()), retractIntake(ctx));
-    }
-
-    /**
-     * Follows the lane path, shoots, and retracts the intake. Continuation is intended to be bound
-     * separately on a trigger once this command has finished.
-     */
-    public static Command followThenPrep(
-            AutoContext ctx, double timeoutSeconds, AutoTrajectory current) {
-        return Commands.sequence(
-                current.spawnCmd(),
-                Commands.waitUntil(current.done()),
-                shootOnly(ctx, timeoutSeconds),
-                retractIntake(ctx));
     }
 
     /**
