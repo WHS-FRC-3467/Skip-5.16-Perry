@@ -23,21 +23,21 @@ public record ChoreoTraj(
     public static final ChoreoTraj NeutralBump_ML_SafeMiddle = new ChoreoTraj(
 	    "NeutralBump_ML_SafeMiddle",
 	    OptionalInt.empty(),
-	    7.28817,
+	    7.55568,
 	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
 	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
 	);
 	public static final ChoreoTraj NeutralBump_ML_SafeMiddle$0 = new ChoreoTraj(
 	    "NeutralBump_ML_SafeMiddle",
 	    OptionalInt.of(0),
-	    2.34745,
+	    2.68987,
 	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
 	    new Pose2d(6.8, 7.399, Rotation2d.fromRadians(1.571))
 	);
 	public static final ChoreoTraj NeutralBump_ML_SafeMiddle$1 = new ChoreoTraj(
 	    "NeutralBump_ML_SafeMiddle",
 	    OptionalInt.of(1),
-	    4.940720000000001,
+	    4.86581,
 	    new Pose2d(6.8, 7.399, Rotation2d.fromRadians(1.571)),
 	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
 	);
@@ -58,9 +58,9 @@ public record ChoreoTraj(
 	public static final ChoreoTraj NeutralBump_ML_SafeLeft = new ChoreoTraj(
 	    "NeutralBump_ML_SafeLeft",
 	    OptionalInt.empty(),
-	    7.72354,
+	    7.71268,
 	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(3.02, 5.56, Rotation2d.fromRadians(-0.803))
+	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
 	);
 	public static final ChoreoTraj NeutralBump_ML_SafeLeft$0 = new ChoreoTraj(
 	    "NeutralBump_ML_SafeLeft",
@@ -72,9 +72,9 @@ public record ChoreoTraj(
 	public static final ChoreoTraj NeutralBump_ML_SafeLeft$1 = new ChoreoTraj(
 	    "NeutralBump_ML_SafeLeft",
 	    OptionalInt.of(1),
-	    5.61023,
+	    5.59937,
 	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.02, 5.56, Rotation2d.fromRadians(-0.803))
+	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
 	);
 	public static final ChoreoTraj NeutralBump_ML_SafeRight = new ChoreoTraj(
 	    "NeutralBump_ML_SafeRight",
