@@ -69,7 +69,7 @@ public final class MLNeutralAuto {
                                 ChoreoTraj.NeutralBump_ML_SafeMiddle.name(),
                                 ChoreoTraj.NeutralBump_ML_SafeRight.name())
                         : List.of(
-                                ChoreoTraj.NeutralBump_ML_Start.name(), // Placeholders for now
+                                ChoreoTraj.NeutralBump_ML_Start.name(),
                                 ChoreoTraj.NeutralBump_ML_SafeRight.name(),
                                 ChoreoTraj.NeutralBump_ML_Decision.name(),
                                 ChoreoTraj.NeutralBump_ML_SafeLeft.name(),
@@ -105,20 +105,7 @@ public final class MLNeutralAuto {
                             AutoTrajectory laneTwo = routine.trajectory(trajectories.get(4));
                             AutoTrajectory laneThree = routine.trajectory(trajectories.get(5));
 
-                            // Atomic types act as atomically mutable owned references to heap
-                            // memory on the stack,
-                            // similar to Box in Rust or std::unique_ptr in C++. Lambdas capture the
-                            // reference
-                            // rather than the value, allowing for interactions similar to class
-                            // members in a lambda.
-
-                            // Notifier for when to make a descision. There should only be one
-                            // reader,
-                            // and it should always set this back to false immediately after it has
-                            // finished.
                             AtomicBoolean queueDecision = new AtomicBoolean(false);
-
-                            // The descision that has been made
                             AtomicReference<AutoTrajectory> selectedLane =
                                     new AtomicReference<>(fallback);
 

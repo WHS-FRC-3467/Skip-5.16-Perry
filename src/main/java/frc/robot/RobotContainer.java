@@ -18,7 +18,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -36,11 +35,11 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
+import frc.lib.util.LoggedTunableNumber;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
-import frc.robot.commands.autos.tuning.FeedforwardCharacterizationAuto;
-import frc.robot.commands.autos.tuning.WheelCharacterizationAuto;
+import frc.robot.commands.autos.tuning.*;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
 import frc.robot.subsystems.drive.Drive;
@@ -50,8 +49,6 @@ import frc.robot.subsystems.indexer.IndexerConstants;
 import frc.robot.subsystems.intake.IntakeLinearConstants;
 import frc.robot.subsystems.intake.IntakeSuperstructure;
 import frc.robot.subsystems.intake.IntakeSuperstructureConstants;
-import frc.robot.subsystems.objectdetector.ObjectDetector;
-import frc.robot.subsystems.objectdetector.ObjectDetectorConstants;
 import frc.robot.subsystems.shooter.ShooterSuperstructure;
 import frc.robot.subsystems.shooter.ShooterSuperstructureConstants;
 import frc.robot.subsystems.tower.Tower;
@@ -62,6 +59,7 @@ import frc.robot.util.RobotSim;
 
 import org.littletonrobotics.junction.Logger;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
@@ -79,6 +77,9 @@ import java.util.Set;
 public class RobotContainer {
     private final RobotState robotState = RobotState.getInstance();
 
+    private static final LoggedTunableNumber TOWER_TIMEOUT =
+            new LoggedTunableNumber("Tower/Timeout", 0.5);
+
     // Subsystems
     public final Drive drive;
     final ShooterSuperstructure shooter;
@@ -86,7 +87,7 @@ public class RobotContainer {
     private final Indexer indexer;
     private final Tower tower;
     // private final LEDs leds;
-    private final ObjectDetector objectDetector;
+    // private final ObjectDetector objectDetector;
 
     // Controller
     private final CommandXboxControllerExtended controller =
@@ -97,6 +98,7 @@ public class RobotContainer {
     // Dashboard inputs
     private final LoggedDashboardChooser<AutoOption> autoChooser;
     public final Field2d autoPreviewField = new Field2d();
+    private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
 
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
@@ -110,14 +112,13 @@ public class RobotContainer {
         VisionConstants.create();
         // VisionOdometryCharacterizer.enable();
         // leds = LEDsConstants.get();
-        objectDetector = ObjectDetectorConstants.get();
+        // objectDetector = ObjectDetectorConstants.get();
 
         if (RobotBase.isSimulation()) {
             RobotSim.getInstance().addMechanismData(drive, shooter, indexer, intake);
         }
         AutoContext ctx =
-                AutoContext.create(
-                        drive, intake, indexer, tower, shooter, Optional.of(objectDetector));
+                AutoContext.create(drive, intake, indexer, tower, shooter, Optional.empty());
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices");
         SmartDashboard.putData("Auto Preview", autoPreviewField);
@@ -129,33 +130,43 @@ public class RobotContainer {
         autoChooser.addOption("PreloadAuto", PreloadAuto.create(ctx));
 
         // Neutral Autos
-        NeutralAuto.create(ctx, false, false)
-                .ifPresent(a -> autoChooser.addOption("Aggressive-Left", a));
-        NeutralAuto.create(ctx, true, false)
-                .ifPresent(a -> autoChooser.addOption("Aggressive-Right", a));
-        NeutralAuto.create(ctx, false, true).ifPresent(a -> autoChooser.addOption("Safe-Left", a));
-        NeutralAuto.create(ctx, true, true).ifPresent(a -> autoChooser.addOption("Safe-Right", a));
-        MLNeutralAuto.create(ctx, false, true)
-                .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
+        // MLNeutralAuto.create(ctx, false, true)
+        //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
-        DepotShootAuto.create(ctx, false)
-                .ifPresent(a -> autoChooser.addOption("Aggressive-Depot", a));
-        DepotShootAuto.create(ctx, true).ifPresent(a -> autoChooser.addOption("Safe-Depot", a));
+        // Citrus Autos
+        C1678Auto.create(ctx, false, false)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
+        C1678Auto.create(ctx, true, false)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
+
+        // C1678Auto.create(ctx, false, true)
+        //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
+        // C1678Auto.create(ctx, true, true)
+        //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Right", a));
+
+        // DepotAuto.create(ctx, false, false).ifPresent(a -> autoChooser.addOption("Depot", a));
 
         autoChooser.onChange(
                 auto -> {
                     if (auto == null) {
+                        rawAutoPreviewPoses = new Pose2d[] {};
                         autoPreviewField.getObject("path").setPoses(new Pose2d[] {});
                         return;
                     }
-                    var pathPoses =
-                            auto.previewPoses().stream()
+                    var pathPoses = auto.previewPoses().toArray(Pose2d[]::new);
+                    if (pathPoses.length == 0) {
+                        rawAutoPreviewPoses = new Pose2d[] {};
+                        return;
+                    }
+                    pathPoses[0] = auto.startingPose();
+                    rawAutoPreviewPoses = pathPoses;
+
+                    // Apply alliance flip for initial preview
+                    var flippedPoses =
+                            Arrays.stream(rawAutoPreviewPoses)
                                     .map(FieldUtil::apply)
                                     .toArray(Pose2d[]::new);
-                    if (pathPoses.length == 0) return;
-                    pathPoses[0] = FieldUtil.apply(auto.startingPose());
-
-                    autoPreviewField.getObject("path").setPoses(pathPoses);
+                    autoPreviewField.getObject("path").setPoses(flippedPoses);
 
                     auto.command();
                 });
@@ -163,8 +174,8 @@ public class RobotContainer {
         autoChooser.addOption(
                 "Drive Wheel Radius Characterization", WheelCharacterizationAuto.create(ctx));
 
-        autoChooser.addOption(
-                "Feedforward Characterization", FeedforwardCharacterizationAuto.create(ctx));
+        // autoChooser.addOption(
+        //         "Feedforward Characterization", FeedforwardCharacterizationAuto.create(ctx));
 
         // Configure the button bindings
         configureButtonBindings();
@@ -183,6 +194,9 @@ public class RobotContainer {
                         () -> -controller.getLeftY(),
                         () -> -controller.getLeftX(),
                         () -> -controller.getRightX()));
+
+        HubState hubState = HubState.getInstance();
+
         Trigger readyToShootAtCurrentTarget =
                 shooter.profileComplete.and(
                         robotState
@@ -195,19 +209,37 @@ public class RobotContainer {
                 .rightTrigger()
                 .whileTrue(
                         Commands.parallel(
-                                Commands.either(
-                                        DriveCommands.joystickDriveFacingFutureTarget(
-                                                drive,
-                                                () -> -controller.getLeftY() * 0.4,
-                                                () -> -controller.getLeftX() * 0.4,
-                                                robotState.feedLookaheadSeconds),
-                                        DriveCommands.staticAimTowardsTarget(drive),
-                                        robotState.shouldFeed),
-                                shooter.spinUpShooter(),
-                                Commands.sequence(
-                                        Commands.waitSeconds(0.05),
-                                        Commands.waitUntil(readyToShootAtCurrentTarget),
-                                        Commands.parallel(indexer.shoot(), tower.shoot()))))
+                                        Commands.either(
+                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                        drive,
+                                                        () -> -controller.getLeftY() * 0.4,
+                                                        () -> -controller.getLeftX() * 0.4,
+                                                        robotState.feedLookaheadSeconds),
+                                                DriveCommands.staticAimTowardsTarget(drive),
+                                                robotState.shouldFeed),
+                                        shooter.shoot(),
+                                        Commands.sequence(
+                                                Commands.defer(
+                                                                () ->
+                                                                        Commands.parallel(
+                                                                                        tower
+                                                                                                .eject(),
+                                                                                        indexer
+                                                                                                .eject())
+                                                                                .withTimeout(
+                                                                                        TOWER_TIMEOUT
+                                                                                                .get())
+                                                                                .withInterruptBehavior(
+                                                                                        InterruptionBehavior
+                                                                                                .kCancelSelf),
+                                                                Set.of(tower))
+                                                        .withDeadline(
+                                                                Commands.sequence(
+                                                                        Commands.waitSeconds(0.001),
+                                                                        Commands.waitUntil(
+                                                                                readyToShootAtCurrentTarget))),
+                                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
                                 shooter.stopAndStow(),
@@ -246,7 +278,11 @@ public class RobotContainer {
                 .x()
                 .whileTrue(
                         Commands.parallel(
-                                DriveCommands.stopWithX(drive),
+                                DriveCommands.joystickDrive(
+                                        drive,
+                                        () -> -controller.getLeftY() * 0.7,
+                                        () -> -controller.getLeftX() * 0.7,
+                                        () -> -controller.getRightX() * 0.7),
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.TRENCH_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
@@ -280,7 +316,11 @@ public class RobotContainer {
                 .a()
                 .whileTrue(
                         Commands.parallel(
-                                DriveCommands.stopWithX(drive),
+                                DriveCommands.joystickDrive(
+                                        drive,
+                                        () -> -controller.getLeftY() * 0.7,
+                                        () -> -controller.getLeftX() * 0.7,
+                                        () -> -controller.getRightX() * 0.7),
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.Tower.TOWER_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
@@ -329,22 +369,16 @@ public class RobotContainer {
                 .whileTrue(
                         shooter.spinUpShooter()
                                 .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+
         controller
                 .rightTrigger()
                 .negate()
                 .and(operatorController.y().negate())
                 .onTrue(shooter.stopFlywheels());
 
-        HubState.getInstance()
-                .getEnablingSoon()
-                .onTrue(
-                        Commands.sequence(
-                                controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                Commands.waitSeconds(0.5),
-                                controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                Commands.waitSeconds(0.5),
-                                controller.rumbleForTime(1.0, Seconds.of(0.5)),
-                                Commands.waitSeconds(0.5)));
+        hubState.getEnablingSoon()
+                .whileTrue(
+                        Commands.parallel(controller.rumble(1.0), operatorController.rumble(1.0)));
 
         controller
                 .joysticksZeroed
@@ -359,6 +393,10 @@ public class RobotContainer {
      */
     private void initializeDashboard() {
 
+        SmartDashboard.putData(
+                "Home Intake and Shooter",
+                Commands.parallel(intake.homeLinear(), shooter.homeHood()));
+
         // Indexer Commands
         SmartDashboard.putData(IndexerConstants.NAME + "/Shoot", indexer.shoot());
         SmartDashboard.putData(IndexerConstants.NAME + "/Expel", indexer.eject());
@@ -369,7 +407,7 @@ public class RobotContainer {
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Retract", intake.retractIntake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Coast", intake.linearCoast());
-        SmartDashboard.putData("Home", Commands.parallel(intake.homeLinear(), shooter.homeHood()));
+
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/SlowRetract", intake.slowRetract());
 
         // Tower Commands
@@ -381,10 +419,9 @@ public class RobotContainer {
         // Shooter Commands
         SmartDashboard.putData(
                 ShooterSuperstructureConstants.NAME + "/Stop", shooter.stopFlywheels());
+        SmartDashboard.putData(ShooterSuperstructureConstants.NAME + "/Shoot", shooter.shoot());
         SmartDashboard.putData(
-                ShooterSuperstructureConstants.NAME + "/Spinup", shooter.spinUpShooter());
-        SmartDashboard.putData(
-                ShooterSuperstructureConstants.NAME + "/SlowSpinup", shooter.slowSpinup());
+                ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpShooter());
 
         SmartDashboard.putData(
                 "Debug/SetOdometryToTestPose",
@@ -413,18 +450,6 @@ public class RobotContainer {
                 new DriveToPose(drive, () -> startPose)
                         .withDistanceTolerance(Meters.of(0.04))
                         .withAngularTolerance(Degrees.of(3)));
-        SmartDashboard.putData(
-                "Reset to Test Pose",
-                Commands.runOnce(
-                        () ->
-                                robotState.resetPose(
-                                        FieldUtil.apply(
-                                                new Pose2d(
-                                                        FieldConstants.Hub.TOP_CENTER_POINT.getX()
-                                                                - FieldConstants.Hub
-                                                                        .HUB_SHOT_DISTANCE,
-                                                        FieldConstants.Hub.TOP_CENTER_POINT.getY(),
-                                                        Rotation2d.kZero)))));
     }
 
     /**

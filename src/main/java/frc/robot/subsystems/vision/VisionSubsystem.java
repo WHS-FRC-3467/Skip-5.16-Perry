@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.lib.devices.AprilTagCamera;
 import frc.lib.posestimator.PoseEstimator.VisionPoseObservation;
+import frc.lib.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.AprilTagLayoutType;
@@ -65,7 +66,7 @@ public class VisionSubsystem extends SubsystemBase {
     public static final double MAX_Z_METERS = 0.75;
 
     /** Maximum allowable distance from a target to be considered valid. */
-    public static final double MAX_DISTANCE_METERS = 4.0;
+    public static final double MAX_DISTANCE_METERS = 8.0;
 
     /** Maximum ambiguity ratio allowed in a result */
     public static final double MAX_AMBIGUITY = 0.2;
@@ -95,6 +96,9 @@ public class VisionSubsystem extends SubsystemBase {
 
     public static final record VisionPoseRecord(
             Pose3d pose, List<Integer> tagsUsed, double averageDistanceMeters) {}
+
+    private static final LoggedTunableNumber TIMESTAMP_OFFSET =
+            new LoggedTunableNumber("VisionSubsystem/TimestampOffset", -(1.0 / 45.0));
 
     /**
      * Quickly checks whether a {@link PhotonPipelineResult} is likely to be useful before full
@@ -161,7 +165,7 @@ public class VisionSubsystem extends SubsystemBase {
         for (int i = 0; i < cameras.length; i++) {
             this.poseEstimators[i] =
                     new PhotonPoseEstimator(
-                            AprilTagLayoutType.OFFICIAL.getLayout(),
+                            AprilTagLayoutType.NO_TRENCH.getLayout(),
                             cameras[i].getProperties().robotToCamera());
         }
     }
@@ -240,7 +244,7 @@ public class VisionSubsystem extends SubsystemBase {
 
                 robotState.addVisionObservation(
                         new VisionPoseObservation(
-                                result.getTimestampSeconds(),
+                                result.getTimestampSeconds() + TIMESTAMP_OFFSET.get(),
                                 poseRecord.pose().toPose2d(),
                                 poseRecord.averageDistanceMeters(),
                                 poseRecord.tagsUsed(),
@@ -365,6 +369,6 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     private Optional<Pose3d> getTagPose(int id) {
-        return AprilTagLayoutType.OFFICIAL.getLayout().getTagPose(id);
+        return AprilTagLayoutType.NO_TRENCH.getLayout().getTagPose(id);
     }
 }

@@ -26,34 +26,41 @@ public final class CameraOutput extends com.google.flatbuffers.Table {
   public CameraOutput __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   /**
+   * Microsecond timestamp (matches NT timestamp convention)
+   */
+  public long timestampUs() { int o = __offset(4); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  /**
    * Camera index within the multi-camera module
    */
-  public int cameraIndex() { int o = __offset(4); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public int cameraIndex() { int o = __offset(6); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
   /**
    * Field-relative camera pose observation (null if no tags seen)
    */
   public dsv0.CameraObservation cameraObservation() { return cameraObservation(new dsv0.CameraObservation()); }
-  public dsv0.CameraObservation cameraObservation(dsv0.CameraObservation obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public dsv0.CameraObservation cameraObservation(dsv0.CameraObservation obj) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   /**
    * Frames per second (0 if not reported this cycle)
    */
-  public int fps() { int o = __offset(8); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public int fps() { int o = __offset(10); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
 
   public static int createCameraOutput(FlatBufferBuilder builder,
+      long timestampUs,
       int cameraIndex,
       int cameraObservationOffset,
       int fps) {
-    builder.startTable(3);
+    builder.startTable(4);
+    CameraOutput.addTimestampUs(builder, timestampUs);
     CameraOutput.addFps(builder, fps);
     CameraOutput.addCameraObservation(builder, cameraObservationOffset);
     CameraOutput.addCameraIndex(builder, cameraIndex);
     return CameraOutput.endCameraOutput(builder);
   }
 
-  public static void startCameraOutput(FlatBufferBuilder builder) { builder.startTable(3); }
-  public static void addCameraIndex(FlatBufferBuilder builder, int cameraIndex) { builder.addInt(0, cameraIndex, 0); }
-  public static void addCameraObservation(FlatBufferBuilder builder, int cameraObservationOffset) { builder.addOffset(1, cameraObservationOffset, 0); }
-  public static void addFps(FlatBufferBuilder builder, int fps) { builder.addInt(2, fps, 0); }
+  public static void startCameraOutput(FlatBufferBuilder builder) { builder.startTable(4); }
+  public static void addTimestampUs(FlatBufferBuilder builder, long timestampUs) { builder.addLong(0, timestampUs, 0L); }
+  public static void addCameraIndex(FlatBufferBuilder builder, int cameraIndex) { builder.addInt(1, cameraIndex, 0); }
+  public static void addCameraObservation(FlatBufferBuilder builder, int cameraObservationOffset) { builder.addOffset(2, cameraObservationOffset, 0); }
+  public static void addFps(FlatBufferBuilder builder, int fps) { builder.addInt(3, fps, 0); }
   public static int endCameraOutput(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

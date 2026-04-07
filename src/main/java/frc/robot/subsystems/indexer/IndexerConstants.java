@@ -38,7 +38,7 @@ public class IndexerConstants {
 
     public static final String NAME = "Indexer";
 
-    public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(65.0);
+    public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(45.0);
     public static final AngularAcceleration MAX_ACCELERATION =
             RotationsPerSecondPerSecond.of(193.0);
 
@@ -49,7 +49,7 @@ public class IndexerConstants {
     public static final AngularVelocity TOLERANCE = RotationsPerSecond.of(5.0);
 
     private static final DCMotor DCMOTOR = DCMotor.getKrakenX44Foc(1);
-    public static final MomentOfInertia MOI = KilogramSquareMeters.of(0.01);
+    public static final MomentOfInertia MOI = KilogramSquareMeters.of(0.001);
 
     // Velocity PID
     public static final PID SLOT0_PID = new PID(5.0, 0.0, 0.0).withS(5.0);
@@ -68,8 +68,8 @@ public class IndexerConstants {
         config.CurrentLimits.SupplyCurrentLowerTime = 0.1;
 
         if (Robot.isReal()) {
-            config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;
-            config.TorqueCurrent.PeakReverseTorqueCurrent = -80.0;
+            config.TorqueCurrent.PeakForwardTorqueCurrent = 40.0;
+            config.TorqueCurrent.PeakReverseTorqueCurrent = -40.0;
         }
 
         config.Voltage.PeakForwardVoltage = 12.0;

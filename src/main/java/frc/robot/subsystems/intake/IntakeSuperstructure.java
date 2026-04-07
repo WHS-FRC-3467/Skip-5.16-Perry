@@ -38,7 +38,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
             new LoggedTunableNumber(IntakeRollerConstants.NAME + "/EjectRPS", -35.0);
 
     private static final LoggedTunableNumber SLOW_MPS =
-            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.5);
+            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.25);
 
     private final LinearMechanism<?> intakeLinearIO;
     private final FlywheelMechanism<?> intakeRollerIO;
@@ -165,12 +165,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                                 PIDSlot.SLOT_0,
                                                 cruiseVelocity,
                                                 acceleration)),
-                        runRoller
-                                ? runRoller(
-                                        () ->
-                                                RotationsPerSecond.of(ROLLER_INTAKE_RPS.get())
-                                                        .times(rollerScale))
-                                : Commands.none(),
+                        runRoller ? runRoller(80.0) : Commands.none(),
                         Commands.waitUntil(
                                 () ->
                                         MathUtil.isNear(
@@ -180,14 +175,8 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                 .withName(name);
     }
 
-    private Command runRoller(Supplier<AngularVelocity> angularVelocity) {
-        return this.runOnce(() -> intakeRollerIO.runVelocity(angularVelocity.get(), PIDSlot.SLOT_0))
-                .withName("Run Roller");
-    }
-
-    private Command runRoller(double dutyCycle) {
-        return this.runOnce(() -> intakeRollerIO.runDutyCycle(dutyCycle, false))
-                .withName("Run Roller");
+    private Command runRoller(double amps) {
+        return this.runOnce(() -> intakeRollerIO.runCurrent(Amps.of(amps))).withName("Run Roller");
     }
 
     public Command stopRoller() {
@@ -214,7 +203,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command extendWithRoller(Supplier<AngularVelocity> rollerVelocity, String name) {
         return Commands.sequence(
-                        runRoller(rollerVelocity),
+                        runRoller(80.0),
                         moveToPosition(
                                 IntakeLinearConstants.MAX_DISTANCE,
                                 IntakeLinearConstants.CRUISE_VELOCITY,
@@ -224,23 +213,20 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     }
 
     public Command retractIntake() {
-        return retractWithSpeed(IntakeLinearConstants.CRUISE_VELOCITY, 1.0, "Retract Intake");
+        return retractWithSpeed(IntakeLinearConstants.CRUISE_VELOCITY, "Retract Intake");
     }
 
     public Command slowRetract(LinearVelocity retractSpeed) {
-        return retractWithSpeed(retractSpeed, 0.6, "Slow Retract");
+        return retractWithSpeed(retractSpeed, "Slow Retract");
     }
 
     public Command slowRetract() {
         return slowRetract(MetersPerSecond.of(SLOW_MPS.get()));
     }
 
-    private Command retractWithSpeed(LinearVelocity retractSpeed, double rollerScale, String name) {
+    private Command retractWithSpeed(LinearVelocity retractSpeed, String name) {
         return Commands.sequence(
-                        runRoller(
-                                () ->
-                                        RotationsPerSecond.of(ROLLER_INTAKE_RPS.get())
-                                                .times(rollerScale)),
+                        runRoller(80.0),
                         moveToPosition(
                                 retractDistance,
                                 retractSpeed,
@@ -248,6 +234,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 "Retract Linear"),
                         Commands.waitUntil(isRetracted),
                         stopRoller())
+                .finallyDo(() -> intakeRollerIO.runDutyCycle(0.0, false))
                 .withName(name);
     }
 
@@ -326,7 +313,8 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     public Command homeLinear() {
         return Commands.sequence(
                         this.runOnce(() -> intakeLinearIO.runDutyCycle(0.25, true)), this.idle())
-                .finallyDo(() -> intakeLinearIO.setEncoderPosition(Rotations.of(3.7)));
+                .finallyDo(() -> intakeLinearIO.setEncoderPosition(Rotations.of(3.7)))
+                .withName("Home Linear");
     }
 
     @Override

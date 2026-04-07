@@ -22,10 +22,12 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.AlwaysTunableNumber;
 import frc.lib.util.FieldUtil;
+import frc.lib.util.LoggedTrigger;
 import frc.robot.RobotState;
 import frc.robot.RobotState.FieldRegion;
 import frc.robot.commands.DriveCommands;
@@ -74,7 +76,7 @@ public class AutoCommands {
             double timeoutDuration) {
         return Commands.deadline(
                 Commands.parallel(
-                                shooter.spinUpShooter().asProxy(),
+                                shooter.shoot().asProxy(),
                                 Commands.sequence(
                                         Commands.waitUntil(
                                                 shooter.profileComplete.and(
@@ -82,7 +84,11 @@ public class AutoCommands {
                                         Commands.parallel(
                                                 indexer.shoot(),
                                                 tower.shoot(),
-                                                intake.shuffleStep().repeatedly().asProxy())))
+                                                Commands.waitSeconds(0.5)
+                                                        .andThen(
+                                                                Commands.defer(
+                                                                        intake::slowRetract,
+                                                                        Set.of(intake))))))
                         .until(shooter.hopperEmpty)
                         .withTimeout(timeoutDuration)
                         .finallyDo(
@@ -132,8 +138,7 @@ public class AutoCommands {
             AutoContext ctx, double timeoutSeconds, AutoTrajectory next) {
         return Commands.sequence(
                 shootOnly(ctx, timeoutSeconds),
-                stowHood(ctx.shooter()),
-                retractIntake(ctx),
+                new ScheduleCommand(stowHood(ctx.shooter())),
                 next.spawnCmd());
     }
 
@@ -211,7 +216,6 @@ public class AutoCommands {
                 bestIndex = i;
             }
         }
-
         return bestIndex == -1 ? Optional.empty() : Optional.of(bestIndex);
     }
 
@@ -225,7 +229,12 @@ public class AutoCommands {
             double timeoutSeconds,
             AutoTrajectory next) {
         return Commands.sequence(
-                recoverTrajectory(ctx.drive(), failedTrajectory, tunnel, retractIntake(ctx)),
+                ctx.drive().runOnce(ctx.drive()::stop),
+                recoverTrajectory(
+                        ctx.drive(),
+                        failedTrajectory,
+                        tunnel,
+                        new ScheduleCommand(ctx.shooter().spinUpShooter())),
                 shootThenFollow(ctx, timeoutSeconds, next));
     }
 
@@ -238,7 +247,7 @@ public class AutoCommands {
         return routine.observe(
                 new BooleanSupplier() {
                     private final Timer errorCheckDelayTimer = new Timer();
-                    private final Debouncer pathErrorDebouncer = new Debouncer(0.5);
+                    private final Debouncer pathErrorDebouncer = new Debouncer(1.0);
                     private boolean wasActive = false;
 
                     @Override
@@ -261,7 +270,8 @@ public class AutoCommands {
                                                 robotState
                                                         .getActiveTrajectoryError()
                                                         .gte(pathErrorTol))
-                                        || robotState.forcePathFind.get());
+                                        || robotState.forcePathFind.get())
+                                && robotState.getFieldRegion() == FieldRegion.NEUTRAL_ZONE;
                     }
                 });
     }
@@ -278,14 +288,17 @@ public class AutoCommands {
         Debouncer goalPoseDebouncer = new Debouncer(0.25);
         Pose2d goalPose = trajectory.getFinalPose().orElse(new Pose2d());
 
-        BooleanSupplier atGoal =
-                () ->
-                        goalPoseDebouncer.calculate(
-                                robotState
-                                                .getEstimatedPose()
-                                                .getTranslation()
-                                                .getDistance(goalPose.getTranslation())
-                                        < DriveConstants.ALLOWABLE_SHOT_POSE_ERROR.in(Meters));
+        LoggedTrigger atGoal =
+                new LoggedTrigger(
+                        "test2",
+                        () ->
+                                goalPoseDebouncer.calculate(
+                                        robotState
+                                                        .getEstimatedPose()
+                                                        .getTranslation()
+                                                        .getDistance(goalPose.getTranslation())
+                                                < DriveConstants.ALLOWABLE_SHOT_POSE_ERROR.in(
+                                                        Meters)));
 
         return Commands.runOnce(
                         () -> {
@@ -295,12 +308,7 @@ public class AutoCommands {
                 .andThen(
                         Commands.either(
                                 Commands.none(),
-                                retryPathing(
-                                        drive,
-                                        goalPose,
-                                        tunnelTrajectory,
-                                        atGoal,
-                                        onRetry.asProxy()),
+                                retryPathing(drive, goalPose, tunnelTrajectory, atGoal, onRetry),
                                 atGoal))
                 .finallyDo(() -> Logger.recordOutput("Auto/GoalPose", new Pose2d()));
     }
@@ -319,7 +327,7 @@ public class AutoCommands {
                                                         AutoBuilder.pathfindToPose(
                                                                 startPose,
                                                                 DriveConstants.PATH_CONSTRAINTS,
-                                                                2.0),
+                                                                3.0),
                                                         tunnelTrajectory.cmd()))
                                 .orElseGet(
                                         () -> {
@@ -348,10 +356,12 @@ public class AutoCommands {
         Distance pathErrorTol = Meters.of(0.4572); // 18 inches
         Debouncer pathErrorDebouncer = new Debouncer(0.5);
 
-        BooleanSupplier pathErrorExceeded =
-                () ->
-                        pathErrorDebouncer.calculate(
-                                robotState.getActiveTrajectoryError().gte(pathErrorTol));
+        LoggedTrigger pathErrorExceeded =
+                new LoggedTrigger(
+                        "test3",
+                        () ->
+                                pathErrorDebouncer.calculate(
+                                        robotState.getActiveTrajectoryError().gte(pathErrorTol)));
 
         return Commands.repeatingSequence(
                         onRetry,
@@ -396,6 +406,6 @@ public class AutoCommands {
     }
 
     private static Command retractIntake(AutoContext ctx) {
-        return ctx.intake().retractIntake().asProxy().withTimeout(0.5);
+        return ctx.intake().retractIntake().withTimeout(0.5);
     }
 }

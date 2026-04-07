@@ -226,6 +226,13 @@ deploy {
                     jvmArgs.add("-Xmx" + MAX_JAVA_HEAP_SIZE_MB + "M")
                     jvmArgs.add("-Xms" + MAX_JAVA_HEAP_SIZE_MB + "M")
                     jvmArgs.add("-XX:+AlwaysPreTouch")
+
+//                        jvmArgs.add("-Dcom.sun.management.jmxremote=true")
+//    jvmArgs.add("-Dcom.sun.management.jmxremote.port=1198")
+//    jvmArgs.add("-Dcom.sun.management.jmxremote.local.only=false")
+//    jvmArgs.add("-Dcom.sun.management.jmxremote.ssl=false")
+//    jvmArgs.add("-Dcom.sun.management.jmxremote.authenticate=false")
+//    jvmArgs.add("-Djava.rmi.server.hostname=10.34.67.2") // Replace TE.AM with team number
                 }
 
                 // Static files artifact
@@ -308,7 +315,7 @@ test {
 // AdvantageKit log replay from the command line. Set the
 // value to "true" to enable the sim GUI by default (this
 // is the standard WPILib behavior).
-wpi.sim.addGui().defaultEnabled = true
+wpi.sim.addGui().defaultEnabled = false
 wpi.sim.addDriverstation()
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')
@@ -409,7 +416,7 @@ spotless {
     java {
         // Target all Java files
         target '**/*.java'
-        targetExclude '**/generated/**'
+        targetExclude '**/generated/**', 'third_party/**', 'C2/**'
         googleJavaFormat().reorderImports(true).aosp()
         trimTrailingWhitespace()
         endWithNewline()
@@ -428,6 +435,7 @@ spotless {
     // Configuration for miscellaneous files (e.g., Gradle files, Markdown)
     format 'misc', {
         target '**/*.gradle', '**/*.md', '**/.gitignore'
+        targetExclude 'third_party/**', 'C2/**'
         leadingTabsToSpaces()
         trimTrailingWhitespace()
         endWithNewline()
