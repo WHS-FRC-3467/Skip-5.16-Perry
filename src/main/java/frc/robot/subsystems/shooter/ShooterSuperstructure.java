@@ -469,7 +469,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                         }));
     }
 
-    LinearFilter filter = LinearFilter.singlePoleIIR(0.1, 0.02);
+    LinearFilter filter = LinearFilter.singlePoleIIR(0.2, 0.075);
 
     @Override
     public void periodic() {
