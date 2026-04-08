@@ -375,6 +375,7 @@ public class ObjectDetector extends SubsystemBase {
             latestObjectObservation = List.of();
             latestBigContourObservation = Optional.empty();
             latestLowContourObservation = Optional.empty();
+            bestLaneTarget = Optional.empty();
         }
         // Log Object & Blob observations for sim
         logObjectObservation(latestObjectObservation);
