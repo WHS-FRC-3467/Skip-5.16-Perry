@@ -471,6 +471,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     LinearFilter filter = LinearFilter.singlePoleIIR(0.2, 0.075);
 
+    private double averageTorque;
+
     @Override
     public void periodic() {
         if (tuningMode.get()) {
@@ -485,10 +487,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                     getName() + "/Tuning/DistanceToTargetMeters",
                     robotState.getDistanceToTarget().in(Meters));
         }
+        averageTorque = filter.calculate(flywheelIO.getTorqueCurrent().in(Amps));
         LoggerHelper.recordCurrentCommand(this.getName(), this);
-        Logger.recordOutput(
-                getName() + "/AverageTorque",
-                filter.calculate(flywheelIO.getTorqueCurrent().in(Amps)));
+        Logger.recordOutput(getName() + "/AverageTorque", averageTorque);
         flywheelIO.periodic();
         hoodIO.periodic();
 
@@ -511,5 +512,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public void close() {
         flywheelIO.close();
         hoodIO.close();
+    }
+
+    public double getFlywheelTorqueAmps() {
+        return averageTorque;
     }
 }
