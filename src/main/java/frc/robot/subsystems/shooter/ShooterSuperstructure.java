@@ -15,6 +15,7 @@
 
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -24,6 +25,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.Angle;
@@ -467,6 +469,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                         }));
     }
 
+    LinearFilter filter = LinearFilter.singlePoleIIR(0.1, 0.02);
+
     @Override
     public void periodic() {
         if (tuningMode.get()) {
@@ -482,7 +486,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                     robotState.getDistanceToTarget().in(Meters));
         }
         LoggerHelper.recordCurrentCommand(this.getName(), this);
-
+        Logger.recordOutput(
+                getName() + "/AverageTorque",
+                filter.calculate(flywheelIO.getTorqueCurrent().in(Amps)));
         flywheelIO.periodic();
         hoodIO.periodic();
 
