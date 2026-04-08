@@ -238,7 +238,11 @@ public class RobotContainer {
                                                                         Commands.waitSeconds(0.001),
                                                                         Commands.waitUntil(
                                                                                 readyToShootAtCurrentTarget))),
-                                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                                Commands.parallel(
+                                                        indexer.shoot(), tower.shoot()
+                                                        //  ,
+                                                        // intake.torqueBasedRetract(shooter.getAverageTorque())
+                                                        )))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(

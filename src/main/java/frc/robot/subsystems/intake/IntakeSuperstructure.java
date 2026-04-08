@@ -26,6 +26,7 @@ import frc.lib.mechanisms.linear.LinearMechanism;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.robot.subsystems.shooter.FlywheelConstants;
 
 import java.util.function.Supplier;
 
@@ -222,6 +223,20 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     public Command slowRetract() {
         return slowRetract(MetersPerSecond.of(SLOW_MPS.get()));
+    }
+
+    public Command torqueBasedRetract(double torque) {
+        return torque < FlywheelConstants.MIN_TORQUE
+                ? moveByDistance(
+                                Inches.of(-3),
+                                shuffleVelocity,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                true,
+                                0.6,
+                                Inches.of(0.5).in(Meters),
+                                "Shuffle Retract")
+                        .withTimeout(0.25)
+                : Commands.none();
     }
 
     private Command retractWithSpeed(LinearVelocity retractSpeed, String name) {

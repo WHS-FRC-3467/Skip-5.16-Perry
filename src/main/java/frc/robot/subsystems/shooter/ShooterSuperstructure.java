@@ -15,6 +15,7 @@
 
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -24,6 +25,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.Angle;
@@ -139,6 +141,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private AngularVelocity getFlywheelTrimStep() {
         return RotationsPerSecond.of(flywheelTrimStepRPS.get());
     }
+
+    @Getter private double averageTorque;
+    private LinearFilter filter = LinearFilter.singlePoleIIR(3.0, 1.0);
 
     /** Shooter diagnostics */
     // Linear velocity drop required to detect a shot passing through the shooter, default tuned
@@ -483,6 +488,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         }
         LoggerHelper.recordCurrentCommand(this.getName(), this);
 
+        averageTorque = filter.calculate(flywheelIO.getTorqueCurrent().in(Amps));
         flywheelIO.periodic();
         hoodIO.periodic();
 

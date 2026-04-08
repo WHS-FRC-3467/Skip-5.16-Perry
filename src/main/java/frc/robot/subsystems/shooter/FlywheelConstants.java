@@ -39,6 +39,7 @@ public class FlywheelConstants {
 
     public static String NAME = "Flywheel";
 
+    public static final double MIN_TORQUE = 16.0;
     public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(69.0);
     public static final AngularAcceleration MAX_ACCELERATION = RotationsPerSecondPerSecond.of(30.0);
 
