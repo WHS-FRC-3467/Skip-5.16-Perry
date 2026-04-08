@@ -135,6 +135,8 @@ public class RobotContainer {
         // Neutral Autos
         MLNeutralAuto.create(ctx, false, true)
                 .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
+        MLNeutralAuto.create(ctx, true, true)
+                .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Right", a));
 
         // Citrus Autos
         C1678Auto.create(ctx, false, false)

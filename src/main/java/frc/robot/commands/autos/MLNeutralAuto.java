@@ -121,9 +121,15 @@ public final class MLNeutralAuto {
                                                     start.resetOdometry(),
                                                     Commands.defer(
                                                             () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
+                                                                    Commands.sequence(
+                                                                            Commands.runOnce(
+                                                                                    () ->
+                                                                                            ObjectDetector
+                                                                                                    .setShouldMirror(
+                                                                                                            shouldMirror)),
+                                                                            Commands.waitSeconds(
+                                                                                    AutoCommands
+                                                                                            .getAutoDelay())),
                                                             Set.of()),
                                                     start.spawnCmd()));
 
