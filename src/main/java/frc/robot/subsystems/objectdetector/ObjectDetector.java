@@ -99,7 +99,7 @@ public class ObjectDetector extends SubsystemBase {
     @Getter private Optional<LaneTarget> bestLaneTarget = Optional.empty();
 
     /** The number of arguments to the histogram. */
-    private static final int NUM_LANES = 3;
+    private static final int NUM_LANES = 6;
 
     /**
      * Constructs a new ObjectDetector subsystem with the specified IO implementation. Creates an
