@@ -1,10 +1,11 @@
-
+// spotless:off
 package frc.robot.generated;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import java.util.Map;
 import java.util.OptionalInt;
+
 
 
 /**
@@ -20,156 +21,164 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
+    public static final ChoreoTraj BumpPath = new ChoreoTraj(
+        "BumpPath",
+        OptionalInt.empty(),
+        1.43126,
+        new Pose2d(6.18074, 5.3, Rotation2d.fromRadians(-1.5708)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
+    );
+    public static final ChoreoTraj C16781 = new ChoreoTraj(
+        "C16781",
+        OptionalInt.empty(),
+        5.34257,
+        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
+    );
+    public static final ChoreoTraj C16782 = new ChoreoTraj(
+        "C16782",
+        OptionalInt.empty(),
+        7.26849,
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
+    );
+    public static final ChoreoTraj C1678Safe1 = new ChoreoTraj(
+        "C1678Safe1",
+        OptionalInt.empty(),
+        5.30448,
+        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
+    );
+    public static final ChoreoTraj NeutralBump_ML_Decision = new ChoreoTraj(
+        "NeutralBump_ML_Decision",
+        OptionalInt.empty(),
+        2.34745,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_Decision$0 = new ChoreoTraj(
+        "NeutralBump_ML_Decision",
+        OptionalInt.of(0),
+        2.08723,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_Decision$1 = new ChoreoTraj(
+        "NeutralBump_ML_Decision",
+        OptionalInt.of(1),
+        0.2602199999999999,
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    public static final ChoreoTraj NeutralBump_ML_SafeLeft = new ChoreoTraj(
+        "NeutralBump_ML_SafeLeft",
+        OptionalInt.empty(),
+        7.63931,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_SafeLeft$0 = new ChoreoTraj(
+        "NeutralBump_ML_SafeLeft",
+        OptionalInt.of(0),
+        2.11331,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_SafeLeft$1 = new ChoreoTraj(
+        "NeutralBump_ML_SafeLeft",
+        OptionalInt.of(1),
+        5.526,
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
     public static final ChoreoTraj NeutralBump_ML_SafeMiddle = new ChoreoTraj(
-	    "NeutralBump_ML_SafeMiddle",
-	    OptionalInt.empty(),
-	    7.55568,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeMiddle$0 = new ChoreoTraj(
-	    "NeutralBump_ML_SafeMiddle",
-	    OptionalInt.of(0),
-	    2.68987,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(6.8, 7.399, Rotation2d.fromRadians(1.571))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeMiddle$1 = new ChoreoTraj(
-	    "NeutralBump_ML_SafeMiddle",
-	    OptionalInt.of(1),
-	    4.86581,
-	    new Pose2d(6.8, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj BumpPath = new ChoreoTraj(
-	    "BumpPath",
-	    OptionalInt.empty(),
-	    1.43126,
-	    new Pose2d(6.181, 5.3, Rotation2d.fromRadians(-1.571)),
-	    new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.682))
-	);
-	public static final ChoreoTraj C1678Safe1 = new ChoreoTraj(
-	    "C1678Safe1",
-	    OptionalInt.empty(),
-	    5.30448,
-	    new Pose2d(4.45, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.682))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeLeft = new ChoreoTraj(
-	    "NeutralBump_ML_SafeLeft",
-	    OptionalInt.empty(),
-	    7.71268,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeLeft$0 = new ChoreoTraj(
-	    "NeutralBump_ML_SafeLeft",
-	    OptionalInt.of(0),
-	    2.11331,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeLeft$1 = new ChoreoTraj(
-	    "NeutralBump_ML_SafeLeft",
-	    OptionalInt.of(1),
-	    5.59937,
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeRight = new ChoreoTraj(
-	    "NeutralBump_ML_SafeRight",
-	    OptionalInt.empty(),
-	    7.15994,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeRight$0 = new ChoreoTraj(
-	    "NeutralBump_ML_SafeRight",
-	    OptionalInt.of(0),
-	    2.0906,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571))
-	);
-	public static final ChoreoTraj NeutralBump_ML_SafeRight$1 = new ChoreoTraj(
-	    "NeutralBump_ML_SafeRight",
-	    OptionalInt.of(1),
-	    5.06934,
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj NeutralBump_ML_Start = new ChoreoTraj(
-	    "NeutralBump_ML_Start",
-	    OptionalInt.empty(),
-	    5.62227,
-	    new Pose2d(4.45, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
-	);
-	public static final ChoreoTraj C16782 = new ChoreoTraj(
-	    "C16782",
-	    OptionalInt.empty(),
-	    7.26849,
-	    new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.682)),
-	    new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.682))
-	);
-	public static final ChoreoTraj TunnelPath = new ChoreoTraj(
-	    "TunnelPath",
-	    OptionalInt.empty(),
-	    1.20567,
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(-1.571)),
-	    new Pose2d(3.125, 7.309, Rotation2d.fromRadians(-1.154))
-	);
-	public static final ChoreoTraj NeutralBump_ML_Decision = new ChoreoTraj(
-	    "NeutralBump_ML_Decision",
-	    OptionalInt.empty(),
-	    2.34745,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(6.8, 7.399, Rotation2d.fromRadians(1.571))
-	);
-	public static final ChoreoTraj NeutralBump_ML_Decision$0 = new ChoreoTraj(
-	    "NeutralBump_ML_Decision",
-	    OptionalInt.of(0),
-	    2.08723,
-	    new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571))
-	);
-	public static final ChoreoTraj NeutralBump_ML_Decision$1 = new ChoreoTraj(
-	    "NeutralBump_ML_Decision",
-	    OptionalInt.of(1),
-	    0.2602199999999999,
-	    new Pose2d(5.65, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(6.8, 7.399, Rotation2d.fromRadians(1.571))
-	);
-	public static final ChoreoTraj C16781 = new ChoreoTraj(
-	    "C16781",
-	    OptionalInt.empty(),
-	    5.34257,
-	    new Pose2d(4.45, 7.399, Rotation2d.fromRadians(1.571)),
-	    new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.682))
-	);
+        "NeutralBump_ML_SafeMiddle",
+        OptionalInt.empty(),
+        7.61697,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_SafeMiddle$0 = new ChoreoTraj(
+        "NeutralBump_ML_SafeMiddle",
+        OptionalInt.of(0),
+        2.68989,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_SafeMiddle$1 = new ChoreoTraj(
+        "NeutralBump_ML_SafeMiddle",
+        OptionalInt.of(1),
+        4.92708,
+        new Pose2d(6.8, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
+    public static final ChoreoTraj NeutralBump_ML_SafeRight = new ChoreoTraj(
+        "NeutralBump_ML_SafeRight",
+        OptionalInt.empty(),
+        6.97655,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_SafeRight$0 = new ChoreoTraj(
+        "NeutralBump_ML_SafeRight",
+        OptionalInt.of(0),
+        2.0906,
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803)),
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(1.5708))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj NeutralBump_ML_SafeRight$1 = new ChoreoTraj(
+        "NeutralBump_ML_SafeRight",
+        OptionalInt.of(1),
+        4.885949999999999,
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
+    public static final ChoreoTraj NeutralBump_ML_Start = new ChoreoTraj(
+        "NeutralBump_ML_Start",
+        OptionalInt.empty(),
+        5.39361,
+        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.067, 5.477, Rotation2d.fromRadians(-0.803))
+    );
+    public static final ChoreoTraj TunnelPath = new ChoreoTraj(
+        "TunnelPath",
+        OptionalInt.empty(),
+        1.20567,
+        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(-1.5708)),
+        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
+    );
 
     /**
      * A map between trajectory names and their corresponding data.
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-    	Map.entry("NeutralBump_ML_SafeMiddle", NeutralBump_ML_SafeMiddle),
-		Map.entry("NeutralBump_ML_SafeMiddle$0", NeutralBump_ML_SafeMiddle$0),
-		Map.entry("NeutralBump_ML_SafeMiddle$1", NeutralBump_ML_SafeMiddle$1),
-		Map.entry("BumpPath", BumpPath),
-		Map.entry("C1678Safe1", C1678Safe1),
-		Map.entry("NeutralBump_ML_SafeLeft", NeutralBump_ML_SafeLeft),
-		Map.entry("NeutralBump_ML_SafeLeft$0", NeutralBump_ML_SafeLeft$0),
-		Map.entry("NeutralBump_ML_SafeLeft$1", NeutralBump_ML_SafeLeft$1),
-		Map.entry("NeutralBump_ML_SafeRight", NeutralBump_ML_SafeRight),
-		Map.entry("NeutralBump_ML_SafeRight$0", NeutralBump_ML_SafeRight$0),
-		Map.entry("NeutralBump_ML_SafeRight$1", NeutralBump_ML_SafeRight$1),
-		Map.entry("NeutralBump_ML_Start", NeutralBump_ML_Start),
-		Map.entry("C16782", C16782),
-		Map.entry("TunnelPath", TunnelPath),
-		Map.entry("NeutralBump_ML_Decision", NeutralBump_ML_Decision),
-		Map.entry("NeutralBump_ML_Decision$0", NeutralBump_ML_Decision$0),
-		Map.entry("NeutralBump_ML_Decision$1", NeutralBump_ML_Decision$1),
-		Map.entry("C16781", C16781)
+        Map.entry("BumpPath", BumpPath),
+        Map.entry("C16781", C16781),
+        Map.entry("C16782", C16782),
+        Map.entry("C1678Safe1", C1678Safe1),
+        Map.entry("NeutralBump_ML_Decision", NeutralBump_ML_Decision),
+        Map.entry("NeutralBump_ML_Decision$0", NeutralBump_ML_Decision$0),
+        Map.entry("NeutralBump_ML_Decision$1", NeutralBump_ML_Decision$1),
+        Map.entry("NeutralBump_ML_SafeLeft", NeutralBump_ML_SafeLeft),
+        Map.entry("NeutralBump_ML_SafeLeft$0", NeutralBump_ML_SafeLeft$0),
+        Map.entry("NeutralBump_ML_SafeLeft$1", NeutralBump_ML_SafeLeft$1),
+        Map.entry("NeutralBump_ML_SafeMiddle", NeutralBump_ML_SafeMiddle),
+        Map.entry("NeutralBump_ML_SafeMiddle$0", NeutralBump_ML_SafeMiddle$0),
+        Map.entry("NeutralBump_ML_SafeMiddle$1", NeutralBump_ML_SafeMiddle$1),
+        Map.entry("NeutralBump_ML_SafeRight", NeutralBump_ML_SafeRight),
+        Map.entry("NeutralBump_ML_SafeRight$0", NeutralBump_ML_SafeRight$0),
+        Map.entry("NeutralBump_ML_SafeRight$1", NeutralBump_ML_SafeRight$1),
+        Map.entry("NeutralBump_ML_Start", NeutralBump_ML_Start),
+        Map.entry("TunnelPath", TunnelPath)
     );
 
     /**
@@ -185,3 +194,4 @@ public record ChoreoTraj(
     }
     
 }
+// spotless:on
