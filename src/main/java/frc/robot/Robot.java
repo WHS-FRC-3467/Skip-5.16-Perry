@@ -53,6 +53,8 @@ public class Robot extends LoggedRobot {
     private RobotContainer robotContainer;
     // start of the first alliance phase
     private Field2d fieldMap = new Field2d();
+    // Variable to limit how often auto dashboard is displayed, to save time
+    private int elasticDisplayCounter = 0;
 
     public Robot() {
         CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
@@ -150,9 +152,16 @@ public class Robot extends LoggedRobot {
         // the Command-based framework to work.
         CommandScheduler.getInstance().run();
 
-        // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
-        fieldMap.setRobotPose(RobotState.getInstance().getEstimatedPose());
-        SmartDashboard.putNumber("Auto Delay", AutoCommands.getAutoDelay());
+        // Display every 100 ms, not 20
+        if (elasticDisplayCounter % 5 == 0) {
+            elasticDisplayCounter = 0;
+            // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
+            fieldMap.setRobotPose(RobotState.getInstance().getEstimatedPose());
+            SmartDashboard.putNumber("Auto Delay", AutoCommands.getAutoDelay());
+        }
+        // Update auto tab
+        robotContainer.checkStartPose(elasticDisplayCounter);
+        elasticDisplayCounter++;
     }
 
     /** This function is called once when the robot is disabled. */
@@ -168,7 +177,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void disabledPeriodic() {
         // Update auto tab
-        robotContainer.checkStartPose();
+        robotContainer.checkStartPose(elasticDisplayCounter);
     }
 
     /**
@@ -191,9 +200,7 @@ public class Robot extends LoggedRobot {
 
     /** This function is called periodically during autonomous. */
     @Override
-    public void autonomousPeriodic() {
-        robotContainer.autoPreviewField.setRobotPose(robotState.getEstimatedPose());
-    }
+    public void autonomousPeriodic() {}
 
     /** This function is called once when teleop is enabled. */
     @Override

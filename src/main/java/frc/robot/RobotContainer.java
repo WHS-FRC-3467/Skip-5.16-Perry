@@ -33,9 +33,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
+import frc.lib.util.DashboardBoolean;
+import frc.lib.util.DashboardDouble;
+import frc.lib.util.DashboardDoubleArray;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
+import frc.lib.util.LoggedValue;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
@@ -56,8 +60,6 @@ import frc.robot.subsystems.tower.TowerConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.HubState;
 import frc.robot.util.RobotSim;
-
-import org.littletonrobotics.junction.Logger;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -100,6 +102,13 @@ public class RobotContainer {
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
+    // Change-only loggers for auto start pose checks
+    private final LoggedValue<String> loggedStartPose;
+    private final DashboardDouble dashboardInchesFromStart;
+    private final DashboardBoolean dashboardPositionWithinStartTolerance;
+    private final DashboardDouble dashboardDegreesFromStart;
+    private final DashboardBoolean dashboardRotationWithinStartTolerance;
+    private final DashboardDoubleArray dashboardStartPoseArray;
 
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
@@ -117,6 +126,17 @@ public class RobotContainer {
         if (RobotBase.isSimulation()) {
             RobotSim.getInstance().addMechanismData(drive, shooter, indexer, intake);
         }
+
+        // Initialize change-only loggers for start-pose checks
+        this.loggedStartPose = new LoggedValue<>("Auto/StartPose");
+        this.dashboardInchesFromStart = new DashboardDouble("Auto Pose Check/Inches from Start");
+        this.dashboardPositionWithinStartTolerance =
+                new DashboardBoolean("Auto Pose Check/Robot Position Within Tolerance");
+        this.dashboardDegreesFromStart = new DashboardDouble("Auto Pose Check/Degrees from Start");
+        this.dashboardRotationWithinStartTolerance =
+                new DashboardBoolean("Auto Pose Check/Robot Rotation Within Tolerance");
+        this.dashboardStartPoseArray = new DashboardDoubleArray("Start Pose (x, y, degrees)");
+
         AutoContext ctx =
                 AutoContext.create(drive, intake, indexer, tower, shooter, Optional.empty());
 
@@ -240,13 +260,7 @@ public class RobotContainer {
                                                                                 readyToShootAtCurrentTarget))),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract());
 
         // Tap Right Bumper while Right Trigger held: Manually cycle intake
         controller
@@ -286,13 +300,7 @@ public class RobotContainer {
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.TRENCH_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract());
 
         // Driver Y: Midline Feed/Pass (No-Vision Fallback)
         controller
@@ -303,13 +311,7 @@ public class RobotContainer {
                                 Commands.sequence(
                                         Commands.waitUntil(shooter.profileComplete),
                                         Commands.parallel(indexer.shoot(), tower.shoot()))))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract());
 
         // Driver A: Shot From Back of Robot Against Tower (No-Vision Fallback)
         controller
@@ -324,13 +326,8 @@ public class RobotContainer {
                                 shooter.spinUpShooterToFixedDistance(
                                         FieldConstants.Tower.TOWER_SHOT_DISTANCE),
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
-                .onFalse(
-                        Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.extendIntake(),
-                                shooter.retractHood()));
+                .onFalse(stopAllShooterAndRetract());
+
         controller
                 .start()
                 .and(controller.back())
@@ -397,31 +394,11 @@ public class RobotContainer {
                 "Home Intake and Shooter",
                 Commands.parallel(intake.homeLinear(), shooter.homeHood()));
 
-        // Indexer Commands
-        SmartDashboard.putData(IndexerConstants.NAME + "/Shoot", indexer.shoot());
-        SmartDashboard.putData(IndexerConstants.NAME + "/Expel", indexer.eject());
-        SmartDashboard.putData(IndexerConstants.NAME + "/Feed", indexer.feed());
-        SmartDashboard.putData(IndexerConstants.NAME + "/Stop", indexer.stopCommand());
-
         // Intake Commands
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Retract", intake.retractIntake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Coast", intake.linearCoast());
-
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/SlowRetract", intake.slowRetract());
-
-        // Tower Commands
-        SmartDashboard.putData(TowerConstants.NAME + "/Stop", tower.stopCommand());
-        SmartDashboard.putData(TowerConstants.NAME + "/Shoot", tower.shoot());
-        SmartDashboard.putData(TowerConstants.NAME + "/Feed", tower.feed());
-        SmartDashboard.putData(TowerConstants.NAME + "/Eject", tower.eject());
-
-        // Shooter Commands
-        SmartDashboard.putData(
-                ShooterSuperstructureConstants.NAME + "/Stop", shooter.stopFlywheels());
-        SmartDashboard.putData(ShooterSuperstructureConstants.NAME + "/Shoot", shooter.shoot());
-        SmartDashboard.putData(
-                ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpShooter());
 
         SmartDashboard.putData(
                 "Debug/SetOdometryToTestPose",
@@ -464,59 +441,69 @@ public class RobotContainer {
 
     /**
      * Checks and displays the robot's starting pose accuracy relative to the selected autonomous
-     * path.
+     * path every 100ms.
+     *
+     * @param counter an integer from 0 to 4, that determines whether to spend the time to display
+     *     info.
      */
-    public void checkStartPose() {
+    public void checkStartPose(int counter) {
+        var pathObj = autoPreviewField.getObject("path");
+        var poses = pathObj.getPoses();
+        if (poses == null || poses.isEmpty()) {
+            startPose = robotState.getEstimatedPose();
+        } else {
+            startPose = poses.get(0);
+        }
 
-        /* Starting pose checker for auto */
-        autoPreviewField.setRobotPose(robotState.getEstimatedPose());
+        // Only update dashboard every 100 ms
+        if (counter == 0) {
+            /* Starting pose checker for auto */
+            autoPreviewField.setRobotPose(robotState.getEstimatedPose());
 
-        try {
-            startPose = autoPreviewField.getObject("path").getPoses().get(0);
-            Logger.recordOutput("Auto/StartPose", startPose);
+            if (poses == null || poses.isEmpty()) {
+                // No path defined; show defaults
+                startPose = robotState.getEstimatedPose();
+                dashboardInchesFromStart.put(-1);
+                dashboardPositionWithinStartTolerance.put(false);
+                dashboardDegreesFromStart.put(-1);
+                dashboardRotationWithinStartTolerance.put(false);
+                return;
+            }
 
+            // Record start pose only when it changes to reduce NT traffic
+            loggedStartPose.log(startPose.toString());
             autoPreviewField.getObject("startPose").setPose(startPose);
 
+            Pose2d robotPose = robotState.getEstimatedPose();
             Distance distanceFromStartPose =
-                    Meters.of(
-                            robotState
-                                    .getEstimatedPose()
-                                    .getTranslation()
-                                    .getDistance(startPose.getTranslation()));
+                    Meters.of(robotPose.getTranslation().getDistance(startPose.getTranslation()));
             double degreesFromStartPose =
-                    Math.abs(
-                            robotState
-                                    .getEstimatedPose()
-                                    .getRotation()
-                                    .minus(startPose.getRotation())
-                                    .getDegrees());
+                    Math.abs(robotPose.getRotation().minus(startPose.getRotation()).getDegrees());
 
             double[] startPoseArray = {
                 startPose.getX(), startPose.getY(), startPose.getRotation().getDegrees()
             };
-            SmartDashboard.putNumberArray("Start Pose (x, y, degrees)", startPoseArray);
+            dashboardStartPoseArray.put(startPoseArray);
 
-            SmartDashboard.putNumber(
-                    "Auto Pose Check/Inches from Start",
+            dashboardInchesFromStart.put(
                     (int) Math.round(distanceFromStartPose.in(Inches) * 100.0) / 100.0);
-            SmartDashboard.putBoolean(
-                    "Auto Pose Check/Robot Position Within Tolerance",
+            dashboardPositionWithinStartTolerance.put(
                     distanceFromStartPose.in(Inches)
                             < Constants.STARTING_POSE_DRIVE_TOLERANCE.in(Inches));
-            SmartDashboard.putNumber(
-                    "Auto Pose Check/Degrees from Start",
-                    (int) Math.round(degreesFromStartPose * 100.0) / 100.0);
-            SmartDashboard.putBoolean(
-                    "Auto Pose Check/Robot Rotation Within Tolerance",
+            dashboardDegreesFromStart.put((int) Math.round(degreesFromStartPose * 100.0) / 100.0);
+            dashboardRotationWithinStartTolerance.put(
                     degreesFromStartPose
                             < Constants.STARTING_POSE_ROT_TOLERANCE_DEGREES.in(Degrees));
-
-        } catch (Exception e) {
-            startPose = robotState.getEstimatedPose();
-            SmartDashboard.putNumber("Auto Pose Check/Inches from Start", -1);
-            SmartDashboard.putBoolean("Auto Pose Check/Robot Position Within Tolerance", false);
-            SmartDashboard.putNumber("Auto Pose Check/Degrees from Start", -1);
-            SmartDashboard.putBoolean("Auto Pose Check/Robot Rotation Within Tolerance", false);
         }
+    }
+
+    /** Run this Command to stop shooting! */
+    public Command stopAllShooterAndRetract() {
+        return Commands.parallel(
+                shooter.stopAndStow(),
+                indexer.stopCommand(),
+                tower.stopCommand(),
+                intake.extendIntake(),
+                shooter.retractHood());
     }
 }
