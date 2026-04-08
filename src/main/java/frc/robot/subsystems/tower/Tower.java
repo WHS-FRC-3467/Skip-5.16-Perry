@@ -57,16 +57,16 @@ public class Tower extends SubsystemBase {
      */
     public Tower(FlywheelMechanism<?> io) {
         this.io = io;
+    }
+
+    @Override
+    public void periodic() {
         if (tuningMode.get()) {
             if (tuningMode.hasChanged(hashCode())
                     || tuningFlywheelSpeedRPS.hasChanged(hashCode())) {
                 runVelocity(RotationsPerSecond.of(tuningFlywheelSpeedRPS.get()));
             }
         }
-    }
-
-    @Override
-    public void periodic() {
         LoggerHelper.recordCurrentCommand(this.getName(), this);
         io.periodic();
     }

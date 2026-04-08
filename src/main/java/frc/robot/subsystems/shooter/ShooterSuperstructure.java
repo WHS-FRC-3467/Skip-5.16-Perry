@@ -302,11 +302,19 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
      *
      * @return a Command to prepare for the fixed shot
      */
-    public Command setShooterToFixedDistance(Distance distance) {
-        return setShooterCommand(
-                () -> RotationsPerSecond.of(hubFlywheelMap.get(distance.in(Meters))),
-                () -> Degrees.of(hubHoodMap.get(distance.in(Meters))),
-                "Set Shooter to Distance");
+    public Command setShooterToFixedDistance(Distance distance, boolean isFeeding) {
+        if (isFeeding) {
+            return setShooterCommand(
+                    () -> RotationsPerSecond.of(feedFlywheelMap.get(distance.in(Meters))),
+                    () -> Degrees.of(feedHoodMap.get(distance.in(Meters))),
+                    "Set Shooter to Fixed Feed Distance");
+
+        } else {
+            return setShooterCommand(
+                    () -> RotationsPerSecond.of(hubFlywheelMap.get(distance.in(Meters))),
+                    () -> Degrees.of(hubHoodMap.get(distance.in(Meters))),
+                    "Set Shooter to Fixed Hub Distance");
+        }
     }
 
     /**

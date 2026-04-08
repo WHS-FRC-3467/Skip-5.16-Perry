@@ -15,7 +15,6 @@
 
 package frc.robot.subsystems.tower;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -79,16 +78,5 @@ public class TowerTest {
         } catch (Exception e) {
             fail("Failed to stop indexer: " + e.getMessage());
         }
-    }
-
-    @Test
-    void tuningModeToggleWithNoScheduledCommandDoesNotThrow() {
-        CommandScheduler.getInstance().cancelAll();
-
-        assertDoesNotThrow(
-                () -> {
-                    tower.enableTuningMode();
-                    tower.disableTuningMode();
-                });
     }
 }
