@@ -139,7 +139,8 @@ public class RobotState {
                             staticShootingDebouncer.calculate(
                                     withinStaticShootingTolerance.getAsBoolean()));
 
-    @Setter public LoggedTrigger hopperEmpty;
+    @Setter
+    public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> false);
     // -------- POSE ESTIMATION --------
 
     private final PoseEstimator poseEstimator =
