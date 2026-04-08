@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.Meters;
 
 import choreo.Choreo;
 import choreo.auto.AutoRoutine;
-import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 
@@ -20,7 +19,9 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -88,27 +89,27 @@ public final class AutoUtil {
     }
 
     /**
-     * Binds the shared event markers used by the current Choreo trajectories.
+     * Creates a mapping of Choreo event names to the Commands they should trigger.
      *
-     * <p>These markers live in the trajectory files themselves. Binding them here keeps the
-     * handling local to each routine instead of registering them globally on the factory.
+     * <p>Used by {@link frc.robot.subsystems.drive.ResilientTrajectoryFollower} to fire events at
+     * trajectory-time rather than wall-clock time, so events naturally pause during recovery.
+     *
+     * @param ctx the auto context providing subsystem references
+     * @return a map of event name to the Command to schedule when the event fires
      */
-    public static void bindEvents(AutoContext ctx, AutoTrajectory... trajectories) {
+    public static Map<String, Command> createEventBindings(AutoContext ctx) {
         double distanceFromHubMeters =
                 ChoreoVars.Poses.NeutralShoot.getTranslation()
                         .minus(FieldConstants.Hub.INNER_CENTER_POINT.toTranslation2d())
                         .getNorm();
 
-        for (AutoTrajectory trajectory : trajectories) {
-            trajectory.atTime("ExtendIntake").onTrue(ctx.intake().intake());
-            trajectory.atTime("RetractIntake").onTrue(ctx.intake().retractIntake());
-            trajectory
-                    .atTime("Spinup")
-                    .onTrue(
-                            ctx.shooter()
-                                    .setShooterToFixedDistance(
-                                            Meters.of(distanceFromHubMeters), false));
-        }
+        Map<String, Command> bindings = new HashMap<>();
+        bindings.put("ExtendIntake", ctx.intake().intake());
+        bindings.put("RetractIntake", ctx.intake().retractIntake());
+        bindings.put(
+                "Spinup",
+                ctx.shooter().setShooterToFixedDistance(Meters.of(distanceFromHubMeters), false));
+        return bindings;
     }
 
     /** Loads a single Choreo trajectory and mirrors it when the caller requests it. */

@@ -21,6 +21,7 @@ import choreo.trajectory.Trajectory;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 import frc.robot.commands.autos.utils.AutoCommands;
@@ -30,6 +31,7 @@ import frc.robot.commands.autos.utils.AutoUtil;
 import frc.robot.generated.ChoreoTraj;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -54,8 +56,10 @@ public class DepotAuto {
                         () -> {
                             AutoRoutine routine = ctx.autoFactory().newRoutine("Depot Auto");
 
+                            // Still use AutoTrajectory for resetOdometry() lifecycle.
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
-                            AutoUtil.bindEvents(ctx, first);
+
+                            Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
                             routine.active()
                                     .onTrue(
@@ -70,17 +74,18 @@ public class DepotAuto {
                                                                             AutoCommands
                                                                                     .getAutoDelay()),
                                                             Set.of()),
-                                                    first.spawnCmd()));
+                                                    ctx.drive()
+                                                            .followTrajectoryResilient(
+                                                                    trajectories.get(0),
+                                                                    eventBindings),
+                                                    AutoCommands.shootCommand(
+                                                            ctx.drive(),
+                                                            ctx.intake(),
+                                                            ctx.indexer(),
+                                                            ctx.tower(),
+                                                            ctx.shooter(),
+                                                            3.0)));
 
-                            first.done()
-                                    .onTrue(
-                                            AutoCommands.shootCommand(
-                                                    ctx.drive(),
-                                                    ctx.intake(),
-                                                    ctx.indexer(),
-                                                    ctx.tower(),
-                                                    ctx.shooter(),
-                                                    3.0));
                             return routine;
                         }));
     }

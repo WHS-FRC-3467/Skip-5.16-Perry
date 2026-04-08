@@ -21,6 +21,7 @@ import choreo.trajectory.Trajectory;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 import frc.robot.commands.autos.utils.AutoCommands;
@@ -30,6 +31,7 @@ import frc.robot.commands.autos.utils.AutoUtil;
 import frc.robot.generated.ChoreoTraj;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,8 +50,6 @@ public class C1678Auto {
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
 
-        Optional<Trajectory<SwerveSample>> bumpTrajectory =
-                AutoUtil.loadTrajectory(ChoreoTraj.BumpPath.name(), shouldMirror);
         if (trajectories == null) {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();
@@ -65,10 +65,10 @@ public class C1678Auto {
                                                             + (isSafe ? "Safe" : "Aggressive")
                                                             + (shouldMirror ? "Right" : "Left"));
 
+                            // Still use AutoTrajectory for resetOdometry() lifecycle.
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
-                            AutoTrajectory second = routine.trajectory(trajectories.get(1));
-                            Optional<AutoTrajectory> bump = bumpTrajectory.map(routine::trajectory);
-                            AutoUtil.bindEvents(ctx, first, second);
+
+                            Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
                             routine.active()
                                     .onTrue(
@@ -83,19 +83,29 @@ public class C1678Auto {
                                                                             AutoCommands
                                                                                     .getAutoDelay()),
                                                             Set.of()),
-                                                    first.spawnCmd()));
-
-                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
-                            AutoCommands.retryTrigger(routine, first)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, first, bump, 3.0, second));
-
-                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
-                            AutoCommands.retryTrigger(routine, second)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, second, bump, 10.0, second));
+                                                    ctx.drive()
+                                                            .followTrajectoryResilient(
+                                                                    trajectories.get(0),
+                                                                    eventBindings),
+                                                    AutoCommands.shootCommand(
+                                                            ctx.drive(),
+                                                            ctx.intake(),
+                                                            ctx.indexer(),
+                                                            ctx.tower(),
+                                                            ctx.shooter(),
+                                                            3.0),
+                                                    AutoCommands.stowHood(ctx.shooter()),
+                                                    ctx.drive()
+                                                            .followTrajectoryResilient(
+                                                                    trajectories.get(1),
+                                                                    eventBindings),
+                                                    AutoCommands.shootCommand(
+                                                            ctx.drive(),
+                                                            ctx.intake(),
+                                                            ctx.indexer(),
+                                                            ctx.tower(),
+                                                            ctx.shooter(),
+                                                            10.0)));
 
                             return routine;
                         }));
