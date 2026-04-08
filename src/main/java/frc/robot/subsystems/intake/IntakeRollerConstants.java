@@ -32,6 +32,7 @@ import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.io.motor.MotorIO;
 import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.io.motor.MotorIOTalonFX;
+import frc.lib.io.motor.MotorIOTalonFX.TalonFXFollower;
 import frc.lib.io.motor.MotorIOTalonFXSim;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.mechanisms.flywheel.FlywheelMechanismReal;
@@ -115,13 +116,13 @@ public class IntakeRollerConstants {
             case REAL:
                 mechanism =
                         new FlywheelMechanismReal(
-                                NAME, new MotorIOTalonFX(NAME, getFXConfig(), Ports.intakeRoller));
+                                NAME, new MotorIOTalonFX(NAME, getFXConfig(), Ports.intakeRoller, new TalonFXFollower(Ports.intakeRollerFollower, true)));
                 break;
             case SIM:
                 mechanism =
                         new FlywheelMechanismSim(
                                 NAME,
-                                new MotorIOTalonFXSim(NAME, getFXConfig(), Ports.intakeRoller),
+                                new MotorIOTalonFXSim(NAME, getFXConfig(), Ports.intakeRoller, new TalonFXFollower(Ports.intakeRollerFollower, true)),
                                 DCMOTOR,
                                 MOI,
                                 TOLERANCE);
