@@ -106,6 +106,10 @@ public class Indexer extends SubsystemBase {
                 .withName("Eject");
     }
 
+    public AngularVelocity getVelocity() {
+        return io.getVelocity();
+    }
+
     /**
      * Checks if the indexer velocity is near the current state's setpoint.
      *

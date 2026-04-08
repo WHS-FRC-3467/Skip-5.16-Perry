@@ -7,6 +7,7 @@ package frc.robot.util;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -52,7 +53,7 @@ public class RobotSim {
                 new Trigger(
                         () ->
                                 (shooter.profileComplete.getAsBoolean()
-                                        && (indexer.nearSetpoint())
+                                        && (indexer.getVelocity().in(RotationsPerSecond) > 3.0)
                                         && (fuelSim.getHeldFuel() > 0)));
 
         shootSimFuel.whileTrue(
