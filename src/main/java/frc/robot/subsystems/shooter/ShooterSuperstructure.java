@@ -320,7 +320,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
      *
      * @return Command that continuously updates shooter parameters for the current target
      */
-    public Command shoot() {
+    public Command setShooterContinuous() {
         return setShooterCommand(
                 this::getDesiredFlywheelVelocity, this::getDesiredHoodAngle, "Spin-Up Shooter");
     }

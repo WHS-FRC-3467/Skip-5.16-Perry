@@ -73,7 +73,7 @@ public class AutoCommands {
             double timeoutDuration) {
         return Commands.deadline(
                 Commands.parallel(
-                                shooter.shoot().asProxy(),
+                                shooter.setShooterContinuous().asProxy(),
                                 Commands.sequence(
                                         Commands.waitUntil(
                                                 shooter.profileComplete.and(

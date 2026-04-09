@@ -141,6 +141,7 @@ public class RobotState {
 
     @Setter
     public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> false);
+
     // -------- POSE ESTIMATION --------
 
     private final PoseEstimator poseEstimator =
