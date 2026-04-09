@@ -24,7 +24,6 @@ import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -88,7 +87,6 @@ public class IntakeLinearConstants {
                     MIN_DISTANCE, MAX_DISTANCE, STARTING_DISTANCE, DRUM_RADIUS, ORIENTATION);
 
     public static final PID SLOT0_PID = new PID(30.0, 0.0, 0.0).withS(14.0);
-    public static final PID SLOT1_PID = new PID(50.0, 0.0, 0.0);
 
     /**
      * Creates and configures a TalonFX motor controller configuration for the intake linear
@@ -133,7 +131,6 @@ public class IntakeLinearConstants {
         config.Feedback.SensorToMechanismRatio = GEARING;
 
         config.Slot0 = Slot0Configs.from(SLOT0_PID.toSlotConfigs());
-        config.Slot1 = Slot1Configs.from(SLOT1_PID.toSlotConfigs());
 
         return config;
     }
@@ -171,7 +168,6 @@ public class IntakeLinearConstants {
                 throw new IllegalStateException("Unrecognized Robot Mode");
         }
         mechanism.enableTunablePID(PIDSlot.SLOT_0, SLOT0_PID);
-        mechanism.enableTunablePID(PIDSlot.SLOT_1, SLOT1_PID);
         mechanism.withRadius(DRUM_RADIUS);
         return mechanism;
     }

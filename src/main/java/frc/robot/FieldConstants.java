@@ -213,8 +213,8 @@ public class FieldConstants {
     }
 
     // Distance from Center of Hub Y Coordinate to Y Coordinate of Center of Trench
-    public static final double TRENCH_SHOT_DISTANCE =
-            (FieldConstants.FIELD_WIDTH - FieldConstants.LeftTrench.OPENING_WIDTH) / 2.0;
+    public static final Distance TRENCH_SHOT_DISTANCE =
+            Meters.of((FieldConstants.FIELD_WIDTH - FieldConstants.LeftTrench.OPENING_WIDTH) / 2.0);
 
     /** Tower related constants */
     public static class Tower {
@@ -256,9 +256,10 @@ public class FieldConstants {
         public static final double FIELD_CENTER_TO_TOWER_CENTER_Y = Units.inchesToMeters(11.38);
         // Distance from the center of the HUB to the center of the robot. Assume that the robot is
         // centered at the center of the tower, with its back to the tower.
-        public static final double TOWER_SHOT_DISTANCE =
-                (FieldConstants.Hub.WIDTH - Constants.FULL_ROBOT_LENGTH.in(Meters)) / 2.0
-                        + HUB_TO_TOWER_UPRIGHTS;
+        public static final Distance TOWER_SHOT_DISTANCE =
+                Meters.of(
+                        (FieldConstants.Hub.WIDTH - Constants.FULL_ROBOT_LENGTH.in(Meters)) / 2.0
+                                + HUB_TO_TOWER_UPRIGHTS);
     }
 
     public static class Depot {

@@ -111,7 +111,8 @@ public final class AutoUtil {
                     .atTime("Spinup")
                     .onTrue(
                             ctx.shooter()
-                                    .spinUpShooterToHubDistance(Meters.of(distanceFromHubMeters)));
+                                    .setShooterToFixedDistance(
+                                            Meters.of(distanceFromHubMeters), false));
         }
     }
 

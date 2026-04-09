@@ -76,7 +76,7 @@ public class AutoCommands {
             double timeoutDuration) {
         return Commands.deadline(
                 Commands.parallel(
-                                shooter.shoot().asProxy(),
+                                shooter.setShooterContinuous().asProxy(),
                                 Commands.sequence(
                                         Commands.waitUntil(
                                                 shooter.profileComplete.and(
@@ -89,7 +89,7 @@ public class AutoCommands {
                                                                 Commands.defer(
                                                                         intake::slowRetract,
                                                                         Set.of(intake))))))
-                        .until(shooter.hopperEmpty)
+                        .until(robotState.hopperEmpty)
                         .withTimeout(timeoutDuration)
                         .finallyDo(
                                 () -> {
@@ -217,7 +217,7 @@ public class AutoCommands {
                         ctx.drive(),
                         failedTrajectory,
                         tunnel,
-                        new ScheduleCommand(ctx.shooter().spinUpShooter())),
+                        new ScheduleCommand(ctx.shooter().spinUpFlywheel())),
                 shootThenFollow(ctx, timeoutSeconds, next));
     }
 
