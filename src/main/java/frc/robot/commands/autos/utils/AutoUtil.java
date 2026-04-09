@@ -91,7 +91,7 @@ public final class AutoUtil {
     /**
      * Creates a mapping of Choreo event names to the Commands they should trigger.
      *
-     * <p>Used by {@link frc.robot.subsystems.drive.ResilientTrajectoryFollower} to fire events at
+     * <p>Used by {@link frc.robot.commands.ResilientTrajectoryFollower} to fire events at
      * trajectory-time rather than wall-clock time, so events naturally pause during recovery.
      *
      * @param ctx the auto context providing subsystem references

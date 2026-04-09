@@ -13,7 +13,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package frc.robot.subsystems.drive;
+package frc.robot.commands;
 
 import choreo.trajectory.EventMarker;
 import choreo.trajectory.SwerveSample;
@@ -33,6 +33,7 @@ import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
 import frc.robot.RobotState;
+import frc.robot.subsystems.drive.Drive;
 
 import org.littletonrobotics.junction.Logger;
 
