@@ -201,9 +201,6 @@ public class RobotContainer {
                                 .and(robotState.facingFeedTarget)
                                 .or(robotState.shouldFeed.negate().and(robotState.facingTarget)));
 
-        // For now, automate hopper extension/retraction around the trench
-        robotState.enteringTrench.onTrue(hopper.fastRetract()).onFalse(hopper.extend());
-
         // Right Trigger: Shoot/Pass
         controller
                 .rightTrigger()
