@@ -87,25 +87,27 @@ public class C1678Auto {
                                                             .followTrajectoryResilient(
                                                                     trajectories.get(0),
                                                                     eventBindings),
-                                                    AutoCommands.shootCommand(
-                                                            ctx.drive(),
-                                                            ctx.intake(),
-                                                            ctx.indexer(),
-                                                            ctx.tower(),
-                                                            ctx.shooter(),
-                                                            3.0),
-                                                    AutoCommands.stowHood(ctx.shooter()),
+                                                    // AutoCommands.shootCommand(
+                                                    //         ctx.drive(),
+                                                    //         ctx.intake(),
+                                                    //         ctx.indexer(),
+                                                    //         ctx.tower(),
+                                                    //         ctx.shooter(),
+                                                    //         3.0),
+                                                    // AutoCommands.stowHood(ctx.shooter()),
                                                     ctx.drive()
                                                             .followTrajectoryResilient(
                                                                     trajectories.get(1),
-                                                                    eventBindings),
-                                                    AutoCommands.shootCommand(
-                                                            ctx.drive(),
-                                                            ctx.intake(),
-                                                            ctx.indexer(),
-                                                            ctx.tower(),
-                                                            ctx.shooter(),
-                                                            10.0)));
+                                                                    eventBindings)
+                                                    // ,
+                                                    // AutoCommands.shootCommand(
+                                                    //         ctx.drive(),
+                                                    //         ctx.intake(),
+                                                    //         ctx.indexer(),
+                                                    //         ctx.tower(),
+                                                    //         ctx.shooter(),
+                                                    //         10.0)
+                                                    ));
 
                             return routine;
                         }));
