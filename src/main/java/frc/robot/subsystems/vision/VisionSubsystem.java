@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.devices.AprilTagCamera;
 import frc.lib.posestimator.PoseEstimator.VisionPoseObservation;
 import frc.lib.util.LoggedTunableNumber;
-import frc.robot.Constants;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.AprilTagLayoutType;
 import frc.robot.RobotState;
@@ -196,13 +195,6 @@ public class VisionSubsystem extends SubsystemBase {
             ArrayList<Pose3d> acceptedPoses = new ArrayList<>();
             ArrayList<Pose3d> rejectedPoses = new ArrayList<>();
             for (var result : results) {
-
-                if (result.targets.size() == 1
-                        && Constants.FILTERED_TAGS.contains(
-                                result.targets.get(0).getFiducialId())) {
-                    rejectedResults.add(result);
-                    continue;
-                }
 
                 if (!preFilter(result)) {
                     rejectedResults.add(result);
