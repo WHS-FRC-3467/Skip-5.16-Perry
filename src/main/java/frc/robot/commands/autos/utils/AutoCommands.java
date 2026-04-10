@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 
 import frc.lib.util.AlwaysTunableNumber;
 import frc.robot.RobotState;
@@ -104,6 +105,28 @@ public class AutoCommands {
      */
     public static Command stowHood(ShooterSuperstructure shooter) {
         return Commands.parallel(shooter.retractHood()).withTimeout(1.25);
+    }
+
+    /**
+     * Shoots the currently held FUEL, stows the hood in the background, then starts the supplied
+     * trajectory-following command.
+     *
+     * <p>StowHood is wrapped in a {@link ScheduleCommand} so its {@code ShooterSuperstructure}
+     * requirement is not added to this sequence, keeping subsystem requirements minimal for the
+     * trajectory-following phase.
+     *
+     * @param ctx the auto context providing subsystem references
+     * @param timeoutSeconds maximum time to wait for the shot
+     * @param nextTrajectory the command to follow after shooting (typically a resilient trajectory
+     *     follower)
+     * @return a command that shoots, stows the hood independently, then follows the next trajectory
+     */
+    public static Command shootThenFollow(
+            AutoContext ctx, double timeoutSeconds, Command nextTrajectory) {
+        return Commands.sequence(
+                shootOnly(ctx, timeoutSeconds),
+                new ScheduleCommand(stowHood(ctx.shooter())),
+                nextTrajectory);
     }
 
     private static Command shootOnly(AutoContext ctx, double timeoutSeconds) {

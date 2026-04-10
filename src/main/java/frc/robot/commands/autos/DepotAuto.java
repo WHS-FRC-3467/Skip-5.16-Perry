@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.commands.autos.utils.AutoContext;
@@ -61,6 +62,17 @@ public class DepotAuto {
 
                             Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
+                            // Phase 1: Reset controllers, odometry, wait for delay,
+                            // then follow the first trajectory. Because the sequence
+                            // only contains Drive-requiring commands, the event-bound
+                            // commands (Intake, Shooter) can schedule without conflict.
+                            boolean[] firstDone = {false};
+                            Command firstFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings)
+                                            .finallyDo(() -> firstDone[0] = true);
+
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
@@ -74,17 +86,18 @@ public class DepotAuto {
                                                                             AutoCommands
                                                                                     .getAutoDelay()),
                                                             Set.of()),
-                                                    ctx.drive()
-                                                            .followTrajectoryResilient(
-                                                                    trajectories.get(0),
-                                                                    eventBindings),
-                                                    AutoCommands.shootCommand(
-                                                            ctx.drive(),
-                                                            ctx.intake(),
-                                                            ctx.indexer(),
-                                                            ctx.tower(),
-                                                            ctx.shooter(),
-                                                            3.0)));
+                                                    firstFollow));
+
+                            // Phase 2: When the trajectory completes, shoot.
+                            Trigger firstTrajectoryDone = routine.observe(() -> firstDone[0]);
+                            firstTrajectoryDone.onTrue(
+                                    AutoCommands.shootCommand(
+                                            ctx.drive(),
+                                            ctx.intake(),
+                                            ctx.indexer(),
+                                            ctx.tower(),
+                                            ctx.shooter(),
+                                            3.0));
 
                             return routine;
                         }));
