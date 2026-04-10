@@ -217,10 +217,7 @@ public class RobotContainer {
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.intake()));
+                                shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
 
         // Tap Right Bumper while Right Trigger held: Manually cycle intake
         controller.rightBumper().onTrue(intake.slowRetract());
