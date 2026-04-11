@@ -219,8 +219,8 @@ public class RobotContainer {
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
 
-        // Tap Right Bumper while Right Trigger held: Manually cycle intake
-        controller.rightBumper().onTrue(intake.slowRetract());
+        // Right Bumper: Retract Intake
+        controller.rightBumper().onTrue(intake.retractIntake());
 
         // Left Trigger: Intake
         controller
