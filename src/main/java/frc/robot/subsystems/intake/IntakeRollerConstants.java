@@ -116,13 +116,22 @@ public class IntakeRollerConstants {
             case REAL:
                 mechanism =
                         new FlywheelMechanismReal(
-                                NAME, new MotorIOTalonFX(NAME, getFXConfig(), Ports.intakeRoller, new TalonFXFollower(Ports.intakeRollerFollower, true)));
+                                NAME,
+                                new MotorIOTalonFX(
+                                        NAME,
+                                        getFXConfig(),
+                                        Ports.intakeRoller,
+                                        new TalonFXFollower(Ports.intakeRollerFollower, true)));
                 break;
             case SIM:
                 mechanism =
                         new FlywheelMechanismSim(
                                 NAME,
-                                new MotorIOTalonFXSim(NAME, getFXConfig(), Ports.intakeRoller, new TalonFXFollower(Ports.intakeRollerFollower, true)),
+                                new MotorIOTalonFXSim(
+                                        NAME,
+                                        getFXConfig(),
+                                        Ports.intakeRoller,
+                                        new TalonFXFollower(Ports.intakeRollerFollower, true)),
                                 DCMOTOR,
                                 MOI,
                                 TOLERANCE);
