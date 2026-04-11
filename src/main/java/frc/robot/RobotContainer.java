@@ -311,6 +311,7 @@ public class RobotContainer {
                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                 .onFalse(stopAllShooterAndRetract());
 
+        // Driver Start and Select: Reset gyro heading
         controller
                 .start()
                 .and(controller.back())
