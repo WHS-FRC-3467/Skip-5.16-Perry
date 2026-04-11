@@ -44,7 +44,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
      * interfere with surrounding hardware.
      */
     private static final LoggedTunableNumber MIN_SAFE_ROLLER_DISTANCE =
-            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/MinSafeRollerDistance", 0.05);
+            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/MinSafeRollerDistance", 0.1524);
 
     private final LoggedTrigger isExtended;
     private final LoggedTrigger isRetracted;
