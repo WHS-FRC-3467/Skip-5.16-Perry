@@ -95,6 +95,7 @@ public class RobotContainer {
 
     // Dashboard inputs
     private final LoggedDashboardChooser<AutoOption> autoChooser;
+    private final LoggedDashboardChooser<Command> intakeChooser;
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
@@ -114,6 +115,17 @@ public class RobotContainer {
         }
         AutoContext ctx =
                 AutoContext.create(drive, intake, indexer, tower, shooter, Optional.empty());
+
+        intakeChooser = new LoggedDashboardChooser<>("Intake Choices");
+        intakeChooser.addOption("Normal", intake.retractIntake());
+        intakeChooser.addOption("Punchy", intake.punchyRetraction());
+        intakeChooser.addOption("Fast", intake.fastRetraction());
+        intakeChooser.addOption("Cycle", intake.cycleRetraction());
+
+        intakeChooser.onChange(
+                command -> {
+                    command.execute();
+                });
 
         autoChooser = new LoggedDashboardChooser<>("Auto Choices");
         SmartDashboard.putData("Auto Preview", autoPreviewField);

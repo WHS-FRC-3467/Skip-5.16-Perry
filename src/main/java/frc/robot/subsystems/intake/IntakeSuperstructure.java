@@ -143,6 +143,88 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
         return retractWithSpeed(MetersPerSecond.of(SLOW_MPS.get())).withName("Slow Retract Intake");
     }
 
+    public Command punchyRetraction() {
+        return Commands.sequence(
+                        runRoller(80.0),
+                        moveToPosition(
+                                IntakeLinearConstants.MAX_DISTANCE.div(2),
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                IntakeLinearConstants.MAX_DISTANCE,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                IntakeLinearConstants.MAX_DISTANCE.div(2),
+                                IntakeLinearConstants.CRUISE_VELOCITY.times(2),
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                retractDistance,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        Commands.waitUntil(isRetracted),
+                        stopRoller())
+                .finallyDo(() -> intakeRollerIO.runBrake())
+                .withName("Punchy Retract");
+    }
+
+    public Command fastRetraction() {
+        return Commands.sequence(
+                        runRoller(80.0),
+                        moveToPosition(
+                                retractDistance.plus(Inches.of(6)),
+                                IntakeLinearConstants.CRUISE_VELOCITY.times(2),
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                retractDistance,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        Commands.waitUntil(isRetracted),
+                        stopRoller())
+                .finallyDo(() -> intakeRollerIO.runBrake())
+                .withName("Fast Retraction");
+    }
+
+    public Command cycleRetraction() {
+        return Commands.sequence(
+                        runRoller(80.0),
+                        moveToPosition(
+                                retractDistance,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                IntakeLinearConstants.MAX_DISTANCE,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                retractDistance,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                IntakeLinearConstants.MAX_DISTANCE,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        moveToPosition(
+                                retractDistance,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
+                                IntakeLinearConstants.MAX_ACCELERATION,
+                                "Retract Linear"),
+                        Commands.waitUntil(isRetracted),
+                        stopRoller())
+                .finallyDo(() -> intakeRollerIO.runBrake())
+                .withName("Cycle Retraction");
+    }
+
     private Command retractWithSpeed(LinearVelocity retractSpeed) {
         return Commands.sequence(
                         runRoller(80.0),
