@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import frc.lib.util.FieldUtil;
+import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
 import frc.robot.RobotState;
@@ -69,11 +70,11 @@ public class ResilientTrajectoryFollower extends Command {
     }
 
     private static final LoggedTunableNumber PAUSE_THRESHOLD_METERS =
-            new LoggedTunableNumber("Drive/ResilientFollower/PauseThresholdMeters", 0.4572);
+            new LoggedTunableNumber("Auto/ResilientFollower/PauseThresholdMeters", 0.4572);
     private static final LoggedTunableNumber RESUME_THRESHOLD_METERS =
-            new LoggedTunableNumber("Drive/ResilientFollower/ResumeThresholdMeters", 0.15);
+            new LoggedTunableNumber("Auto/ResilientFollower/ResumeThresholdMeters", 0.15);
     private static final LoggedTunableNumber PAUSE_DEBOUNCE_SECONDS =
-            new LoggedTunableNumber("Drive/ResilientFollower/PauseDebouncerSeconds", 0.5);
+            new LoggedTunableNumber("Auto/ResilientFollower/PauseDebouncerSeconds", 0.5);
 
     /**
      * When true, the follower commands zero velocity to the drive, simulating the robot being stuck
@@ -81,7 +82,7 @@ public class ResilientTrajectoryFollower extends Command {
      * logic once the error threshold is exceeded. Toggle via NetworkTables for sim testing.
      */
     private static final LoggedTunableBoolean SIM_FORCE_STUCK =
-            new LoggedTunableBoolean("Drive/ResilientFollower/SimForceStuck", false);
+            new LoggedTunableBoolean("Auto/ResilientFollower/SimForceStuck", false);
 
     /**
      * When toggled from false → true, the robot's pose is instantly displaced perpendicular to its
@@ -90,7 +91,7 @@ public class ResilientTrajectoryFollower extends Command {
      * the RECOVERING state without needing to hold the robot in place.
      */
     private static final LoggedTunableBoolean SIM_NUDGE_OFF_PATH =
-            new LoggedTunableBoolean("Drive/ResilientFollower/SimNudgeOffPath", false);
+            new LoggedTunableBoolean("Auto/ResilientFollower/SimNudgeOffPath", false);
 
     /**
      * The distance (in meters) that the robot is displaced when {@link #SIM_NUDGE_OFF_PATH} is
@@ -98,7 +99,7 @@ public class ResilientTrajectoryFollower extends Command {
      * heading.
      */
     private static final LoggedTunableNumber SIM_NUDGE_DISTANCE_METERS =
-            new LoggedTunableNumber("Drive/ResilientFollower/SimNudgeDistanceMeters", 0.5);
+            new LoggedTunableNumber("Auto/ResilientFollower/SimNudgeDistanceMeters", 0.5);
 
     private final Drive drive;
     private final RobotState robotState;
@@ -115,6 +116,13 @@ public class ResilientTrajectoryFollower extends Command {
     private final List<EventMarker> sortedEvents;
 
     private State state = State.TRACKING;
+
+    /**
+     * Set to {@code true} in {@link #end(boolean)} when the command finishes without interruption.
+     * Reset to {@code false} in {@link #initialize()}. Polled by the {@link LoggedTrigger} returned
+     * from {@link #done()}.
+     */
+    private boolean finished = false;
 
     /** Trajectory-local time (seconds). Advances only in TRACKING state. */
     private double trajectoryTime;
@@ -169,8 +177,28 @@ public class ResilientTrajectoryFollower extends Command {
         setName("ResilientFollow_" + trajectory.name());
     }
 
+    /**
+     * Returns a {@link LoggedTrigger} that becomes {@code true} once this command finishes
+     * successfully (i.e. not interrupted). The trigger resets to {@code false} when the command is
+     * re-initialized.
+     *
+     * <p>Use this in auto routines to chain phases together:
+     *
+     * <pre>{@code
+     * ResilientTrajectoryFollower follow = drive.followTrajectoryResilient(traj, events);
+     * follow.done().onTrue(nextPhaseCommand);
+     * }</pre>
+     *
+     * @return a trigger that is active when this command has completed successfully
+     */
+    public LoggedTrigger done() {
+        return new LoggedTrigger(
+                "Auto/ResilientFollow_" + trajectory.name() + "/Done", () -> finished);
+    }
+
     @Override
     public void initialize() {
+        finished = false;
         state = State.TRACKING;
         trajectoryTime = 0.0;
         previousTimestamp = Timer.getTimestamp();
@@ -184,7 +212,7 @@ public class ResilientTrajectoryFollower extends Command {
         thetaController.reset();
 
         Logger.recordOutput("Odometry/Trajectory", FieldUtil.apply(trajectory.getPoses()));
-        Logger.recordOutput("Drive/ResilientFollower/State", state.name());
+        Logger.recordOutput("Auto/ResilientFollower/State", state.name());
     }
 
     @Override
@@ -208,9 +236,9 @@ public class ResilientTrajectoryFollower extends Command {
             Pose2d nudgedPose = new Pose2d(nudgedTranslation, currentPose.getRotation());
             robotState.resetPose(nudgedPose);
             currentPose = nudgedPose;
-            Logger.recordOutput("Drive/ResilientFollower/SimNudgeApplied", true);
+            Logger.recordOutput("Auto/ResilientFollower/SimNudgeApplied", true);
         } else {
-            Logger.recordOutput("Drive/ResilientFollower/SimNudgeApplied", false);
+            Logger.recordOutput("Auto/ResilientFollower/SimNudgeApplied", false);
         }
         previousNudgeState = nudgeNow;
 
@@ -289,10 +317,10 @@ public class ResilientTrajectoryFollower extends Command {
 
         // --- Logging ---
         Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-        Logger.recordOutput("Drive/ResilientFollower/State", state.name());
-        Logger.recordOutput("Drive/ResilientFollower/TrajectoryTime", trajectoryTime);
-        Logger.recordOutput("Drive/ResilientFollower/TotalPausedTime", totalPausedTime);
-        Logger.recordOutput("Drive/ResilientFollower/TranslationalError", translationalError);
+        Logger.recordOutput("Auto/ResilientFollower/State", state.name());
+        Logger.recordOutput("Auto/ResilientFollower/TrajectoryTime", trajectoryTime);
+        Logger.recordOutput("Auto/ResilientFollower/TotalPausedTime", totalPausedTime);
+        Logger.recordOutput("Auto/ResilientFollower/TranslationalError", translationalError);
     }
 
     private void updateState(double translationalError) {
@@ -340,10 +368,11 @@ public class ResilientTrajectoryFollower extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        finished = !interrupted;
         drive.stop();
         Logger.recordOutput("Odometry/Trajectory", new Pose2d[] {});
         Logger.recordOutput("Odometry/TrajectorySetpoint", new Pose2d());
-        Logger.recordOutput("Drive/ResilientFollower/State", "DONE");
+        Logger.recordOutput("Auto/ResilientFollower/State", "DONE");
     }
 
     @Override

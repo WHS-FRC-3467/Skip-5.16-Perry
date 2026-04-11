@@ -14,6 +14,7 @@
  */
 package frc.robot.commands.autos;
 
+
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
@@ -23,8 +24,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
+import frc.robot.commands.ResilientTrajectoryFollower;
 import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
@@ -71,17 +72,21 @@ public class C1678Auto {
 
                             Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
+                            // Declare trajectory-following commands up front so we
+                            // can grab the .done() trigger from each one.
+                            ResilientTrajectoryFollower firstFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
+                            ResilientTrajectoryFollower secondFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(1), eventBindings);
+
                             // Phase 1: Reset controllers, odometry, wait for delay,
                             // then follow the first trajectory. Because the sequence
                             // only contains Drive-requiring commands, the event-bound
                             // commands (Intake, Shooter) can schedule without conflict.
-                            boolean[] firstDone = {false};
-                            Command firstFollow =
-                                    ctx.drive()
-                                            .followTrajectoryResilient(
-                                                    trajectories.get(0), eventBindings)
-                                            .finallyDo(() -> firstDone[0] = true);
-
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
@@ -101,14 +106,19 @@ public class C1678Auto {
                             // then follow the second trajectory. shootThenFollow uses
                             // a ScheduleCommand for stowHood so ShooterSuperstructure
                             // is not added to the sequence's requirements.
-                            Trigger firstTrajectoryDone = routine.observe(() -> firstDone[0]);
-                            firstTrajectoryDone.onTrue(
-                                    AutoCommands.shootThenFollow(
-                                            ctx,
-                                            3.0,
-                                            ctx.drive()
-                                                    .followTrajectoryResilient(
-                                                            trajectories.get(1), eventBindings)));
+                            firstFollow
+                                    .done()
+                                    .onTrue(
+                                            Commands.sequence(
+                                                    AutoCommands.shootCommand(
+                                                            ctx.drive(),
+                                                            ctx.intake(),
+                                                            ctx.indexer(),
+                                                            ctx.tower(),
+                                                            ctx.shooter(),
+                                                            3.0),
+                                                    // ctx.shooter().setHoodAngle(Degrees.of(0.0)),
+                                                    secondFollow.asProxy()));
 
                             return routine;
                         }));

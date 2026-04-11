@@ -555,7 +555,7 @@ public class Drive extends SubsystemBase {
      *     reached in trajectory-time
      * @return a command that resiliently follows the trajectory
      */
-    public Command followTrajectoryResilient(
+    public ResilientTrajectoryFollower followTrajectoryResilient(
             Trajectory<SwerveSample> trajectory, Map<String, Command> eventBindings) {
         return new ResilientTrajectoryFollower(
                 this,
@@ -573,7 +573,8 @@ public class Drive extends SubsystemBase {
      * @param trajectory the trajectory to follow
      * @return a command that resiliently follows the trajectory
      */
-    public Command followTrajectoryResilient(Trajectory<SwerveSample> trajectory) {
+    public ResilientTrajectoryFollower followTrajectoryResilient(
+            Trajectory<SwerveSample> trajectory) {
         return followTrajectoryResilient(trajectory, Map.of());
     }
 
