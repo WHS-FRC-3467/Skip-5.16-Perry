@@ -15,7 +15,6 @@
 
 package frc.robot.subsystems.tower;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -69,17 +68,6 @@ public class TowerTest {
         }
     }
 
-    @Test // marks this method as a test
-    void feed() {
-        TestUtil.runTest(tower.feed(), 2, tower);
-        try {
-            // Check velocity to check if the subsystem is actually in tolerance of intake velocity.
-            assertTrue(tower.nearSetpoint());
-        } catch (Exception e) {
-            fail("Failed to run KickerRoller to idle: " + e.getMessage());
-        }
-    }
-
     @Test
     void stop() {
         TestUtil.runTest(tower.stopCommand(), 2, tower);
@@ -90,16 +78,5 @@ public class TowerTest {
         } catch (Exception e) {
             fail("Failed to stop indexer: " + e.getMessage());
         }
-    }
-
-    @Test
-    void tuningModeToggleWithNoScheduledCommandDoesNotThrow() {
-        CommandScheduler.getInstance().cancelAll();
-
-        assertDoesNotThrow(
-                () -> {
-                    tower.enableTuningMode();
-                    tower.disableTuningMode();
-                });
     }
 }

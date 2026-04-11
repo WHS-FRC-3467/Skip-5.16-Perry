@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.devices.AprilTagCamera;
 import frc.lib.posestimator.PoseEstimator.VisionPoseObservation;
 import frc.lib.util.LoggedTunableNumber;
-import frc.robot.Constants;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.AprilTagLayoutType;
 import frc.robot.RobotState;
@@ -61,6 +60,9 @@ public class VisionSubsystem extends SubsystemBase {
 
     /** Baseline angular standard deviation used for vision observations. */
     public static final double ANGULAR_STDDEV_BASELINE = 0.05;
+
+    /** Ignore rotation corrections from single-tag solves. */
+    public static final double SINGLE_TAG_ANGULAR_STDDEV = Double.POSITIVE_INFINITY;
 
     /** Maximum allowable height (Z-axis) of a detected pose to be considered valid. */
     public static final double MAX_Z_METERS = 0.75;
@@ -197,13 +199,6 @@ public class VisionSubsystem extends SubsystemBase {
             ArrayList<Pose3d> rejectedPoses = new ArrayList<>();
             for (var result : results) {
 
-                if (result.targets.size() == 1
-                        && Constants.FILTERED_TAGS.contains(
-                                result.targets.get(0).getFiducialId())) {
-                    rejectedResults.add(result);
-                    continue;
-                }
-
                 if (!preFilter(result)) {
                     rejectedResults.add(result);
                     continue;
@@ -240,7 +235,10 @@ public class VisionSubsystem extends SubsystemBase {
                 double stdDevFactor = computeStdDevFactor(camera, result, poseRecord);
 
                 double linearStdDev = LINEAR_STDDEV_BASELINE * stdDevFactor;
-                double angularStdDev = ANGULAR_STDDEV_BASELINE * stdDevFactor;
+                double angularStdDev =
+                        poseRecord.tagsUsed().size() == 1
+                                ? SINGLE_TAG_ANGULAR_STDDEV
+                                : ANGULAR_STDDEV_BASELINE * stdDevFactor;
 
                 robotState.addVisionObservation(
                         new VisionPoseObservation(

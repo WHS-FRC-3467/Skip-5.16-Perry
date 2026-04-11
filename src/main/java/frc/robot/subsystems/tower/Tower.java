@@ -19,11 +19,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
@@ -46,42 +42,13 @@ public class Tower extends SubsystemBase {
     private static final LoggedTunableNumber EJECT_RPS =
             new LoggedTunableNumber(TowerConstants.NAME + "/EjectRPS", -20.0);
 
-    private static final LoggedTunableNumber FEED_RPS =
-            new LoggedTunableNumber(
-                    TowerConstants.NAME + "/FeedRPS",
-                    TowerConstants.MAX_VELOCITY.in(RotationsPerSecond));
-
     // Tuning Mode
-    private static final Trigger TUNING_MODE_ENABLED =
-            new Trigger(new LoggedTunableBoolean(TowerConstants.NAME + "/Tuning/Enable", false));
-    private static final LoggedTunableNumber TUNING_MODE_SPEED_RPS =
+    private static final LoggedTunableBoolean tuningMode =
+            new LoggedTunableBoolean(TowerConstants.NAME + "/Tuning/Enable", false);
+    private static final LoggedTunableNumber tuningFlywheelSpeedRPS =
             new LoggedTunableNumber(TowerConstants.NAME + "/Tuning/SpeedRPS", 0.0);
 
     private final FlywheelMechanism<?> io;
-
-    private final Command tuningModeCommand =
-            Commands.sequence(
-                            Commands.runOnce(this::cancelCurrentCommandIfAny),
-                            createTuningRunCommand())
-                    // Prevent interruptions
-                    .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
-                    // Stop after tuning mode is disabled for safety/convenience
-                    .finallyDo(() -> runVelocity(RotationsPerSecond.zero()));
-
-    private void cancelCurrentCommandIfAny() {
-        var currentCommand = this.getCurrentCommand();
-        if (currentCommand == null) return;
-        CommandScheduler.getInstance().cancel(currentCommand);
-    }
-
-    private Command createTuningRunCommand() {
-        // Proxy prevents the sequence from requiring this subsystem.
-        return this.run(
-                        () ->
-                                runVelocity(
-                                        RotationsPerSecond.of(TUNING_MODE_SPEED_RPS.getAsDouble())))
-                .asProxy();
-    }
 
     /**
      * Constructs a new Tower subsystem with the specified flywheel mechanism.
@@ -90,13 +57,22 @@ public class Tower extends SubsystemBase {
      */
     public Tower(FlywheelMechanism<?> io) {
         this.io = io;
-        TUNING_MODE_ENABLED.whileTrue(tuningModeCommand);
     }
 
     @Override
     public void periodic() {
+        if (tuningMode.get()) {
+            if (tuningMode.hasChanged(hashCode())
+                    || tuningFlywheelSpeedRPS.hasChanged(hashCode())) {
+                runVelocity(RotationsPerSecond.of(tuningFlywheelSpeedRPS.get()));
+            }
+        }
         LoggerHelper.recordCurrentCommand(this.getName(), this);
         io.periodic();
+    }
+
+    private void stop() {
+        io.runBrake();
     }
 
     /**
@@ -138,17 +114,6 @@ public class Tower extends SubsystemBase {
     }
 
     /**
-     * Creates a command to run the tower at feeding velocity to move game pieces through the
-     * mechanism. The tower will stop when the command is interrupted or cancelled.
-     *
-     * @return a command that runs the tower at feeding speed
-     */
-    public Command feed() {
-        return this.startEnd(() -> runVelocity(RotationsPerSecond.of(FEED_RPS.get())), () -> stop())
-                .withName("Feed");
-    }
-
-    /**
      * Creates a command to run the tower in reverse to eject game pieces. The tower will stop when
      * the command is interrupted or cancelled.
      *
@@ -167,26 +132,6 @@ public class Tower extends SubsystemBase {
      */
     public Command stopCommand() {
         return this.runOnce(() -> io.runBrake()).withName("Stop");
-    }
-
-    private void stop() {
-        io.runBrake();
-    }
-
-    /**
-     * Enables tuning mode by cancelling the currently running command (if any), scheduling a
-     * non-interruptible idle command, and applying the current tuning position setpoint.
-     */
-    void enableTuningMode() {
-        CommandScheduler.getInstance().schedule(tuningModeCommand);
-    }
-
-    /**
-     * Disables tuning mode by cancelling the tuning idle command and restoring the previously
-     * active command when one was captured.
-     */
-    void disableTuningMode() {
-        CommandScheduler.getInstance().cancel(tuningModeCommand);
     }
 
     /** Closes the underlying flywheel mechanism and releases resources. */

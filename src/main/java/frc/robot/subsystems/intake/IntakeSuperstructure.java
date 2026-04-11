@@ -27,12 +27,10 @@ import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
 
-import java.util.function.Supplier;
-
 public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable {
 
-    private static final LoggedTunableNumber ROLLER_INTAKE_RPS =
-            new LoggedTunableNumber(IntakeRollerConstants.NAME + "/IntakeRPS", 35.0);
+    private final LinearMechanism<?> intakeLinearIO;
+    private final FlywheelMechanism<?> intakeRollerIO;
 
     private static final LoggedTunableNumber ROLLER_EJECT_RPS =
             new LoggedTunableNumber(IntakeRollerConstants.NAME + "/EjectRPS", -35.0);
@@ -40,17 +38,10 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     private static final LoggedTunableNumber SLOW_MPS =
             new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.25);
 
-    private final LinearMechanism<?> intakeLinearIO;
-    private final FlywheelMechanism<?> intakeRollerIO;
-
     private final LoggedTrigger isExtended;
     private final LoggedTrigger isRetracted;
-    private final LoggedTrigger isCycleComplete;
 
-    private final LinearVelocity shuffleVelocity = MetersPerSecond.of(0.8);
     private final Distance retractDistance = IntakeLinearConstants.MIN_DISTANCE;
-    private final Distance cycleCompleteTolerance =
-            IntakeLinearConstants.MIN_DISTANCE.plus(Inches.of(1.5));
 
     public IntakeSuperstructure(
             LinearMechanism<?> intakeLinearIO, FlywheelMechanism<?> intakeRollerIO) {
@@ -81,14 +72,6 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                         retractDistance.in(Meters),
                                         intakeLinearIO.getLinearPosition().in(Meters),
                                         IntakeLinearConstants.TOLERANCE.in(Meters)));
-        isCycleComplete =
-                new LoggedTrigger(
-                        "IntakeSuperstructure/IsCycleComplete",
-                        () ->
-                                MathUtil.isNear(
-                                        cycleCompleteTolerance.in(Meters),
-                                        intakeLinearIO.getLinearPosition().in(Meters),
-                                        Inches.of(2.0).in(Meters)));
     }
 
     /** Returns true if the intake roller is running and the intake is extended. */
@@ -123,58 +106,6 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                         IntakeLinearConstants.MAX_DISTANCE.in(Meters)));
     }
 
-    /**
-     * Moves the intake by a delta using Motion Magic with the given cruise velocity and
-     * acceleration, optionally running the roller at a scaled speed, and waits until within
-     * toleranceMeters of the goal.
-     */
-    private Command moveByDistance(
-            Distance distance,
-            LinearVelocity cruiseVelocity,
-            LinearAcceleration acceleration,
-            boolean runRoller,
-            double rollerScale,
-            double toleranceMeters,
-            String name) {
-        return moveToDistance(
-                () ->
-                        Meters.of(
-                                intakeLinearIO.getLinearPosition().in(Meters)
-                                        + distance.in(Meters)),
-                cruiseVelocity,
-                acceleration,
-                runRoller,
-                rollerScale,
-                toleranceMeters,
-                name);
-    }
-
-    private Command moveToDistance(
-            Supplier<Distance> goalSupplier,
-            LinearVelocity cruiseVelocity,
-            LinearAcceleration acceleration,
-            boolean runRoller,
-            double rollerScale,
-            double toleranceMeters,
-            String name) {
-        return Commands.sequence(
-                        this.runOnce(
-                                () ->
-                                        intakeLinearIO.runLinearPosition(
-                                                clampDistance(goalSupplier.get()),
-                                                PIDSlot.SLOT_0,
-                                                cruiseVelocity,
-                                                acceleration)),
-                        runRoller ? runRoller(80.0) : Commands.none(),
-                        Commands.waitUntil(
-                                () ->
-                                        MathUtil.isNear(
-                                                intakeLinearIO.getGoalLinearPosition().in(Meters),
-                                                intakeLinearIO.getLinearPosition().in(Meters),
-                                                toleranceMeters)))
-                .withName(name);
-    }
-
     private Command runRoller(double amps) {
         return this.runOnce(() -> intakeRollerIO.runCurrent(Amps.of(amps))).withName("Run Roller");
     }
@@ -194,14 +125,6 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     }
 
     public Command intake() {
-        return extendWithRoller(() -> RotationsPerSecond.of(ROLLER_INTAKE_RPS.get()), "Intake");
-    }
-
-    public Command extendIntake() {
-        return extendWithRoller(RotationsPerSecond::zero, "Extend Intake");
-    }
-
-    private Command extendWithRoller(Supplier<AngularVelocity> rollerVelocity, String name) {
         return Commands.sequence(
                         runRoller(80.0),
                         moveToPosition(
@@ -209,22 +132,18 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 IntakeLinearConstants.CRUISE_VELOCITY,
                                 IntakeLinearConstants.MAX_ACCELERATION,
                                 "Extend Linear"))
-                .withName(name);
+                .withName("Extend With Roller");
     }
 
     public Command retractIntake() {
-        return retractWithSpeed(IntakeLinearConstants.CRUISE_VELOCITY, "Retract Intake");
-    }
-
-    public Command slowRetract(LinearVelocity retractSpeed) {
-        return retractWithSpeed(retractSpeed, "Slow Retract");
+        return retractWithSpeed(IntakeLinearConstants.CRUISE_VELOCITY).withName("Retract Intake");
     }
 
     public Command slowRetract() {
-        return slowRetract(MetersPerSecond.of(SLOW_MPS.get()));
+        return retractWithSpeed(MetersPerSecond.of(SLOW_MPS.get())).withName("Slow Retract Intake");
     }
 
-    private Command retractWithSpeed(LinearVelocity retractSpeed, String name) {
+    private Command retractWithSpeed(LinearVelocity retractSpeed) {
         return Commands.sequence(
                         runRoller(80.0),
                         moveToPosition(
@@ -234,76 +153,8 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 "Retract Linear"),
                         Commands.waitUntil(isRetracted),
                         stopRoller())
-                .finallyDo(() -> intakeRollerIO.runDutyCycle(0.0, false))
-                .withName(name);
-    }
-
-    /**
-     * Creates an experimental command to shuffle the intake. If the intake is already retracted,
-     * extend it. Then, retract 6 inches, and then extend 3 inches. If the intake is at the end of
-     * the shuffle cycle when this command is called, extend intake before shuffling. Each cycle
-     * increases the speed.
-     *
-     * @return a Command that is a "step" in the intake shuffle.
-     */
-    public Command shuffleStep() {
-        return Commands.sequence(
-                        // Extend intake if there is no more space to retract
-                        Commands.either(
-                                Commands.sequence(extendIntake(), Commands.waitUntil(isExtended)),
-                                Commands.none(),
-                                isCycleComplete),
-                        moveByDistance(
-                                        Inches.of(-6),
-                                        shuffleVelocity,
-                                        IntakeLinearConstants.MAX_ACCELERATION,
-                                        true,
-                                        0.6,
-                                        Inches.of(0.5).in(Meters),
-                                        "Shuffle Retract")
-                                .withTimeout(0.5),
-                        moveByDistance(
-                                        Inches.of(3.0),
-                                        shuffleVelocity,
-                                        IntakeLinearConstants.MAX_ACCELERATION,
-                                        false,
-                                        0.0,
-                                        Inches.of(0.5).in(Meters),
-                                        "Shuffle Extend")
-                                .withTimeout(0.5),
-                        stopRoller())
-                .withName("Intake Shuffle Step");
-    }
-
-    /**
-     * Create a command to shuffle the intake between its retracted position and a partially
-     * extended position aligned with the front buumper edge.
-     *
-     * @return a Command that is a step in this intake shuffle for up-against-hub shooting.
-     */
-    public Command hubShuffleStep() {
-        return Commands.sequence(
-                        // Ensure intake is retracted
-                        moveToDistance(
-                                        () -> IntakeLinearConstants.MIN_DISTANCE,
-                                        shuffleVelocity,
-                                        IntakeLinearConstants.MAX_ACCELERATION,
-                                        true,
-                                        0.6,
-                                        Inches.of(0.5).in(Meters),
-                                        "Hub Shuffle Pre Retract")
-                                .withTimeout(1),
-                        moveByDistance(
-                                        Inches.of(3.15),
-                                        shuffleVelocity,
-                                        IntakeLinearConstants.MAX_ACCELERATION,
-                                        false,
-                                        0.0,
-                                        Inches.of(0.5).in(Meters),
-                                        "Hub Shuffle Extend")
-                                .withTimeout(1),
-                        stopRoller())
-                .withName("Intake Hub Shuffle Step");
+                .finallyDo(() -> intakeRollerIO.runBrake())
+                .withName("Retract With Speed");
     }
 
     public Command linearCoast() {
