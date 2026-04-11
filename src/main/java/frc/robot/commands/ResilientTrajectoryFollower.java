@@ -261,10 +261,13 @@ public class ResilientTrajectoryFollower extends Command {
                 currentPose.getTranslation().getDistance(targetPose.getTranslation());
 
         // --- State transitions ---
+        State previousState = state;
         updateState(preAdvanceTranslationalError);
 
-        // --- Advance trajectory time only in TRACKING ---
-        if (state == State.TRACKING) {
+        // --- Advance trajectory time only if we were TRACKING at the start of this cycle ---
+        // This ensures that the dt spent in RECOVERING (including the transition cycle) is
+        // not added to trajectoryTime, keeping trajectory time fully frozen during recovery.
+        if (previousState == State.TRACKING) {
             trajectoryTime += dt;
             // Clamp to trajectory end so we don't overshoot into invalid territory.
             trajectoryTime = Math.min(trajectoryTime, trajectory.getTotalTime());
@@ -313,7 +316,7 @@ public class ResilientTrajectoryFollower extends Command {
         }
 
         // When SimForceStuck is enabled, command zero velocity to mimic being pinned.
-        if (SIM_FORCE_STUCK.get()) {
+        if (RobotBase.isSimulation() && SIM_FORCE_STUCK.get()) {
             drive.stop();
         } else {
             drive.runVelocity(
