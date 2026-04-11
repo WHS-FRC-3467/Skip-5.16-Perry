@@ -17,6 +17,7 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.*;
 
@@ -48,6 +49,11 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     private final LoggedTrigger isExtended;
     private final LoggedTrigger isRetracted;
     private final LoggedTrigger isRollerSafe;
+
+    private boolean rollerSafe = false;
+
+    private final Debouncer rollerSafeDebouncer =
+            new Debouncer(0.1, Debouncer.DebounceType.kRising);
 
     private final Distance retractDistance = IntakeLinearConstants.MIN_DISTANCE;
 
@@ -81,12 +87,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                         intakeLinearIO.getLinearPosition().in(Meters),
                                         IntakeLinearConstants.TOLERANCE.in(Meters)));
 
-        isRollerSafe =
-                new LoggedTrigger(
-                        "IntakeSuperstructure/IsRollerSafe",
-                        () ->
-                                intakeLinearIO.getLinearPosition().in(Meters)
-                                        > MIN_SAFE_ROLLER_DISTANCE.get());
+        isRollerSafe = new LoggedTrigger("IntakeSuperstructure/IsRollerSafe", () -> rollerSafe);
     }
 
     /** Returns true if the intake roller is running and the intake is extended. */
@@ -145,12 +146,14 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     public Command intake() {
         return Commands.sequence(
-                        runRoller(80.0),
                         moveToPosition(
                                 IntakeLinearConstants.MAX_DISTANCE,
                                 IntakeLinearConstants.CRUISE_VELOCITY,
                                 IntakeLinearConstants.MAX_ACCELERATION,
-                                "Extend Linear"))
+                                "Extend Linear"),
+                        Commands.waitUntil(isRollerSafe),
+                        runRoller(80.0),
+                        Commands.waitUntil(isExtended))
                 .withName("Extend With Roller");
     }
 
@@ -192,6 +195,10 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
         LoggerHelper.recordCurrentCommand(this.getName(), this);
         intakeLinearIO.periodic();
         intakeRollerIO.periodic();
+        rollerSafe =
+                rollerSafeDebouncer.calculate(
+                        intakeLinearIO.getLinearPosition().in(Meters)
+                                > MIN_SAFE_ROLLER_DISTANCE.get());
     }
 
     /**
