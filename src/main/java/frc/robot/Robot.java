@@ -156,7 +156,7 @@ public class Robot extends LoggedRobot {
         if (elasticDisplayCounter % 5 == 0) {
             elasticDisplayCounter = 0;
             // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
-            fieldMap.setRobotPose(RobotState.getInstance().getEstimatedPose());
+            fieldMap.setRobotPose(robotState.getEstimatedPose());
             SmartDashboard.putNumber("Auto Delay", AutoCommands.getAutoDelay());
         }
         // Update auto tab

@@ -482,6 +482,6 @@ public class RobotContainer {
         return Commands.parallel(
                 shooter.stopAndStow(),
                 indexer.stopCommand(),
-                tower.stopCommand(),
+                tower.stopCommand());
     }
 }
