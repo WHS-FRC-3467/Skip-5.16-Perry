@@ -14,6 +14,7 @@
  */
 package frc.robot.commands.autos;
 
+import static edu.wpi.first.units.Units.Degrees;
 
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
@@ -117,8 +118,22 @@ public class C1678Auto {
                                                             ctx.tower(),
                                                             ctx.shooter(),
                                                             3.0),
-                                                    // ctx.shooter().setHoodAngle(Degrees.of(0.0)),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
                                                     secondFollow.asProxy()));
+
+                            secondFollow
+                                    .done()
+                                    .onTrue(
+                                            Commands.sequence(
+                                                    AutoCommands.shootCommand(
+                                                            ctx.drive(),
+                                                            ctx.intake(),
+                                                            ctx.indexer(),
+                                                            ctx.tower(),
+                                                            ctx.shooter(),
+                                                            3.0)));
 
                             return routine;
                         }));
