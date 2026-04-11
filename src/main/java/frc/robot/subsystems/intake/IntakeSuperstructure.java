@@ -37,7 +37,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
             new LoggedTunableNumber(IntakeRollerConstants.NAME + "/EjectRPS", -35.0);
 
     private static final LoggedTunableNumber SLOW_MPS =
-            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.25);
+            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.20);
 
     /**
      * Minimum safe roller distance from the retracted position such that the roller doesn't

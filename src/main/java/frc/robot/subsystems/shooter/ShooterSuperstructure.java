@@ -60,6 +60,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         hubFlywheelMap.put(3.0, 30.0);
         hubFlywheelMap.put(3.55, 32.0);
         hubFlywheelMap.put(4.0, 34.0);
+        hubFlywheelMap.put(4.55, 32.0);
         hubFlywheelMap.put(5.0, 36.0);
     }
 
@@ -84,6 +85,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         hubHoodMap.put(3.0, 8.0);
         hubHoodMap.put(3.55, 10.0);
         hubHoodMap.put(4.0, 13.0);
+        hubHoodMap.put(4.55, 17.0);
         hubHoodMap.put(5.0, 21.0);
     }
 
