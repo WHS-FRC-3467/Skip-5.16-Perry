@@ -167,16 +167,25 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command retractWithSpeed(LinearVelocity retractSpeed) {
         return Commands.sequence(
-                        runRoller(80.0),
-                        moveToPosition(
-                                retractDistance,
-                                retractSpeed,
-                                IntakeLinearConstants.MAX_ACCELERATION,
-                                "Retract Linear"),
-                        Commands.waitUntil(isRetracted),
-                        stopRoller())
-                .finallyDo(() -> intakeRollerIO.runBrake())
-                .withName("Retract With Speed");
+            moveToPosition(
+                    retractDistance,
+                    retractSpeed,
+                    IntakeLinearConstants.MAX_ACCELERATION,
+                    "Retract Linear"),
+            Commands.waitUntil(isRollerSafe.negate()),
+            stopRoller(),
+            Commands.waitUntil(isRetracted)).finallyDo(() -> intakeRollerIO.runBrake());
+        // return Commands.sequence(
+        //                 runRoller(80.0),
+        //                 moveToPosition(
+        //                         retractDistance,
+        //                         retractSpeed,
+        //                         IntakeLinearConstants.MAX_ACCELERATION,
+        //                         "Retract Linear"),
+        //                 Commands.waitUntil(isRetracted),
+        //                 stopRoller())
+        //         .finallyDo(() -> intakeRollerIO.runBrake())
+        //         .withName("Retract With Speed");
     }
 
     public Command linearCoast() {
