@@ -38,8 +38,16 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     private static final LoggedTunableNumber SLOW_MPS =
             new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.25);
 
+    /**
+     * Minimum safe roller distance from the retracted position such that the roller doesn't
+     * interfere with surrounding hardware.
+     */
+    private static final LoggedTunableNumber MIN_SAFE_ROLLER_DISTANCE =
+            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/MinSafeRollerDistance", 0.05);
+
     private final LoggedTrigger isExtended;
     private final LoggedTrigger isRetracted;
+    private final LoggedTrigger isRollerSafe;
 
     private final Distance retractDistance = IntakeLinearConstants.MIN_DISTANCE;
 
@@ -72,6 +80,13 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                         retractDistance.in(Meters),
                                         intakeLinearIO.getLinearPosition().in(Meters),
                                         IntakeLinearConstants.TOLERANCE.in(Meters)));
+
+        isRollerSafe =
+                new LoggedTrigger(
+                        "IntakeSuperstructure/IsRollerSafe",
+                        () ->
+                                intakeLinearIO.getLinearPosition().in(Meters)
+                                        > MIN_SAFE_ROLLER_DISTANCE.get());
     }
 
     /** Returns true if the intake roller is running and the intake is extended. */
@@ -107,7 +122,11 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     }
 
     private Command runRoller(double amps) {
-        return this.runOnce(() -> intakeRollerIO.runCurrent(Amps.of(amps))).withName("Run Roller");
+        return Commands.either(
+                        Commands.runOnce(() -> intakeRollerIO.runCurrent(Amps.of(amps)), this),
+                        stopRoller(),
+                        isRollerSafe)
+                .withName("Run Roller");
     }
 
     public Command stopRoller() {
