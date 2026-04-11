@@ -22,12 +22,6 @@ import choreo.trajectory.Trajectory;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.SlotConfigs;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.ModuleConfig;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -41,12 +35,10 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -112,24 +104,6 @@ public class Drive extends SubsystemBase {
                     new Translation2d(
                             DriveConstants.BackRight.LocationX,
                             DriveConstants.BackRight.LocationY));
-
-    private static final double ROBOT_MASS_KG = 63.5;
-    private static final double ROBOT_MOI = 8.57;
-    private static final double WHEEL_COF = 1.2;
-
-    private static final RobotConfig PP_CONFIG =
-            new RobotConfig(
-                    ROBOT_MASS_KG,
-                    ROBOT_MOI,
-                    new ModuleConfig(
-                            DriveConstants.FrontLeft.WheelRadius,
-                            DriveConstants.kSpeedAt12Volts.in(MetersPerSecond),
-                            WHEEL_COF,
-                            DCMotor.getKrakenX60Foc(1)
-                                    .withReduction(DriveConstants.FrontLeft.DriveMotorGearRatio),
-                            DriveConstants.FrontLeft.SlipCurrent,
-                            1),
-                    MODULE_TRANSLATIONS.toArray(Translation2d[]::new));
 
     static final Lock odometryLock = new ReentrantLock();
 
@@ -260,8 +234,6 @@ public class Drive extends SubsystemBase {
 
         // Start odometry thread
         PhoenixOdometryThread.getInstance().start();
-        configurePathPlanner();
-
         // Configure SysId
         sysId =
                 new SysIdRoutine(
@@ -283,42 +255,6 @@ public class Drive extends SubsystemBase {
                         "Steer",
                         new PID(SlotConfigs.from(DriveConstants.FrontLeft.SteerMotorGains)));
         autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
-    }
-
-    /**
-     * Configures PathPlanner for ad hoc pathfinding and path following without reconnecting it to
-     * the autonomous chooser or Choreo autos.
-     */
-    private void configurePathPlanner() {
-        if (AutoBuilder.isConfigured()) {
-            return;
-        }
-
-        AutoBuilder.configure(
-                robotState::getEstimatedPose,
-                robotState::resetPose,
-                this::getChassisSpeeds,
-                this::runVelocity,
-                new PPHolonomicDriveController(
-                        new PIDConstants(
-                                AUTO_TRANSLATION_KP.get(),
-                                AUTO_TRANSLATION_KI.get(),
-                                AUTO_TRANSLATION_KD.get()),
-                        new PIDConstants(
-                                AUTO_THETA_KP.get(), AUTO_THETA_KI.get(), AUTO_THETA_KD.get())),
-                PP_CONFIG,
-                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-                this);
-
-        PathPlannerLogging.setLogActivePathCallback(
-                activePath ->
-                        Logger.recordOutput(
-                                "Odometry/Trajectory", activePath.toArray(Pose2d[]::new)));
-        PathPlannerLogging.setLogTargetPoseCallback(
-                targetPose -> {
-                    robotState.setActiveTrajPose(targetPose);
-                    Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-                });
     }
 
     @Override
