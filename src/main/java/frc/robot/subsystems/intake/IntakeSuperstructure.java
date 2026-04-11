@@ -163,6 +163,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command retractWithSpeed(LinearVelocity retractSpeed) {
         return Commands.sequence(
+                        runRoller(80.0).onlyIf(isRollerSafe),
                         moveToPosition(
                                 retractDistance,
                                 retractSpeed,
