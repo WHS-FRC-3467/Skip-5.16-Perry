@@ -25,6 +25,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -205,7 +206,7 @@ public class ResilientTrajectoryFollower extends Command {
         totalPausedTime = 0.0;
         nextEventIndex = 0;
         pauseDebouncer = new Debouncer(PAUSE_DEBOUNCE_SECONDS.get());
-        previousNudgeState = false;
+        previousNudgeState = SIM_NUDGE_OFF_PATH.get();
 
         xController.reset();
         yController.reset();
@@ -224,7 +225,8 @@ public class ResilientTrajectoryFollower extends Command {
         Pose2d currentPose = robotState.getEstimatedPose();
 
         // --- Sim nudge: displace the robot perpendicular to its heading on rising edge ---
-        boolean nudgeNow = SIM_NUDGE_OFF_PATH.get();
+        // Guard with isSimulation() so a stray NT write on a real robot can't jump odometry.
+        boolean nudgeNow = RobotBase.isSimulation() && SIM_NUDGE_OFF_PATH.get();
         if (nudgeNow && !previousNudgeState) {
             double nudgeDistance = SIM_NUDGE_DISTANCE_METERS.get();
             // Offset 90° to the left of the robot's current heading.
@@ -255,11 +257,11 @@ public class ResilientTrajectoryFollower extends Command {
         }
 
         Pose2d targetPose = sample.getPose();
-        double translationalError =
+        double preAdvanceTranslationalError =
                 currentPose.getTranslation().getDistance(targetPose.getTranslation());
 
         // --- State transitions ---
-        updateState(translationalError);
+        updateState(preAdvanceTranslationalError);
 
         // --- Advance trajectory time only in TRACKING ---
         if (state == State.TRACKING) {
@@ -280,6 +282,10 @@ public class ResilientTrajectoryFollower extends Command {
         } else {
             totalPausedTime += dt;
         }
+
+        // Recompute error against the final target pose used this cycle for accurate logging.
+        double translationalError =
+                currentPose.getTranslation().getDistance(targetPose.getTranslation());
 
         // --- Fire events ---
         fireEvents();

@@ -138,8 +138,4 @@ public class AutoCommands {
                 ctx.shooter(),
                 timeoutSeconds);
     }
-
-    private static Command retractIntake(AutoContext ctx) {
-        return ctx.intake().retractIntake().withTimeout(0.5);
-    }
 }
