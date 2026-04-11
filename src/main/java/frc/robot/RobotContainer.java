@@ -210,11 +210,9 @@ public class RobotContainer {
                                                         robotState.feedLookaheadSeconds),
                                                 DriveCommands.staticAimTowardsTarget(drive),
                                                 robotState.shouldFeed),
-                                        shooter.shoot(),
+                                        shooter.setShooterContinuous(),
                                         Commands.sequence(
-                                                Commands.defer( // TODO: Switch auto ejection to
-                                                                // when done intaking, ensure this
-                                                                // works for autos
+                                                Commands.defer(
                                                                 () ->
                                                                         Commands.parallel(
                                                                                         tower
@@ -237,10 +235,7 @@ public class RobotContainer {
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
-                                shooter.stopAndStow(),
-                                indexer.stopCommand(),
-                                tower.stopCommand(),
-                                intake.intake())); // TODO: This may want to be extend, not intake
+                                shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
 
         // Tap Right Bumper while Right Trigger held: Manually cycle intake
         controller.rightBumper().onTrue(intake.slowRetract());
@@ -386,7 +381,8 @@ public class RobotContainer {
         // Shooter Commands
         SmartDashboard.putData(
                 ShooterSuperstructureConstants.NAME + "/Stop", shooter.coastFlywheels());
-        SmartDashboard.putData(ShooterSuperstructureConstants.NAME + "/Shoot", shooter.shoot());
+        SmartDashboard.putData(
+                ShooterSuperstructureConstants.NAME + "/Shoot", shooter.setShooterContinuous());
         SmartDashboard.putData(
                 ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
 

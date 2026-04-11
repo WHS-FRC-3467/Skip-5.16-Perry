@@ -46,4 +46,5 @@ public class Ports {
 
     public static final Device.CAN intakeLinear = new CAN(27, "rio");
     public static final Device.CAN intakeRoller = new CAN(28, "rio");
+    public static final Device.CAN intakeRollerFollower = new CAN(29, "rio");
 }
