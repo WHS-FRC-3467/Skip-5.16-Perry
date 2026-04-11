@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 
+import frc.lib.util.LoggedInt;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.robot.RobotState;
@@ -50,9 +51,12 @@ public class ShotTracker {
     // staticShotState as a proxy for a shot
     private final Debouncer hopperEmptyDebouncer = new Debouncer(0.575, DebounceType.kRising);
     private final LoggedTrigger hopperEmpty;
+    // Logged fuel counter to avoid repeated identical writes
+    private final LoggedInt totalFuelLogger;
 
     public ShotTracker(ShooterSuperstructure shooter) {
         this.shooter = shooter;
+        this.totalFuelLogger = new LoggedInt("ShotTracker/TotalFuelCount");
 
         hopperEmpty =
                 RobotBase.isSimulation()
@@ -78,6 +82,8 @@ public class ShotTracker {
                         () -> {
                             totalFuelCount++;
                             Logger.recordOutput("ShotTracker/TotalFuelCount", totalFuelCount);
+                            // Log count only on change
+                            totalFuelLogger.log(totalFuelCount);
                         }));
     }
 

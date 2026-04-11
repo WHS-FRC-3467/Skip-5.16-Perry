@@ -36,6 +36,7 @@ import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.mechanisms.rotary.RotaryMechanism;
 import frc.lib.util.AlwaysTunableNumber;
+import frc.lib.util.LoggedDouble;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
@@ -125,6 +126,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // User-defined trim at runtime, not including default trim
     private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
+    private final LoggedDouble loggedFlywheelTrimRPS;
 
     // Trigger for whether we are at the static shooting state (shooter ready, robot stationary &
     // aligned to target)
@@ -150,6 +152,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public ShooterSuperstructure(RotaryMechanism<?, ?> hoodIO, FlywheelMechanism<?> flywheelIO) {
         this.hoodIO = hoodIO;
         this.flywheelIO = flywheelIO;
+        this.loggedFlywheelTrimRPS = new LoggedDouble(getName() + "/FlywheelTrimRPS");
         ShotTracker.create(this);
     }
 
@@ -178,8 +181,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                 getName() + "/TotalDrawWatts",
                 flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent()));
 
-        Logger.recordOutput(
-                getName() + "/FlywheelTrimRPS", getFlywheelTrim().in(RotationsPerSecond));
+        loggedFlywheelTrimRPS.log(getFlywheelTrim().in(RotationsPerSecond));
     }
 
     private void setFlywheelVelocity(AngularVelocity velocity) {
