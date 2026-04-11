@@ -72,19 +72,23 @@ public final class AutoUtil {
      */
     public static Optional<List<Trajectory<SwerveSample>>> loadTrajectories(
             List<String> names, boolean shouldMirror) {
-        var optionalTrajectories =
-                names.stream().map(name -> loadTrajectory(name, shouldMirror)).toList();
-        if (optionalTrajectories.stream().anyMatch(Optional::isEmpty)) {
-            DriverStation.reportError(
-                    "Failed to load Choreo trajectory for auto. Names: "
-                            + names
-                            + ", shouldMirror="
-                            + shouldMirror,
-                    false);
-            return Optional.empty();
+        ArrayList<Trajectory<SwerveSample>> trajectories = new ArrayList<>(names.size());
+        for (int i = 0; i < names.size(); i++) {
+            Optional<Trajectory<SwerveSample>> trajectory =
+                    loadTrajectory(names.get(i), shouldMirror);
+            if (trajectory.isEmpty()) {
+                DriverStation.reportError(
+                        "Failed to load Choreo trajectory for auto. Names: "
+                                + names
+                                + ", shouldMirror="
+                                + shouldMirror,
+                        false);
+                return Optional.empty();
+            }
+            trajectories.add(trajectory.get());
         }
 
-        return Optional.of(optionalTrajectories.stream().map(Optional::get).toList());
+        return Optional.of(trajectories);
     }
 
     /**
@@ -125,9 +129,15 @@ public final class AutoUtil {
      * Mirrors a trajectory across the field width while preserving its event markers and splits.
      */
     private static Trajectory<SwerveSample> mirror(Trajectory<SwerveSample> trajectory) {
+        ArrayList<SwerveSample> mirroredSamples = new ArrayList<>(trajectory.samples().size());
+        List<SwerveSample> trajectorySamples = trajectory.samples();
+        for (int i = 0; i < trajectorySamples.size(); i++) {
+            mirroredSamples.add(mirrorSample(trajectorySamples.get(i)));
+        }
+
         return new Trajectory<>(
                 trajectory.name(),
-                trajectory.samples().stream().map(AutoUtil::mirrorSample).toList(),
+                mirroredSamples,
                 trajectory.splits(),
                 trajectory.events());
     }
