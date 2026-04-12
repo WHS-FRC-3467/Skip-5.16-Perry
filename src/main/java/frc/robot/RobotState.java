@@ -115,12 +115,11 @@ public class RobotState {
                                 case FEED_LEFT, FEED_RIGHT -> true;
                             });
 
-    /** Trigger determining whether robot is ready for a static shot */
     private final Debouncer staticShootingDebouncer = new Debouncer(0.05, DebounceType.kRising);
 
     public final LoggedTrigger withinStaticShootingTolerance =
             new LoggedTrigger(
-                    "RobotState/withinStaticShootingTolerance",
+                    "RobotState/WithinStaticShootingTolerance",
                     () -> {
                         ChassisSpeeds chassisVelocity = getFieldRelativeVelocity();
                         double linearVelocityMPS =
@@ -132,15 +131,19 @@ public class RobotState {
                         return linearVelocityMPS < 0.05 && facingTarget.getAsBoolean();
                     });
 
-    public final LoggedTrigger atStaticShootingState =
+    /**
+     * Trigger determining whether robot is positioned for a static shot -- robot stationary and
+     * facing the target within tolerance for at least 0.05s.
+     */
+    public final LoggedTrigger atStaticShootingPosition =
             new LoggedTrigger(
-                    "RobotState/atStaticShootingState",
+                    "RobotState/AtStaticShootingPosition",
                     () ->
                             staticShootingDebouncer.calculate(
                                     withinStaticShootingTolerance.getAsBoolean()));
 
     @Setter
-    public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> false);
+    public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> true);
 
     // -------- POSE ESTIMATION --------
 

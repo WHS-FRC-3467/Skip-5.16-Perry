@@ -126,10 +126,14 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     // User-defined trim at runtime, not including default trim
     private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
 
-    // Trigger for whether we are at the static shooting state (shooter ready, robot stationary &
-    // aligned to target)
+    /**
+     * Trigger for whether we are at the static shooting state (robot stationary, aligned to target,
+     * and shooter ready) 
+     */
     public final LoggedTrigger staticShotState =
-            robotState.atStaticShootingState.and(profileComplete);
+            new LoggedTrigger(
+                    getName() + "/StaticShotState",
+                    () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
 
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
@@ -171,8 +175,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
-        robotState.hopperEmpty.getAsBoolean();
         staticShotState.getAsBoolean();
+        robotState.hopperEmpty.getAsBoolean();
 
         Logger.recordOutput(
                 getName() + "/TotalDrawWatts",
@@ -180,6 +184,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         Logger.recordOutput(
                 getName() + "/FlywheelTrimRPS", getFlywheelTrim().in(RotationsPerSecond));
+
+        Logger.recordOutput(
+                getName() + "/DesiredFlywheelLinearVelocityMPS",
+                getDesiredFlywheelLinearVelocity().in(MetersPerSecond));
     }
 
     private void setFlywheelVelocity(AngularVelocity velocity) {

@@ -35,7 +35,7 @@ public class ShotTracker {
     // Linear velocity drop required to detect a shot passing through the shooter, default tuned
     // from auto replay logs. Typically 0.5 - 1 m/s.
     private final LoggedTunableNumber shotDetectionThresholdMPS =
-            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 0.30);
+            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 2.0);
 
     // Triggers determining whether a ball has passed through the shooter based on flywheel velocity
     // drops from current setpoint, currently only registering true during static feeding/shooting
@@ -48,7 +48,7 @@ public class ShotTracker {
 
     // Determines whether the hopper is empty for at least 0.575s while shooting, using
     // staticShotState as a proxy for a shot
-    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.575, DebounceType.kRising);
+    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.30, DebounceType.kRising);
     private final LoggedTrigger hopperEmpty;
 
     public ShotTracker(ShooterSuperstructure shooter) {
@@ -76,7 +76,7 @@ public class ShotTracker {
         ballTrigger.onTrue(
                 Commands.runOnce(
                         () -> {
-                            totalFuelCount++;
+                            totalFuelCount = totalFuelCount + 2;
                             Logger.recordOutput("ShotTracker/TotalFuelCount", totalFuelCount);
                         }));
     }
