@@ -36,14 +36,16 @@ import java.util.Set;
 public class DepotAuto {
 
     private static final Alert TRAJECTORIES_MISSING =
-            new Alert("Depot Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
+            new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
 
-    public static Optional<AutoOption> create(
-            AutoContext ctx, boolean shouldMirror, boolean isSafe) {
-        List<String> names = List.of(ChoreoTraj.Depot1.name());
+    public static Optional<AutoOption> create(AutoContext ctx) {
+        List<String> names = List.of(ChoreoTraj.Depot1.name(), ChoreoTraj.C16782.name());
 
         List<Trajectory<SwerveSample>> trajectories =
-                AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
+                AutoUtil.loadTrajectories(names, false).orElse(null);
+
+        Optional<Trajectory<SwerveSample>> bumpTrajectory =
+                AutoUtil.loadTrajectory(ChoreoTraj.BumpPath.name(), false);
         if (trajectories == null) {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();
@@ -52,10 +54,13 @@ public class DepotAuto {
                 AutoUtil.trajectoryOption(
                         trajectories,
                         () -> {
-                            AutoRoutine routine = ctx.autoFactory().newRoutine("Depot Auto");
+                            AutoRoutine routine = ctx.autoFactory().newRoutine("Depot");
 
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
-                            AutoUtil.bindEvents(ctx, first);
+                            AutoTrajectory second = routine.trajectory(trajectories.get(1));
+
+                            Optional<AutoTrajectory> bump = bumpTrajectory.map(routine::trajectory);
+                            AutoUtil.bindEvents(ctx, first, second);
 
                             routine.active()
                                     .onTrue(
@@ -72,15 +77,14 @@ public class DepotAuto {
                                                             Set.of()),
                                                     first.spawnCmd()));
 
-                            first.done()
+                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
+
+                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
+                            AutoCommands.retryTrigger(routine, second)
                                     .onTrue(
-                                            AutoCommands.shootCommand(
-                                                    ctx.drive(),
-                                                    ctx.intake(),
-                                                    ctx.indexer(),
-                                                    ctx.tower(),
-                                                    ctx.shooter(),
-                                                    3.0));
+                                            AutoCommands.recoverThenFollow(
+                                                    ctx, second, bump, 10.0, second));
+
                             return routine;
                         }));
     }
