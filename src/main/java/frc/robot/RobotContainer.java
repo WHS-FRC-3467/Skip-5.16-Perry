@@ -134,6 +134,11 @@ public class RobotContainer {
         C1678Auto.create(ctx, true, false)
                 .ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
+        FullNeutralAuto.create(ctx, false, false)
+                .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Left", a));
+        FullNeutralAuto.create(ctx, true, false)
+                .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Right", a));
+
         // C1678Auto.create(ctx, false, true)
         //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
         // C1678Auto.create(ctx, true, true)

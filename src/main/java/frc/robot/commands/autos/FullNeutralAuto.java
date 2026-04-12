@@ -42,8 +42,8 @@ public class FullNeutralAuto {
             AutoContext ctx, boolean shouldMirror, boolean isSafe) {
         List<String> names =
                 isSafe
-                        ? List.of(ChoreoTraj.C1678Safe1.name(), ChoreoTraj.C16782.name())
-                        : List.of(ChoreoTraj.C16781.name(), ChoreoTraj.C16782.name());
+                        ? List.of(ChoreoTraj.FullNeutralSafe1.name(), ChoreoTraj.C16782.name())
+                        : List.of(ChoreoTraj.FullNeutral1.name(), ChoreoTraj.C16782.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
@@ -61,7 +61,7 @@ public class FullNeutralAuto {
                             AutoRoutine routine =
                                     ctx.autoFactory()
                                             .newRoutine(
-                                                    "STSE"
+                                                    "FullNeutral"
                                                             + (isSafe ? "Safe" : "Aggressive")
                                                             + (shouldMirror ? "Right" : "Left"));
 
@@ -81,7 +81,8 @@ public class FullNeutralAuto {
                                                             () ->
                                                                     Commands.waitSeconds(
                                                                             AutoCommands
-                                                                                    .getAutoDelay()),
+                                                                                            .getAutoDelay()
+                                                                                    + 5.0),
                                                             Set.of()),
                                                     first.spawnCmd()));
 
