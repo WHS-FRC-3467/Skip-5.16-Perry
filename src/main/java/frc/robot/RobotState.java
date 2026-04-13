@@ -115,7 +115,7 @@ public class RobotState {
                                 case FEED_LEFT, FEED_RIGHT -> true;
                             });
 
-    private final Debouncer staticShootingDebouncer = new Debouncer(0.04, DebounceType.kBoth);
+    private final Debouncer staticShootingDebouncer = new Debouncer(0.20, DebounceType.kBoth);
 
     public final LoggedTrigger withinStaticShootingTolerance =
             new LoggedTrigger(
@@ -128,12 +128,12 @@ public class RobotState {
                                         chassisVelocity.vyMetersPerSecond);
                         // Arbitrary threshold to determine if the robot is ready for a
                         // static shot
-                        return linearVelocityMPS < 0.05 && facingTarget.getAsBoolean();
+                        return linearVelocityMPS < 0.1 && facingTarget.getAsBoolean();
                     });
 
     /**
      * Trigger determining whether robot is positioned for a static shot -- robot stationary and
-     * facing the target within tolerance for at least 0.05s.
+     * facing the target (both within tolerance) for at least 0.20s.
      */
     public final LoggedTrigger atStaticShootingPosition =
             new LoggedTrigger(

@@ -126,6 +126,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     // User-defined trim at runtime, not including default trim
     private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
 
+    // A dedicated utility helper to quantify shooter performance
+    private ShotTracker shotTracker;
+
     /**
      * Trigger for whether we are at the static shooting state (robot stationary, aligned to target,
      * and shooter ready)
@@ -154,7 +157,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public ShooterSuperstructure(RotaryMechanism<?, ?> hoodIO, FlywheelMechanism<?> flywheelIO) {
         this.hoodIO = hoodIO;
         this.flywheelIO = flywheelIO;
-        ShotTracker.create(this);
+        shotTracker = ShotTracker.create(this);
     }
 
     @Override
@@ -175,6 +178,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
+        // Centralize polling for tuning hopper detection and ball counting logic in replay
+        staticShotState.getAsBoolean();
+        shotTracker.ballTrigger.getAsBoolean();
+        shotTracker.hopperEmptyInput.getAsBoolean();
         robotState.hopperEmpty.getAsBoolean();
 
         Logger.recordOutput(
