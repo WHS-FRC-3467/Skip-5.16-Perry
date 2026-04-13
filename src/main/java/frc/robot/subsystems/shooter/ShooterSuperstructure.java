@@ -128,7 +128,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     /**
      * Trigger for whether we are at the static shooting state (robot stationary, aligned to target,
-     * and shooter ready) 
+     * and shooter ready)
      */
     public final LoggedTrigger staticShotState =
             new LoggedTrigger(
@@ -175,7 +175,6 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
-        staticShotState.getAsBoolean();
         robotState.hopperEmpty.getAsBoolean();
 
         Logger.recordOutput(

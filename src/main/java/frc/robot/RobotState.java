@@ -115,7 +115,7 @@ public class RobotState {
                                 case FEED_LEFT, FEED_RIGHT -> true;
                             });
 
-    private final Debouncer staticShootingDebouncer = new Debouncer(0.05, DebounceType.kRising);
+    private final Debouncer staticShootingDebouncer = new Debouncer(0.04, DebounceType.kBoth);
 
     public final LoggedTrigger withinStaticShootingTolerance =
             new LoggedTrigger(
@@ -143,7 +143,7 @@ public class RobotState {
                                     withinStaticShootingTolerance.getAsBoolean()));
 
     @Setter
-    public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> true);
+    public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> false);
 
     // -------- POSE ESTIMATION --------
 
