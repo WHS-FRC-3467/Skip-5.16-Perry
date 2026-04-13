@@ -32,7 +32,6 @@ import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.io.motor.MotorIO;
 import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.io.motor.MotorIOTalonFX;
-import frc.lib.io.motor.MotorIOTalonFX.TalonFXFollower;
 import frc.lib.io.motor.MotorIOTalonFXSim;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.mechanisms.flywheel.FlywheelMechanismReal;
@@ -50,7 +49,7 @@ public class IntakeRollerConstants {
 
     public static final String NAME = "Intake Roller";
 
-    public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(59.0);
+    public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(35.0);
     public static final AngularAcceleration MAX_ACCELERATION =
             RotationsPerSecondPerSecond.of(110.0);
 
@@ -116,22 +115,13 @@ public class IntakeRollerConstants {
             case REAL:
                 mechanism =
                         new FlywheelMechanismReal(
-                                NAME,
-                                new MotorIOTalonFX(
-                                        NAME,
-                                        getFXConfig(),
-                                        Ports.intakeRoller,
-                                        new TalonFXFollower(Ports.intakeRollerFollower, true)));
+                                NAME, new MotorIOTalonFX(NAME, getFXConfig(), Ports.intakeRoller));
                 break;
             case SIM:
                 mechanism =
                         new FlywheelMechanismSim(
                                 NAME,
-                                new MotorIOTalonFXSim(
-                                        NAME,
-                                        getFXConfig(),
-                                        Ports.intakeRoller,
-                                        new TalonFXFollower(Ports.intakeRollerFollower, true)),
+                                new MotorIOTalonFXSim(NAME, getFXConfig(), Ports.intakeRoller),
                                 DCMOTOR,
                                 MOI,
                                 TOLERANCE);

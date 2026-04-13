@@ -89,9 +89,7 @@ public class Indexer extends SubsystemBase {
      * @return a command that runs the indexer at shooting speed
      */
     public Command shoot() {
-        return this.startEnd(
-                        () -> runVelocity(RotationsPerSecond.of(SHOOT_RPS.get())), () -> stop())
-                .withName("Shoot");
+        return this.startEnd(() -> io.runDutyCycle(0.8, false), () -> stop()).withName("Shoot");
     }
 
     /**
