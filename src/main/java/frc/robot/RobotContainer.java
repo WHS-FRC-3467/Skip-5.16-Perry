@@ -220,36 +220,31 @@ public class RobotContainer {
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
-                                                Commands.defer(
-                                                                () ->
-                                                                        Commands.parallel(
-                                                                                        tower
-                                                                                                .eject(),
-                                                                                        indexer
-                                                                                                .eject())
-                                                                                .withTimeout(
-                                                                                        TOWER_TIMEOUT
-                                                                                                .get())
-                                                                                .withInterruptBehavior(
-                                                                                        InterruptionBehavior
-                                                                                                .kCancelSelf),
-                                                                Set.of(tower))
-                                                        .withDeadline(
-                                                                Commands.sequence(
-                                                                        Commands.waitSeconds(0.001),
-                                                                        Commands.waitUntil(
-                                                                                readyToShootAtCurrentTarget))),
+                                                Commands.waitUntil(readyToShootAtCurrentTarget),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
 
-        // Tap Right Bumper while Right Trigger held: Manually cycle intake
-        controller.rightBumper().onTrue(intake.slowRetract());
+        // Right Bumper: Retract Intake
+        controller.rightBumper().onTrue(intake.retractIntake());
 
         // Left Trigger: Intake
-        controller.leftTrigger().onTrue(intake.intake()).onFalse(intake.stopRoller());
+        controller
+                .leftTrigger()
+                .onTrue(intake.intake())
+                .onFalse(
+                        Commands.sequence(
+                                intake.stopRoller(),
+                                Commands.defer(
+                                                () ->
+                                                        Commands.parallel(
+                                                                        tower.eject(),
+                                                                        indexer.eject())
+                                                                .withTimeout(TOWER_TIMEOUT.get()),
+                                                Set.of(tower, indexer))
+                                        .withInterruptBehavior(InterruptionBehavior.kCancelSelf)));
 
         // D-Pad Up: Force Intake Linear Slide Back
         controller.leftBumper().onTrue(intake.retractIntake());
