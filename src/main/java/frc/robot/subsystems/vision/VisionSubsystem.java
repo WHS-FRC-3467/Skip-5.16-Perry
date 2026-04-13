@@ -203,10 +203,11 @@ public class VisionSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
+        boolean isReplay = Constants.simMode == Constants.Mode.REPLAY;
+
         for (int c = 0; c < cameras.length; c++) {
             AprilTagCamera camera = cameras[c];
             PhotonPoseEstimator poseEstimator = poseEstimators[c];
-            boolean isReplay = Constants.simMode == Constants.Mode.REPLAY;
 
             PhotonPipelineResult[] results = camera.getUnreadResults().orElse(null);
             if (results == null) {
