@@ -423,15 +423,20 @@ public class Drive extends SubsystemBase {
         int sampleCount = sampleTimestamps.length;
 
         // Cache references to each module's odometry positions array to avoid repeated calls
-        SwerveModulePosition[][] moduleOdometryArrays = new SwerveModulePosition[4][];
-        for (int i = 0; i < 4; i++) {
-            moduleOdometryArrays[i] = modules[i].getOdometryPositions();
-        }
+        // Avoid allocating a new 2D array each periodic() call; getOdometryPositions() returns
+        // an existing field reference so caching the four arrays in locals removes the extra
+        // allocation while keeping behavior identical.
+        SwerveModulePosition[] flModuleOdometry = modules[0].getOdometryPositions();
+        SwerveModulePosition[] frModuleOdometry = modules[1].getOdometryPositions();
+        SwerveModulePosition[] blModuleOdometry = modules[2].getOdometryPositions();
+        SwerveModulePosition[] brModuleOdometry = modules[3].getOdometryPositions();
+
         for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
             SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-            for (int i = 0; i < 4; i++) {
-                modulePositions[i] = moduleOdometryArrays[i][sampleIndex];
-            }
+            modulePositions[0] = flModuleOdometry[sampleIndex];
+            modulePositions[1] = frModuleOdometry[sampleIndex];
+            modulePositions[2] = blModuleOdometry[sampleIndex];
+            modulePositions[3] = brModuleOdometry[sampleIndex];
 
             Optional<Rotation2d> gyroAngle = Optional.empty();
             if (gyroInputs.connected) {
@@ -462,8 +467,7 @@ public class Drive extends SubsystemBase {
         robotState.setRobotRelativeVelocity(chassisSpeeds);
 
         // Avoid allocating a Translation2d just to compute norm; use hypot
-        double speed =
-                Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond) * -1;
+        double speed = Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
         Logger.recordOutput("Drive/Speed", speed);
     }
 
