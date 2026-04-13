@@ -49,8 +49,8 @@ import java.util.Set;
  * a fallback to LowestAmbiguity if necessary. Valid observations are added to {@link RobotState}
  * for use in localization and navigation.
  *
- * <p>The subsystem periodically polls cameras for new results and logs both accepted and rejected
- * vision observations.
+ * <p>The subsystem periodically polls cameras for new results and always logs accepted vision
+ * observations. Rejected vision observations are logged only while running in REPLAY mode.
  */
 public class VisionSubsystem extends SubsystemBase {
 
