@@ -46,6 +46,9 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class Robot extends LoggedRobot {
     private final RobotState robotState = RobotState.getInstance();
 
@@ -55,6 +58,8 @@ public class Robot extends LoggedRobot {
     private Field2d fieldMap = new Field2d();
     // Variable to limit how often auto dashboard is displayed, to save time
     private int elasticDisplayCounter = 0;
+    // Tracks the names of all currently running commands for logging
+    private final Set<String> activeCommandNames = new LinkedHashSet<>();
 
     public Robot() {
         CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
@@ -111,16 +116,24 @@ public class Robot extends LoggedRobot {
                     || constants.SteerMotorType != SteerMotorArrangement.TalonFX_Integrated) {
                 throw new RuntimeException(
                         "You are using an unsupported swerve configuration, which this template"
-                                + " does not support without manual customization. The 2025 release of"
-                                + " Phoenix supports some swerve configurations which were not"
-                                + " available during 2025 beta testing, preventing any development and"
-                                + " support from the AdvantageKit developers.");
+                            + " does not support without manual customization. The 2025 release of"
+                            + " Phoenix supports some swerve configurations which were not"
+                            + " available during 2025 beta testing, preventing any development and"
+                            + " support from the AdvantageKit developers.");
             }
         }
 
         // Instantiate our RobotContainer.
         // Checks and displays the robot's starting pose for autonomous mode.
         robotContainer = new RobotContainer();
+
+        // Register callbacks to track active commands for logging
+        CommandScheduler.getInstance()
+                .onCommandInitialize(command -> activeCommandNames.add(command.getName()));
+        CommandScheduler.getInstance()
+                .onCommandFinish(command -> activeCommandNames.remove(command.getName()));
+        CommandScheduler.getInstance()
+                .onCommandInterrupt(command -> activeCommandNames.remove(command.getName()));
 
         DriverStation.silenceJoystickConnectionWarning(!Robot.isReal());
     }
@@ -162,6 +175,9 @@ public class Robot extends LoggedRobot {
         // Update auto tab
         robotContainer.checkStartPose(elasticDisplayCounter);
         elasticDisplayCounter++;
+        // Log the names of all currently running commands so we can review them in
+        // AdvantageScope log files
+        Logger.recordOutput("ActiveCommands", activeCommandNames.toArray(new String[0]));
     }
 
     /** This function is called once when the robot is disabled. */
@@ -171,6 +187,15 @@ public class Robot extends LoggedRobot {
         if (DriverStation.isFMSAttached()) {
             Elastic.selectTab(1);
         }
+
+        // Pre-build the next auto command now (during disabled) so it's ready instantly when
+        // autonomousInit() runs.  This avoids the 100-200 ms JVM overhead spike that
+        // previously lagged the first few auto cycles.
+        robotContainer.rebuildAutoCache();
+
+        // Hint the JVM to collect garbage now while cycle time doesn't matter, reducing
+        // the chance of a GC pause during the critical first few auto cycles.
+        System.gc();
     }
 
     /** This function is called periodically when disabled. */
@@ -189,7 +214,6 @@ public class Robot extends LoggedRobot {
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
-        // schedule the autonomous command (example)
         if (autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(autonomousCommand);
         }
