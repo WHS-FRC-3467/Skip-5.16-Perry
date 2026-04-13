@@ -448,15 +448,15 @@ public class PoseEstimator {
 
     private void logOdometryObservation(
             Pose2d candidatePose, boolean accepted, OdometryObservationReason reason) {
-        Logger.recordOutput(LOG_PREFIX + "Odometry/Accepted", accepted);
-        Logger.recordOutput(LOG_PREFIX + "Odometry/Reason", reason.name());
-        Logger.recordOutput(LOG_PREFIX + "Odometry/CandidatePose", candidatePose);
-        Logger.recordOutput(
-                LOG_PREFIX + "Odometry/AcceptedPose",
-                accepted ? new Pose2d[] {candidatePose} : new Pose2d[] {});
-        Logger.recordOutput(
-                LOG_PREFIX + "Odometry/RejectedPose",
-                accepted ? new Pose2d[] {} : new Pose2d[] {candidatePose});
+        // Logger.recordOutput(LOG_PREFIX + "Odometry/Accepted", accepted);
+        // Logger.recordOutput(LOG_PREFIX + "Odometry/Reason", reason.name());
+        // Logger.recordOutput(LOG_PREFIX + "Odometry/CandidatePose", candidatePose);
+        // Logger.recordOutput(
+        //         LOG_PREFIX + "Odometry/AcceptedPose",
+        //         accepted ? new Pose2d[] {candidatePose} : new Pose2d[] {});
+        // Logger.recordOutput(
+        //         LOG_PREFIX + "Odometry/RejectedPose",
+        //         accepted ? new Pose2d[] {} : new Pose2d[] {candidatePose});
     }
 
     private void logVisionObservation(
