@@ -30,7 +30,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.posestimator.PoseEstimator;
@@ -182,7 +181,7 @@ public class RobotState {
      * @param observation the odometry observation to add
      */
     public void addOdometryObservation(OdometryObservation observation) {
-        if (DriverStation.isDisabled()) return;
+        // if (DriverStation.isDisabled()) return;
 
         poseEstimator.addOdometryObservation(observation);
     }
@@ -210,10 +209,10 @@ public class RobotState {
      * @param observation the vision observation to add
      */
     public void addVisionObservation(VisionPoseObservation observation) {
-        if (DriverStation.isDisabled()) {
-            poseEstimator.resetPose(observation.robotPose());
-            return;
-        }
+        // if (DriverStation.isDisabled()) {
+        //     poseEstimator.resetPose(observation.robotPose());
+        //     return;
+        // }
         poseEstimator.addVisionObservation(observation);
     }
 
