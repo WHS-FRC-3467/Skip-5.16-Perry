@@ -31,7 +31,6 @@ import frc.robot.generated.ChoreoTraj;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public class C1678Auto {
 
@@ -73,29 +72,22 @@ public class C1678Auto {
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.runOnce(
-                                                            ctx.drive()
-                                                                    ::resetTrajectoryControllers),
+                                                    // Commands.runOnce(
+                                                    // ctx.drive()
+                                                    //         ::resetTrajectoryControllers),
                                                     first.resetOdometry(),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
-                                                            Set.of()),
+                                                    // Commands.defer(
+                                                    //         () ->
+                                                    //                 Commands.waitSeconds(
+                                                    //                         AutoCommands
+                                                    //
+                                                    // .getAutoDelay()),
+                                                    //         Set.of()),
                                                     first.spawnCmd()));
 
                             first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
-                            AutoCommands.retryTrigger(routine, first)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, first, bump, 3.0, second));
 
                             second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
-                            AutoCommands.retryTrigger(routine, second)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, second, bump, 10.0, second));
 
                             return routine;
                         }));

@@ -20,8 +20,6 @@ import au.grapplerobotics.CanBridge;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -35,7 +33,6 @@ import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.HubState;
-import frc.robot.util.LocalADStarAK;
 import frc.robot.util.RobotSim;
 
 import org.littletonrobotics.junction.LogFileUtil;
@@ -114,10 +111,10 @@ public class Robot extends LoggedRobot {
                     || constants.SteerMotorType != SteerMotorArrangement.TalonFX_Integrated) {
                 throw new RuntimeException(
                         "You are using an unsupported swerve configuration, which this template"
-                            + " does not support without manual customization. The 2025 release of"
-                            + " Phoenix supports some swerve configurations which were not"
-                            + " available during 2025 beta testing, preventing any development and"
-                            + " support from the AdvantageKit developers.");
+                                + " does not support without manual customization. The 2025 release of"
+                                + " Phoenix supports some swerve configurations which were not"
+                                + " available during 2025 beta testing, preventing any development and"
+                                + " support from the AdvantageKit developers.");
             }
         }
 
@@ -139,8 +136,8 @@ public class Robot extends LoggedRobot {
     @Override
     public void robotInit() {
         // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
-        Pathfinding.setPathfinder(new LocalADStarAK());
-        CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
+        // Pathfinding.setPathfinder(new LocalADStarAK());
+        // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         // Log first 8 character of robot serial
         Logger.recordOutput("Robot Serial", System.getenv("serialnum"));
 
@@ -183,7 +180,6 @@ public class Robot extends LoggedRobot {
         // Pre-build the next auto command now (during disabled) so it's ready instantly when
         // autonomousInit() runs.  This avoids the 100-200 ms JVM overhead spike that
         // previously lagged the first few auto cycles.
-        robotContainer.rebuildAutoCache();
 
         // Hint the JVM to collect garbage now while cycle time doesn't matter, reducing
         // the chance of a GC pause during the critical first few auto cycles.
@@ -203,9 +199,9 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         // Switch to Autonomous tab in Elastic Dashboard
-        if (RobotBase.isReal()) {
-            Elastic.selectTab(1);
-        }
+        // if (RobotBase.isReal()) {
+        //     Elastic.selectTab(1);
+        // }
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
