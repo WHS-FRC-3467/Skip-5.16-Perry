@@ -5,17 +5,17 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import org.littletonrobotics.junction.Logger;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A helper class for logging various types of data related to FRC subsystems 
- * Originally by Team 604 Quixilver, modified by Team 3467 Windham Windup
+ * A helper class for logging various types of data related to FRC subsystems Originally by Team 604
+ * Quixilver, modified by Team 3467 Windham Windup
  */
 public class LoggerHelper {
     // Cache of last recorded command name per subsystem to avoid redundant logger writes
-    private static final Map<String, String> lastCommandBySubsystem = new ConcurrentHashMap<>();
+    private static final Map<String, String> lastCommandBySubsystem = new HashMap<>();
 
     /**
      * Records the current command running on a subsystem to the logger.
