@@ -23,8 +23,6 @@ import frc.robot.subsystems.shooter.ShooterSuperstructure;
 
 import lombok.Getter;
 
-import org.littletonrobotics.junction.Logger;
-
 public class ShotTracker {
 
     private final ShooterSuperstructure shooter;
@@ -81,7 +79,6 @@ public class ShotTracker {
                 Commands.runOnce(
                         () -> {
                             totalFuelCount++;
-                            Logger.recordOutput("ShotTracker/TotalFuelCount", totalFuelCount);
                             // Log count only on change
                             totalFuelLogger.log(totalFuelCount);
                         }));

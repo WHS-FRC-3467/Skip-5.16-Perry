@@ -48,6 +48,10 @@ public class LoggedDouble {
             return;
         }
 
+        // Sentinel value to prevent strange behavior from transitions from Nan -> finite number
+        if (Double.isNaN(value)) {
+            value = -99999.0;
+        }
         double delta = Math.abs(value - last);
         if (delta > tolerance) {
             last = value;
@@ -62,8 +66,8 @@ public class LoggedDouble {
         Logger.recordOutput(key, value);
     }
 
-    /** Get last recorded value (may be null). */
+    /** Get last recorded value (returns -999 if null). */
     public Double getLast() {
-        return hasLast ? Double.valueOf(last) : null;
+        return hasLast ? Double.valueOf(last) : -999.0;
     }
 }

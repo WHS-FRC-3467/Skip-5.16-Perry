@@ -51,8 +51,8 @@ public class LoggedInt {
         Logger.recordOutput(key, value);
     }
 
-    /** Get last recorded value (may be null). */
+    /** Get last recorded value. Returns -999 if null */
     public Integer getLast() {
-        return hasLast ? Integer.valueOf(last) : null;
+        return hasLast ? Integer.valueOf(last) : -999;
     }
 }
