@@ -109,7 +109,7 @@ public class VisionSubsystem extends SubsystemBase {
      *
      * @param result the pipeline result to pre-filter
      * @return {@code true} if the result passes preliminary checks, {@code false} otherwise
-     * <p>Rejects targets farther than {@value #MAX_DISTANCE_METERS} meters.
+     *     <p>Rejects targets farther than {@value #MAX_DISTANCE_METERS} meters.
      */
     public static boolean preFilter(PhotonPipelineResult result) {
         if (!result.hasTargets()) {
