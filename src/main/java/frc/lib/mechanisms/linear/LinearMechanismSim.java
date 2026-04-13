@@ -17,6 +17,7 @@ package frc.lib.mechanisms.linear;
 
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -99,7 +100,9 @@ public class LinearMechanismSim extends LinearMechanism<MotorIOSim> {
         lastTime = currentTime;
 
         io.setPosition(toAngle(Meters.of(sim.getPositionMeters())));
-        io.setRotorVelocity(toAngle(Meters.of(sim.getVelocityMetersPerSecond())).per(Seconds));
+        io.setRotorVelocity(
+    RadiansPerSecond.of(sim.getVelocityMetersPerSecond())
+            .times(io.getRotorToSensorRatio() * io.getSensorToMechanismRatio()));
 
         super.periodic();
     }
