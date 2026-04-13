@@ -183,7 +183,6 @@ public class Robot extends LoggedRobot {
         // Pre-build the next auto command now (during disabled) so it's ready instantly when
         // autonomousInit() runs.  This avoids the 100-200 ms JVM overhead spike that
         // previously lagged the first few auto cycles.
-        robotContainer.rebuildAutoCache();
 
         // Hint the JVM to collect garbage now while cycle time doesn't matter, reducing
         // the chance of a GC pause during the critical first few auto cycles.
