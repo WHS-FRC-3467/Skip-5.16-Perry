@@ -5,7 +5,8 @@ import org.littletonrobotics.junction.Logger;
 import java.util.Objects;
 
 /**
- * Generic logged value that records an object to the logger only when it changes (equals).
+ * Generic logged value that records an object as as String to the logger only when it changes
+ * (equals).
  *
  * <p>Notes: - Uses {@link Objects#equals} to detect changes. For mutable objects, callers should
  * provide an immutable snapshot or a value type with a proper equals implementation. - Arrays do
@@ -22,7 +23,9 @@ public class LoggedValue<T> {
         this.key = key;
     }
 
-    /** Log the value if it differs from the last logged value according to equals(). */
+    /**
+     * Log the String.valueof(value) if it differs from the last logged value according to equals().
+     */
     public void log(T value) {
         if (!hasLast || !Objects.equals(last, value)) {
             last = value;

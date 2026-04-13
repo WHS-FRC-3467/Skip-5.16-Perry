@@ -101,7 +101,7 @@ public class RobotContainer {
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
     // Change-only loggers for auto start pose checks
-    private final LoggedValue<String> loggedStartPose;
+    private final LoggedValue<Pose2d> loggedStartPose;
     private final DashboardDouble dashboardInchesFromStart;
     private final DashboardBoolean dashboardPositionWithinStartTolerance;
     private final DashboardDouble dashboardDegreesFromStart;
@@ -451,7 +451,7 @@ public class RobotContainer {
             }
 
             // Record start pose only when it changes to reduce NT traffic
-            loggedStartPose.log(startPose.toString());
+            loggedStartPose.log(startPose);
             autoPreviewField.getObject("startPose").setPose(startPose);
 
             Pose2d robotPose = robotState.getEstimatedPose();
@@ -479,9 +479,6 @@ public class RobotContainer {
 
     /** Run this Command to stop shooting! */
     public Command stopAllShooterAndRetract() {
-        return Commands.parallel(
-                shooter.stopAndStow(),
-                indexer.stopCommand(),
-                tower.stopCommand());
+        return Commands.parallel(shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand());
     }
 }
