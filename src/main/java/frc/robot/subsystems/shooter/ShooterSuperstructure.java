@@ -71,7 +71,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new InterpolatingDoubleTreeMap();
 
     static {
-        feedFlywheelMap.put(3.35, 32.0);
+        feedFlywheelMap.put(3.35, 25.0); // 32
         feedFlywheelMap.put(4.5, 32.0);
         feedFlywheelMap.put(5.5, 35.0);
         feedFlywheelMap.put(8.0, 37.0);
@@ -95,7 +95,6 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private static final InterpolatingDoubleTreeMap feedHoodMap = new InterpolatingDoubleTreeMap();
 
     static {
-        feedFlywheelMap.put(3.35, 10.0);
         feedHoodMap.put(4.5, 24.0);
         feedHoodMap.put(5.0, 24.0);
         feedHoodMap.put(5.5, 27.0);
@@ -190,6 +189,15 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         shotTracker.ballTrigger.getAsBoolean();
         shotTracker.hopperEmptyInput.getAsBoolean();
         robotState.hopperEmpty.getAsBoolean();
+
+        // delete after testing------------
+        Logger.recordOutput(
+                getName() + "/HopperEmptyInput", shotTracker.hopperEmptyInput.getAsBoolean());
+        Logger.recordOutput(getName() + "/SotaticShotState", staticShotState.getAsBoolean());
+        Logger.recordOutput(getName() + "/HopperEmpty", robotState.hopperEmpty.getAsBoolean());
+        Logger.recordOutput(
+                getName() + "/DistanceToTargetMeters", robotState.getDistanceToTarget());
+        // ---------------------------------
 
         Logger.recordOutput(
                 getName() + "/TotalDrawWatts",
