@@ -64,9 +64,9 @@ public class DriveCommands {
     @Getter private static final double ANGLE_MAX_VELOCITY = 8.3;
     @Getter private static final double ANGLE_MAX_ACCELERATION = 20.0;
     private static final LoggedTunableNumber ANGLE_KP =
-            new LoggedTunableNumber("Drive/AngleP", 8.0);
+            new LoggedTunableNumber("Drive/AngleP", 9.0);
     private static final LoggedTunableNumber ANGLE_KD =
-            new LoggedTunableNumber("Drive/AngleD", 0.2);
+            new LoggedTunableNumber("Drive/AngleD", 0.6);
     private static final LoggedTunableNumber ANGLE_TOLERANCE_ROTATIONS =
             new LoggedTunableNumber("Drive/AngleToleranceRotations", 0.005);
     private static final double FF_START_DELAY = 2.0; // Secs
