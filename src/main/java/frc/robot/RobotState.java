@@ -66,6 +66,9 @@ public class RobotState {
     public final LoggedTunableNumber feedLookaheadSeconds =
             new LoggedTunableNumber("RobotState/FeedLookaheadSeconds", 1.0);
 
+    public final LoggedTunableNumber hubLookaheadSeconds =
+            new LoggedTunableNumber("RobotState/HubLookaheadSeconds", .2);
+
     @AutoLogOutput(key = "Drive/ActiveTrajectoryPose")
     @Getter
     @Setter

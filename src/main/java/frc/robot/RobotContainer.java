@@ -213,10 +213,17 @@ public class RobotContainer {
                                         Commands.either(
                                                 DriveCommands.joystickDriveFacingFutureTarget(
                                                         drive,
+                                                        () -> -controller.getLeftY() * 0.6,
+                                                        () -> -controller.getLeftX() * 0.6,
+                                                        robotState.feedLookaheadSeconds,
+                                                        false),
+                                                // DriveCommands.staticAimTowardsTarget(drive),
+                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                        drive,
                                                         () -> -controller.getLeftY() * 0.4,
                                                         () -> -controller.getLeftX() * 0.4,
-                                                        robotState.feedLookaheadSeconds),
-                                                DriveCommands.staticAimTowardsTarget(drive),
+                                                        robotState.hubLookaheadSeconds,
+                                                        true),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
@@ -415,6 +422,17 @@ public class RobotContainer {
                 new DriveToPose(drive, () -> startPose)
                         .withDistanceTolerance(Meters.of(0.04))
                         .withAngularTolerance(Degrees.of(3)));
+
+        SmartDashboard.putData(
+                "Face Target",
+                Commands.deadline(
+                        Commands.waitSeconds(2.0),
+                        DriveCommands.joystickDriveAtAngle(
+                                drive,
+                                () -> -controller.getLeftY() * 0.4,
+                                () -> -controller.getLeftX() * 0.4,
+                                robotState::getAngleToTarget,
+                                true)));
     }
 
     /**
@@ -434,7 +452,7 @@ public class RobotContainer {
             System.out.println("Using cached auto command");
             return cmd;
         }
-        // Fallback: no cached command (e.g. chooser was never changed)
+        // Fallback: no cached command (e.g. chooser was never changed)f
         AutoOption option = autoChooser.get();
         return option == null ? Commands.none() : option.command();
     }
