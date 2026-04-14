@@ -30,8 +30,8 @@ import java.util.ArrayList;
  * <p>Reads flatbuffer detection frames as raw bytes so decoding can happen in the device layer.
  */
 public class ObjectDetectionIOC2 implements ObjectDetectionIO {
-    private static final String DEFAULT_DEVICE_ID = "dsv1";
-    private static final String DEFAULT_TABLE_NAME = "video1_yolo";
+    private static final String DEFAULT_DEVICE_ID = "/dev/video1";
+    private static final String DEFAULT_TABLE_NAME = "dsv1";
     private static final String FLATBUFFER_TYPE = "objectdetections_fb";
     private static final int DEFAULT_POLL_STORAGE_DEPTH = 32;
     private static final long DISCONNECT_TIMEOUT_US = 500_000L;
