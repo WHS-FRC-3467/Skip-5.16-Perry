@@ -21,6 +21,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Watts;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
@@ -30,6 +31,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Power;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -136,8 +138,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private ShotTracker shotTracker;
 
     /**
-     * Trigger for whether we are at the static shooting state (robot stationary, aligned to target,
-     * and shooter ready)
+     * Trigger for whether we are at the static shooting state (robot steadily stationary, steadily
+     * aligned to target, and shooter ready)
      */
     public final LoggedTrigger staticShotState =
             new LoggedTrigger(
@@ -184,24 +186,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
-        // Centralize polling for tuning hopper detection and ball counting logic in replay
-        staticShotState.getAsBoolean();
+
+        // Centralize required polling for hopper detection and ball counting logic
         shotTracker.ballTrigger.getAsBoolean();
-        shotTracker.hopperEmptyInput.getAsBoolean();
         robotState.hopperEmpty.getAsBoolean();
 
-        // delete after testing------------
-        // Logger.recordOutput(
-        //         getName() + "/HopperEmptyInput", shotTracker.hopperEmptyInput.getAsBoolean());
-        // Logger.recordOutput(getName() + "/SotaticShotState", staticShotState.getAsBoolean());
-        // Logger.recordOutput(getName() + "/HopperEmpty", robotState.hopperEmpty.getAsBoolean());
-        // Logger.recordOutput(
-        //         getName() + "/DistanceToTargetMeters", robotState.getDistanceToTarget());
-        // ---------------------------------
-
-        Logger.recordOutput(
-                getName() + "/TotalDrawWatts",
-                flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent()));
+        Logger.recordOutput(getName() + "/TotalDrawWatts", getFlywheelPowerDraw().in(Watts));
 
         Logger.recordOutput(
                 getName() + "/FlywheelTrimRPS", getFlywheelTrim().in(RotationsPerSecond));
@@ -279,6 +269,14 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         return Degrees.of(
                 hoodMap.get(robotState.getDistanceToTarget(pose.getTranslation()).in(Meters)));
+    }
+
+    /**
+     * Return the current power draw of the flywheel mechanism based on applied voltage and supply
+     * current.
+     */
+    public Power getFlywheelPowerDraw() {
+        return flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent());
     }
 
     /**

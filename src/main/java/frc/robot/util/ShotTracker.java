@@ -7,11 +7,11 @@ package frc.robot.util;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Watts;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 import frc.lib.util.LoggedTrigger;
@@ -32,16 +32,22 @@ public class ShotTracker {
     // Fuel counts
     private @Getter double totalFuelCount = 0;
 
-    // Linear velocity drop required to detect a shot passing through the shooter, default tuned
-    // from auto replay logs. Typically 1.2 - 2.0 m/s. An active shot drop is at parity with an
-    // inactive shot drop because of the large drum MOI.
+    // Linear velocity drop required to assume a shot (game piece(s)) may have passed through the
+    // shooter, default
+    // tuned from auto replay logs. Typically 1.0 - 2.0 m/s. With the drum shooter, an active shot
+    // drop
+    // is approximately at parity with an inactive shot drop because of the large MOI.
     private final LoggedTunableNumber shotDetectionThresholdMPS =
-            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 1.4);
+            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 1.0);
+
+    // Power draw required to assume a shot has passed through shooter
+    private final LoggedTunableNumber powerDetectionThresholdWatts =
+            new LoggedTunableNumber("ShotTracker/PowerDetectionThresholdWatts", 125);
 
     /**
-     * Trigger determining whether a ball has passed through the shooter based on flywheel velocity
-     * drop from current setpoint, currently only registering true while a game piece passes through
-     * the shooter while the robot is in a static scoring position
+     * Trigger determining whether a shot is believed to have potentially passed through the shooter
+     * based on flywheel velocity drop from current setpoint, currently only registering true while
+     * the robot is in a static scoring position to prevent false positives while moving
      */
     public final LoggedTrigger ballTrigger =
             new LoggedTrigger(
@@ -50,10 +56,15 @@ public class ShotTracker {
                             detectFlywheelDrop(
                                     MetersPerSecond.of(shotDetectionThresholdMPS.getAsDouble())));
 
-    // Determines whether the flywheel is spinning freely for some period of time, default tuned
-    // from auto replay logs. The frequency of the active shot flywheel linear velocity waveform is
-    // typically about 2x that of the inactive shot waveform. >= 0.2s ~ fairly reasonable.
-    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.20, DebounceType.kRising);
+    // Boolean describing whether a power drop event associated with the most recent potential shot
+    // occurred. If no significant power drop was associated with the potential shot, assume no
+    // ball(s)
+    // passed through the shooter
+    private boolean powerSink = false;
+
+    // Heuristic for whether a shot has passed through the shooter in ~ 0.5s using flywheel velocity
+    // and power drop
+    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.50, DebounceType.kRising);
 
     /**
      * Trigger input for hopperEmpty trigger, made explicit for compartmentalization and
@@ -69,21 +80,12 @@ public class ShotTracker {
         hopperEmptyInput =
                 new LoggedTrigger(
                         "ShotTracker/hopperEmptyInput",
-                        this.shooter.staticShotState.and(ballTrigger.negate()));
+                        () -> this.shooter.staticShotState.getAsBoolean() && !powerSink);
 
         hopperEmpty =
-                RobotBase.isSimulation()
-                        ? new LoggedTrigger(
-                                "ShotTracker/hopperEmpty",
-                                () ->
-                                        hopperEmptyDebouncer.calculate(
-                                                RobotSim.getInstance().getFuelSim().getHeldFuel()
-                                                        == 0))
-                        : new LoggedTrigger(
-                                "ShotTracker/hopperEmpty",
-                                () ->
-                                        hopperEmptyDebouncer.calculate(
-                                                hopperEmptyInput.getAsBoolean()));
+                new LoggedTrigger(
+                        "ShotTracker/hopperEmpty",
+                        () -> hopperEmptyDebouncer.calculate(hopperEmptyInput.getAsBoolean()));
         robotState.setHopperEmpty(hopperEmpty);
         attachBallTriggers();
     }
@@ -92,8 +94,15 @@ public class ShotTracker {
         ballTrigger.onTrue(
                 Commands.runOnce(
                         () -> {
+                            if (this.shooter.getFlywheelPowerDraw().in(Watts)
+                                    > powerDetectionThresholdWatts.getAsDouble()) {
+                                powerSink = true;
+                            } else {
+                                powerSink = false;
+                            }
                             if (hopperEmpty.negate().getAsBoolean())
                                 totalFuelCount = totalFuelCount + 2.6;
+                            Logger.recordOutput("ShotTracker/powerSink", powerSink);
                             Logger.recordOutput("ShotTracker/TotalFuelCount", totalFuelCount);
                         }));
     }

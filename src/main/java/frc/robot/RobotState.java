@@ -114,8 +114,12 @@ public class RobotState {
                                 case FEED_LEFT, FEED_RIGHT -> true;
                             });
 
-    private final Debouncer staticShootingDebouncer = new Debouncer(0.20, DebounceType.kBoth);
+    private final Debouncer staticShootingDebouncer = new Debouncer(0.20, DebounceType.kRising);
 
+    /**
+     * Trigger determining whether robot is instantaneously positioned for a static shot -- robot
+     * stationary and facing the target.
+     */
     public final LoggedTrigger withinStaticShootingTolerance =
             new LoggedTrigger(
                     "RobotState/WithinStaticShootingTolerance",
@@ -131,8 +135,8 @@ public class RobotState {
                     });
 
     /**
-     * Trigger determining whether robot is positioned for a static shot -- robot stationary and
-     * facing the target (both within tolerance) for at least 0.20s.
+     * Trigger determining whether robot is steadily positioned for a static shot -- robot
+     * stationary and facing the target for at least 0.20s (i.e. debounced).
      */
     public final LoggedTrigger atStaticShootingPosition =
             new LoggedTrigger(
