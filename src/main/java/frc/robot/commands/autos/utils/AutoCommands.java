@@ -77,7 +77,7 @@ public class AutoCommands {
                                                                         intake::slowRetract,
                                                                         Set.of(intake))))))
                         .until(robotState.hopperEmpty)
-                        // .withTimeout(timeoutDuration)
+                        .withTimeout(timeoutDuration)
                         .finallyDo(
                                 () -> {
                                     CommandScheduler.getInstance()

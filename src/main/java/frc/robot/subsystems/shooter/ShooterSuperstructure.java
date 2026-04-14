@@ -191,12 +191,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         robotState.hopperEmpty.getAsBoolean();
 
         // delete after testing------------
-        Logger.recordOutput(
-                getName() + "/HopperEmptyInput", shotTracker.hopperEmptyInput.getAsBoolean());
-        Logger.recordOutput(getName() + "/SotaticShotState", staticShotState.getAsBoolean());
-        Logger.recordOutput(getName() + "/HopperEmpty", robotState.hopperEmpty.getAsBoolean());
-        Logger.recordOutput(
-                getName() + "/DistanceToTargetMeters", robotState.getDistanceToTarget());
+        // Logger.recordOutput(
+        //         getName() + "/HopperEmptyInput", shotTracker.hopperEmptyInput.getAsBoolean());
+        // Logger.recordOutput(getName() + "/SotaticShotState", staticShotState.getAsBoolean());
+        // Logger.recordOutput(getName() + "/HopperEmpty", robotState.hopperEmpty.getAsBoolean());
+        // Logger.recordOutput(
+        //         getName() + "/DistanceToTargetMeters", robotState.getDistanceToTarget());
         // ---------------------------------
 
         Logger.recordOutput(
