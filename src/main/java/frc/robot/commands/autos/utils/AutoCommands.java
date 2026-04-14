@@ -4,6 +4,7 @@
 
 package frc.robot.commands.autos.utils;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.AlwaysTunableNumber;
+import frc.lib.util.FieldUtil;
 import frc.robot.RobotState;
 import frc.robot.RobotState.FieldRegion;
 import frc.robot.commands.DriveCommands;
@@ -35,6 +37,9 @@ import frc.robot.subsystems.shooter.ShooterSuperstructure;
 import frc.robot.subsystems.tower.Tower;
 import frc.robot.util.RobotSim;
 
+import org.littletonrobotics.junction.Logger;
+
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 
