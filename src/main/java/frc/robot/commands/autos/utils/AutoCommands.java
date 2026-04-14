@@ -7,6 +7,11 @@ package frc.robot.commands.autos.utils;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import choreo.auto.AutoRoutine;
+import choreo.auto.AutoTrajectory;
+
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -126,7 +131,95 @@ public class AutoCommands {
         return Commands.sequence(
                 shootOnly(ctx, timeoutSeconds),
                 new ScheduleCommand(stowHood(ctx.shooter())),
-                nextTrajectory);
+                next.spawnCmd());
+    }
+
+    /**
+     * Starts the given trajectory then shoots the currently held FUEL. Spins down the shooter and
+     * retracts the intake afterwards.
+     */
+    public static Command followThenShoot(
+            AutoContext ctx, double timeoutSeconds, AutoTrajectory current) {
+        return Commands.sequence(
+                current.spawnCmd(),
+                Commands.waitUntil(current.done()),
+                shootOnly(ctx, timeoutSeconds),
+                retractIntake(ctx));
+    }
+
+    // /**
+    //  * Return the int corresponding to the lane most populated with FUEL according to the object
+    //  * detector, if the lane exists. Currently factored for just 3 ML lanes indexed 0-2.
+    //  *
+    //  * @param objectDetector the object detector subsystem
+    //  * @return an Optional containing the lane number (0, 1, or 2) with the most FUEL, or an
+    // empty
+    //  *     Optional if no lane is matched
+    //  */
+    // public static Optional<Integer> getBestLane(ObjectDetector objectDetector) {
+    //     Optional<LaneTarget> bestLaneTarget = objectDetector.getBestLaneTarget();
+    //     if (bestLaneTarget.isEmpty()) {
+    //         return Optional.empty();
+    //     }
+    //     double laneX = bestLaneTarget.get().x();
+
+    //     // Three pre-defined ML lanes, so find the closest one to the optimal lane
+    //     double[] lanes =
+    //             new double[] {
+    //                 ChoreoVars.Poses.LanePose1ML.getX(),
+    //                 ChoreoVars.Poses.LanePose2ML.getX(),
+    //                 ChoreoVars.Poses.LanePose3ML.getX()
+    //             };
+
+    //     int bestIndex = -1;
+    //     double bestDistance = Double.MAX_VALUE;
+    //     for (int i = 0; i < lanes.length; i++) {
+    //         double distance = Math.abs(laneX - lanes[i]);
+    //         if (distance < bestDistance) {
+    //             bestDistance = distance;
+    //             bestIndex = i;
+    //         }
+    //     }
+
+    //     return bestIndex == -1 ? Optional.empty() : Optional.of(bestIndex);
+    // }
+
+    /**
+     * Creates a routine-bound trigger that rises once a running trajectory has exceeded the
+     * allowable path error for long enough that the auto should fall back to retry pathfinding.
+     */
+    public static Trigger retryTrigger(AutoRoutine routine, AutoTrajectory trajectory) {
+        Distance pathErrorTol = DriveConstants.ALLOWABLE_PATH_ERROR;
+        return routine.observe(
+                new BooleanSupplier() {
+                    private final Timer errorCheckDelayTimer = new Timer();
+                    private final Debouncer pathErrorDebouncer = new Debouncer(1.0);
+                    private boolean wasActive = false;
+
+                    @Override
+                    public boolean getAsBoolean() {
+                        boolean isActive = trajectory.active().getAsBoolean();
+
+                        if (isActive && !wasActive) {
+                            errorCheckDelayTimer.restart();
+                        } else if (!isActive && wasActive) {
+                            errorCheckDelayTimer.stop();
+                            errorCheckDelayTimer.reset();
+                            pathErrorDebouncer.calculate(false);
+                        }
+
+                        wasActive = isActive;
+
+                        return isActive
+                                && errorCheckDelayTimer.hasElapsed(2.0)
+                                && (pathErrorDebouncer.calculate(
+                                                robotState
+                                                        .getActiveTrajectoryError()
+                                                        .gte(pathErrorTol))
+                                        || robotState.forcePathFind.get())
+                                && robotState.getFieldRegion() == FieldRegion.NEUTRAL_ZONE;
+                    }
+                });
     }
 
     private static Command shootOnly(AutoContext ctx, double timeoutSeconds) {

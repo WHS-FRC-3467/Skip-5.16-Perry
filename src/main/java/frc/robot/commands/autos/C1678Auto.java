@@ -36,7 +36,6 @@ import frc.robot.generated.ChoreoTraj;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public class C1678Auto {
 
@@ -85,49 +84,22 @@ public class C1678Auto {
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.runOnce(
-                                                            ctx.drive()
-                                                                    ::resetTrajectoryControllers),
+                                                    // Commands.runOnce(
+                                                    // ctx.drive()
+                                                    //         ::resetTrajectoryControllers),
                                                     first.resetOdometry(),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
-                                                            Set.of()),
-                                                    firstFollow));
+                                                    // Commands.defer(
+                                                    //         () ->
+                                                    //                 Commands.waitSeconds(
+                                                    //                         AutoCommands
+                                                    //
+                                                    // .getAutoDelay()),
+                                                    //         Set.of()),
+                                                    first.spawnCmd()));
 
-                            // Phase 2: When the first trajectory completes, shoot
-                            // then follow the second trajectory. shootThenFollow uses
-                            // a ScheduleCommand for stowHood so ShooterSuperstructure
-                            // is not added to the sequence's requirements.
-                            firstFollow
-                                    .done()
-                                    .onTrue(
-                                            Commands.sequence(
-                                                    AutoCommands.shootCommand(
-                                                            ctx.drive(),
-                                                            ctx.intake(),
-                                                            ctx.indexer(),
-                                                            ctx.tower(),
-                                                            ctx.shooter(),
-                                                            3.0),
-                                                    ctx.shooter()
-                                                            .setHoodAngle(Degrees.of(0.0))
-                                                            .asProxy(),
-                                                    secondFollow.asProxy()));
+                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
 
-                            secondFollow
-                                    .done()
-                                    .onTrue(
-                                            Commands.sequence(
-                                                    AutoCommands.shootCommand(
-                                                            ctx.drive(),
-                                                            ctx.intake(),
-                                                            ctx.indexer(),
-                                                            ctx.tower(),
-                                                            ctx.shooter(),
-                                                            3.0)));
+                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
 
                             return routine;
                         }));

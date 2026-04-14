@@ -30,29 +30,46 @@ public class ShotTracker {
     private final RobotState robotState = RobotState.getInstance();
 
     // Fuel counts
-    private @Getter int totalFuelCount = 0;
+    private @Getter double totalFuelCount = 0;
 
     // Linear velocity drop required to detect a shot passing through the shooter, default tuned
-    // from auto replay logs. Typically 0.5 - 1 m/s.
+    // from auto replay logs. Typically 1.2 - 2.0 m/s. An active shot drop is at parity with an
+    // inactive shot drop because of the large drum MOI.
     private final LoggedTunableNumber shotDetectionThresholdMPS =
-            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 0.30);
+            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 1.4);
 
-    // Triggers determining whether a ball has passed through the shooter based on flywheel velocity
-    // drops from current setpoint, currently only registering true during static feeding/shooting
-    private final LoggedTrigger ballTrigger =
+    /**
+     * Trigger determining whether a ball has passed through the shooter based on flywheel velocity
+     * drop from current setpoint, currently only registering true while a game piece passes through
+     * the shooter while the robot is in a static scoring position
+     */
+    public final LoggedTrigger ballTrigger =
             new LoggedTrigger(
                     "ShotTracker/BallTrigger",
                     () ->
                             detectFlywheelDrop(
                                     MetersPerSecond.of(shotDetectionThresholdMPS.getAsDouble())));
 
-    // Determines whether the hopper is empty for at least 0.575s while shooting, using
-    // staticShotState as a proxy for a shot
-    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.575, DebounceType.kRising);
+    // Determines whether the flywheel is spinning freely for some period of time, default tuned
+    // from auto replay logs. The frequency of the active shot flywheel linear velocity waveform is
+    // typically about 2x that of the inactive shot waveform. >= 0.2s ~ fairly reasonable.
+    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.20, DebounceType.kRising);
+
+    /**
+     * Trigger input for hopperEmpty trigger, made explicit for compartmentalization and
+     * tuning/debugging
+     */
+    public final LoggedTrigger hopperEmptyInput;
+
     private final LoggedTrigger hopperEmpty;
 
     public ShotTracker(ShooterSuperstructure shooter) {
         this.shooter = shooter;
+
+        hopperEmptyInput =
+                new LoggedTrigger(
+                        "ShotTracker/hopperEmptyInput",
+                        this.shooter.staticShotState.and(ballTrigger.negate()));
 
         hopperEmpty =
                 RobotBase.isSimulation()
@@ -66,8 +83,7 @@ public class ShotTracker {
                                 "ShotTracker/hopperEmpty",
                                 () ->
                                         hopperEmptyDebouncer.calculate(
-                                                this.shooter.staticShotState.getAsBoolean()
-                                                        && !ballTrigger.getAsBoolean()));
+                                                hopperEmptyInput.getAsBoolean()));
         robotState.setHopperEmpty(hopperEmpty);
         attachBallTriggers();
     }
@@ -76,19 +92,20 @@ public class ShotTracker {
         ballTrigger.onTrue(
                 Commands.runOnce(
                         () -> {
-                            totalFuelCount++;
+                            if (hopperEmpty.negate().getAsBoolean())
+                                totalFuelCount = totalFuelCount + 2.6;
                             Logger.recordOutput("ShotTracker/TotalFuelCount", totalFuelCount);
                         }));
     }
 
     /**
-     * Determines whether left flywheel linear velocity has dropped by at least the specified
-     * velocity from the current flywheel linear velocity setpoint. Currently only applicable during
-     * static feeding/shooting. Primarily for use in autos.
+     * Determines whether the flywheel (drum) linear speed has dropped by at least the specified
+     * speed from the current flywheel speed setpoint. Currently only factored to trigger while in
+     * scoring position. Primarily for use in autos.
      *
      * <p>Gating the check behind having the flywheel be above a certain minimum velocity and the
      * static shot state helps prevent false positives from spurious velocity drops when the
-     * flywheel is at low speed or the robot is moving/spinning up.
+     * flywheel is at low speed or when spinning up the flywheel in preparation for a shot.
      *
      * @param drop the magnitude of drop to compare
      */
@@ -103,7 +120,7 @@ public class ShotTracker {
                 && shooter.staticShotState.getAsBoolean();
     }
 
-    public static void create(ShooterSuperstructure shooter) {
-        new ShotTracker(shooter);
+    public static ShotTracker create(ShooterSuperstructure shooter) {
+        return new ShotTracker(shooter);
     }
 }
