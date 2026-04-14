@@ -56,11 +56,13 @@ import frc.lib.util.PID;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.RobotState;
+import frc.robot.commands.ResilientTrajectoryFollower;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -102,10 +104,6 @@ public class Drive extends SubsystemBase {
                     new Translation2d(
                             DriveConstants.BackRight.LocationX,
                             DriveConstants.BackRight.LocationY));
-
-    private static final double ROBOT_MASS_KG = 63.5;
-    private static final double ROBOT_MOI = 8.57;
-    private static final double WHEEL_COF = 1.2;
 
     static final Lock odometryLock = new ReentrantLock();
 
@@ -236,7 +234,6 @@ public class Drive extends SubsystemBase {
 
         // Start odometry thread
         PhoenixOdometryThread.getInstance().start();
-
         // Configure SysId
         sysId =
                 new SysIdRoutine(
@@ -482,6 +479,39 @@ public class Drive extends SubsystemBase {
         runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(targetSpeeds, currentPose.getRotation()));
         robotState.setActiveTrajPose(targetPose);
         Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+    }
+
+    /**
+     * Returns a command that follows the supplied Choreo trajectory with built-in pause/resume
+     * recovery. If the robot is pushed off-path, the trajectory timer freezes and the robot drives
+     * back to the paused target before resuming.
+     *
+     * @param trajectory the trajectory to follow
+     * @param eventBindings map of event name to Command scheduled when that event's timestamp is
+     *     reached in trajectory-time
+     * @return a command that resiliently follows the trajectory
+     */
+    public ResilientTrajectoryFollower followTrajectoryResilient(
+            Trajectory<SwerveSample> trajectory, Map<String, Command> eventBindings) {
+        return new ResilientTrajectoryFollower(
+                this,
+                trajectory,
+                autoXController,
+                autoYController,
+                autoThetaController,
+                eventBindings);
+    }
+
+    /**
+     * Returns a command that follows the supplied Choreo trajectory with built-in pause/resume
+     * recovery and no event bindings.
+     *
+     * @param trajectory the trajectory to follow
+     * @return a command that resiliently follows the trajectory
+     */
+    public ResilientTrajectoryFollower followTrajectoryResilient(
+            Trajectory<SwerveSample> trajectory) {
+        return followTrajectoryResilient(trajectory, Map.of());
     }
 
     /** Resets the internal PID state used for trajectory following. */
