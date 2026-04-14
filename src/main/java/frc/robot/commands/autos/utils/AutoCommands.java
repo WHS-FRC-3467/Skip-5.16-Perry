@@ -7,33 +7,20 @@ package frc.robot.commands.autos.utils;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import choreo.auto.AutoRoutine;
-import choreo.auto.AutoTrajectory;
-
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.AlwaysTunableNumber;
 import frc.robot.RobotState;
-import frc.robot.RobotState.FieldRegion;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakeSuperstructure;
 import frc.robot.subsystems.shooter.ShooterSuperstructure;
 import frc.robot.subsystems.tower.Tower;
-import frc.robot.util.RobotSim;
 
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 
 /**
  * Class containing useful individual commands or small-group command sequences that can be strung
@@ -74,7 +61,7 @@ public class AutoCommands {
                                                 Commands.waitSeconds(0.5)
                                                         .andThen(
                                                                 Commands.defer(
-                                                                        intake::slowRetract,
+                                                                        intake::retractIntake,
                                                                         Set.of(intake))))))
                         .until(robotState.hopperEmpty)
                         .withTimeout(timeoutDuration)
@@ -88,58 +75,6 @@ public class AutoCommands {
                                             .schedule(shooter.setHoodAngle(Rotations.zero()));
                                 }),
                 DriveCommands.staticAimTowardsTarget(drive));
-    }
-
-    /**
-     * Drive to the outpost (via pathCommand), and wait up to 3 seconds for FUEL to be dumped.
-     *
-     * @param pathCommand The command that follows the desired path to the outpost.
-     * @return A command that follows a path (to the outpost), stops the robot, and waits 3 seconds.
-     */
-    public static Command driveAndCollectAtOutpost(Command pathCommand) {
-        return Commands.sequence(
-                pathCommand,
-                Commands.waitSeconds(3),
-                Commands.either(
-                        Commands.runOnce(
-                                () -> RobotSim.getInstance().getFuelSim().fillHopperBy(20)),
-                        Commands.none(),
-                        RobotBase::isSimulation));
-    }
-
-    /**
-     * Makes the robot smaller by retracting the intake and lowering the hood.
-     *
-     * @param shooter the shooter superstructure subsystem
-     * @return returns a timed command that retracts the intake and lowers the hood
-     */
-    public static Command stowHood(ShooterSuperstructure shooter) {
-        return Commands.parallel(shooter.retractHood()).withTimeout(1.25);
-    }
-
-    /**
-     * Shoots the currently held note, stows the hood, retracts the intake, then starts the next
-     * trajectory.
-     */
-    public static Command shootThenFollow(
-            AutoContext ctx, double timeoutSeconds, AutoTrajectory next) {
-        return Commands.sequence(
-                shootOnly(ctx, timeoutSeconds),
-                new ScheduleCommand(stowHood(ctx.shooter())),
-                next.spawnCmd());
-    }
-
-    /**
-     * Starts the given trajectory then shoots the currently held FUEL. Spins down the shooter and
-     * retracts the intake afterwards.
-     */
-    public static Command followThenShoot(
-            AutoContext ctx, double timeoutSeconds, AutoTrajectory current) {
-        return Commands.sequence(
-                current.spawnCmd(),
-                Commands.waitUntil(current.done()),
-                shootOnly(ctx, timeoutSeconds),
-                retractIntake(ctx));
     }
 
     // /**
@@ -179,45 +114,7 @@ public class AutoCommands {
     //     return bestIndex == -1 ? Optional.empty() : Optional.of(bestIndex);
     // }
 
-    /**
-     * Creates a routine-bound trigger that rises once a running trajectory has exceeded the
-     * allowable path error for long enough that the auto should fall back to retry pathfinding.
-     */
-    public static Trigger retryTrigger(AutoRoutine routine, AutoTrajectory trajectory) {
-        Distance pathErrorTol = DriveConstants.ALLOWABLE_PATH_ERROR;
-        return routine.observe(
-                new BooleanSupplier() {
-                    private final Timer errorCheckDelayTimer = new Timer();
-                    private final Debouncer pathErrorDebouncer = new Debouncer(1.0);
-                    private boolean wasActive = false;
-
-                    @Override
-                    public boolean getAsBoolean() {
-                        boolean isActive = trajectory.active().getAsBoolean();
-
-                        if (isActive && !wasActive) {
-                            errorCheckDelayTimer.restart();
-                        } else if (!isActive && wasActive) {
-                            errorCheckDelayTimer.stop();
-                            errorCheckDelayTimer.reset();
-                            pathErrorDebouncer.calculate(false);
-                        }
-
-                        wasActive = isActive;
-
-                        return isActive
-                                && errorCheckDelayTimer.hasElapsed(2.0)
-                                && (pathErrorDebouncer.calculate(
-                                                robotState
-                                                        .getActiveTrajectoryError()
-                                                        .gte(pathErrorTol))
-                                        || robotState.forcePathFind.get())
-                                && robotState.getFieldRegion() == FieldRegion.NEUTRAL_ZONE;
-                    }
-                });
-    }
-
-    private static Command shootOnly(AutoContext ctx, double timeoutSeconds) {
+    public static Command shootOnly(AutoContext ctx, double timeoutSeconds) {
         return shootCommand(
                 ctx.drive(),
                 ctx.intake(),
@@ -225,9 +122,5 @@ public class AutoCommands {
                 ctx.tower(),
                 ctx.shooter(),
                 timeoutSeconds);
-    }
-
-    private static Command retractIntake(AutoContext ctx) {
-        return ctx.intake().retractIntake().withTimeout(0.5);
     }
 }

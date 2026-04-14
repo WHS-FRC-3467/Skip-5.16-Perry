@@ -111,10 +111,10 @@ public class Robot extends LoggedRobot {
                     || constants.SteerMotorType != SteerMotorArrangement.TalonFX_Integrated) {
                 throw new RuntimeException(
                         "You are using an unsupported swerve configuration, which this template"
-                                + " does not support without manual customization. The 2025 release of"
-                                + " Phoenix supports some swerve configurations which were not"
-                                + " available during 2025 beta testing, preventing any development and"
-                                + " support from the AdvantageKit developers.");
+                            + " does not support without manual customization. The 2025 release of"
+                            + " Phoenix supports some swerve configurations which were not"
+                            + " available during 2025 beta testing, preventing any development and"
+                            + " support from the AdvantageKit developers.");
             }
         }
 
@@ -135,9 +135,6 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void robotInit() {
-        // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
-        // Pathfinding.setPathfinder(new LocalADStarAK());
-        // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         // Log first 8 character of robot serial
         Logger.recordOutput("Robot Serial", System.getenv("serialnum"));
 
@@ -165,7 +162,7 @@ public class Robot extends LoggedRobot {
         Logger.recordOutput("ActiveCommands", activeCommandNames.toArray(new String[0]));
 
         // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
-        fieldMap.setRobotPose(RobotState.getInstance().getEstimatedPose());
+        fieldMap.setRobotPose(robotState.getEstimatedPose());
         SmartDashboard.putNumber("Auto Delay", AutoCommands.getAutoDelay());
     }
 
@@ -176,14 +173,6 @@ public class Robot extends LoggedRobot {
         if (DriverStation.isFMSAttached()) {
             Elastic.selectTab(1);
         }
-
-        // Pre-build the next auto command now (during disabled) so it's ready instantly when
-        // autonomousInit() runs.  This avoids the 100-200 ms JVM overhead spike that
-        // previously lagged the first few auto cycles.
-
-        // Hint the JVM to collect garbage now while cycle time doesn't matter, reducing
-        // the chance of a GC pause during the critical first few auto cycles.
-        System.gc();
     }
 
     /** This function is called periodically when disabled. */
@@ -199,9 +188,9 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         // Switch to Autonomous tab in Elastic Dashboard
-        // if (RobotBase.isReal()) {
-        //     Elastic.selectTab(1);
-        // }
+        if (RobotBase.isReal()) {
+            Elastic.selectTab(1);
+        }
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
