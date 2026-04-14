@@ -76,30 +76,37 @@ public class C1678Auto {
                                     ctx.drive()
                                             .followTrajectoryResilient(
                                                     trajectories.get(1), eventBindings);
+                            ResilientTrajectoryFollower thirdFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(1), eventBindings);
 
                             // Phase 1: Reset controllers, odometry, wait for delay,
                             // then follow the first trajectory. Because the sequence
                             // only contains Drive-requiring commands, the event-bound
                             // commands (Intake, Shooter) can schedule without conflict.
                             routine.active()
+                                    .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
+
+                            firstFollow
+                                    .done()
                                     .onTrue(
                                             Commands.sequence(
-                                                    // Commands.runOnce(
-                                                    // ctx.drive()
-                                                    //         ::resetTrajectoryControllers),
-                                                    first.resetOdometry(),
-                                                    // Commands.defer(
-                                                    //         () ->
-                                                    //                 Commands.waitSeconds(
-                                                    //                         AutoCommands
-                                                    //
-                                                    // .getAutoDelay()),
-                                                    //         Set.of()),
-                                                    first.spawnCmd()));
+                                                    AutoCommands.shootOnly(ctx, 3.0),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
+                                                    secondFollow.asProxy()));
 
-                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
-
-                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
+                            secondFollow
+                                    .done()
+                                    .onTrue(
+                                            Commands.sequence(
+                                                    AutoCommands.shootOnly(ctx, 5.0),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
+                                                    thirdFollow.asProxy()));
 
                             return routine;
                         }));

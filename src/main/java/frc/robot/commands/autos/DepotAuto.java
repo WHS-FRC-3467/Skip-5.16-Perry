@@ -34,7 +34,6 @@ import frc.robot.generated.ChoreoTraj;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public class DepotAuto {
 
@@ -74,31 +73,10 @@ public class DepotAuto {
                             // only contains Drive-requiring commands, the event-bound
                             // commands (Intake, Shooter) can schedule without conflict.
                             routine.active()
-                                    .onTrue(
-                                            Commands.sequence(
-                                                    Commands.runOnce(
-                                                            ctx.drive()
-                                                                    ::resetTrajectoryControllers),
-                                                    first.resetOdometry(),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
-                                                            Set.of()),
-                                                    firstFollow));
+                                    .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
 
                             // Phase 2: When the trajectory completes, shoot.
-                            firstFollow
-                                    .done()
-                                    .onTrue(
-                                            AutoCommands.shootCommand(
-                                                    ctx.drive(),
-                                                    ctx.intake(),
-                                                    ctx.indexer(),
-                                                    ctx.tower(),
-                                                    ctx.shooter(),
-                                                    3.0));
+                            firstFollow.done().onTrue(AutoCommands.shootOnly(ctx, 5.0));
 
                             return routine;
                         }));
