@@ -29,27 +29,48 @@ import frc.robot.commands.autos.utils.AutoOption;
 import frc.robot.commands.autos.utils.AutoUtil;
 import frc.robot.generated.ChoreoTraj;
 
+import lombok.AllArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public class FullNeutralAuto {
 
+    @AllArgsConstructor
+    @SuppressWarnings("ImmutableEnumChecker")
+    public enum Positions {
+        Bump(true),
+        Trench(false);
+        private final boolean position;
+
+        public boolean get() {
+            return position;
+        }
+    }
+
     private static final Alert TRAJECTORIES_MISSING =
             new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
 
     public static Optional<AutoOption> create(
-            AutoContext ctx, boolean shouldMirror, boolean isSafe) {
+            AutoContext ctx, Positions startPosition, Positions returnPosition) {
         List<String> names =
-                isSafe
-                        ? List.of(ChoreoTraj.FullNeutralSafe1.name(), ChoreoTraj.C16782.name())
-                        : List.of(ChoreoTraj.FullNeutral1.name(), ChoreoTraj.C16782.name());
+                List.of(
+                        startPosition.get()
+                                ? ChoreoTraj.FullNeutralBump1.name()
+                                : ChoreoTraj.FullNeutralTrench1.name(),
+                        returnPosition.get()
+                                ? ChoreoTraj.FullNeutralBump2.name()
+                                : ChoreoTraj.FullNeutralTrench2.name(),
+                        returnPosition.get()
+                                ? ChoreoTraj.BumpPath.name()
+                                : ChoreoTraj.TunnelPath.name(),
+                        returnPosition.get()
+                                ? ChoreoTraj.FullNeutralBump3.name()
+                                : ChoreoTraj.FullNeutralTrench3.name());
 
         List<Trajectory<SwerveSample>> trajectories =
-                AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
-
-        Optional<Trajectory<SwerveSample>> bumpTrajectory =
-                AutoUtil.loadTrajectory(ChoreoTraj.BumpPath.name(), shouldMirror);
+                AutoUtil.loadTrajectories(names, false).orElse(null);
         if (trajectories == null) {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();
@@ -62,13 +83,18 @@ public class FullNeutralAuto {
                                     ctx.autoFactory()
                                             .newRoutine(
                                                     "FullNeutral"
-                                                            + (isSafe ? "Safe" : "Aggressive")
-                                                            + (shouldMirror ? "Right" : "Left"));
+                                                            + (startPosition.get()
+                                                                    ? " Bump"
+                                                                    : " Trench")
+                                                            + (returnPosition.get()
+                                                                    ? " Bump"
+                                                                    : " Trench"));
 
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
                             AutoTrajectory second = routine.trajectory(trajectories.get(1));
-                            Optional<AutoTrajectory> bump = bumpTrajectory.map(routine::trajectory);
-                            AutoUtil.bindEvents(ctx, first, second);
+                            AutoTrajectory third = routine.trajectory(trajectories.get(2));
+                            AutoTrajectory fourth = routine.trajectory(trajectories.get(3));
+                            AutoUtil.bindEvents(ctx, first, second, third, fourth);
 
                             routine.active()
                                     .onTrue(
@@ -81,22 +107,28 @@ public class FullNeutralAuto {
                                                             () ->
                                                                     Commands.waitSeconds(
                                                                             AutoCommands
-                                                                                            .getAutoDelay()
-                                                                                    + 5.0),
+                                                                                    .getAutoDelay()),
                                                             Set.of()),
                                                     first.spawnCmd()));
 
-                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
-                            AutoCommands.retryTrigger(routine, first)
+                            first.done().onTrue(second.spawnCmd());
+                            AutoCommands.recoverThenFollow(
+                                    ctx, first, Optional.of(second), 10.0, third);
+                            second.done().onTrue(third.spawnCmd());
+                            AutoCommands.recoverThenFollow(
+                                    ctx, second, Optional.of(third), 10.0, fourth);
+                            third.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, fourth));
+                            fourth.done()
                                     .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, first, bump, 3.0, second));
-
-                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
-                            AutoCommands.retryTrigger(routine, second)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, second, bump, 10.0, second));
+                                            Commands.sequence(
+                                                    AutoCommands.shootCommand(
+                                                            ctx.drive(),
+                                                            ctx.intake(),
+                                                            ctx.indexer(),
+                                                            ctx.tower(),
+                                                            ctx.shooter(),
+                                                            10.0),
+                                                    ctx.shooter().retractHood()));
 
                             return routine;
                         }));
