@@ -86,7 +86,10 @@ public class IntakeLinearConstants {
             new LinearMechCharacteristics(
                     MIN_DISTANCE, MAX_DISTANCE, STARTING_DISTANCE, DRUM_RADIUS, ORIENTATION);
 
-    public static final PID SLOT0_PID = new PID(30.0, 0.0, 0.0).withS(14.0);
+    public static final PID SLOT0_PID =
+            RobotBase.isSimulation()
+                    ? new PID(10.0, 0.0, 0.0)
+                    : new PID(30.0, 0.0, 0.0).withS(14.0);
 
     /**
      * Creates and configures a TalonFX motor controller configuration for the intake linear
