@@ -41,7 +41,8 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
             new Debouncer(0.02, Debouncer.DebounceType.kRising);
 
     private static final LoggedTunableNumber MIN_SAFE_ROLLER_DISTANCE =
-            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/MinSafeRollerDistance", 5.0);
+            new LoggedTunableNumber(
+                    IntakeLinearConstants.NAME + "/MinSafeRollerDistanceInches", 5.0);
 
     public IntakeSuperstructure(
             LinearMechanism<?> intakeLinearIO, FlywheelMechanism<?> intakeRollerIO) {
@@ -153,6 +154,8 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 IntakeLinearConstants.MAX_ACCELERATION,
                                 "Retract Linear"),
                         runRoller(80.0).onlyIf(isRollerSafe),
+                        Commands.waitUntil(isRollerSafe.negate()),
+                        stopRoller(),
                         Commands.waitUntil(isRetracted))
                 .finallyDo(() -> intakeRollerIO.runBrake())
                 .withName("Retract Intake With Roller");
@@ -174,7 +177,6 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
         LoggerHelper.recordCurrentCommand(this.getName(), this);
         intakeLinearIO.periodic();
         intakeRollerIO.periodic();
-        isRollerSafe.getAsBoolean();
     }
 
     /**

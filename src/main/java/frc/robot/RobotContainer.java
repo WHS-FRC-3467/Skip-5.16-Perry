@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
+import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
@@ -198,12 +199,18 @@ public class RobotContainer {
                         () -> -controller.getLeftX(),
                         () -> -controller.getRightX()));
 
-        Trigger readyToShootAtCurrentTarget =
-                shooter.profileComplete.and(
-                        robotState
-                                .shouldFeed
-                                .and(robotState.facingFeedTarget)
-                                .or(robotState.shouldFeed.negate().and(robotState.facingTarget)));
+        LoggedTrigger readyToShootAtCurrentTarget =
+                new LoggedTrigger(
+                        "RobotState/ReadyToShootAtCurrentTarget",
+                        shooter.profileComplete.and(
+                                robotState
+                                        .shouldFeed
+                                        .and(robotState.facingFeedTarget)
+                                        .or(
+                                                robotState
+                                                        .shouldFeed
+                                                        .negate()
+                                                        .and(robotState.facingTarget))));
 
         // Right Trigger: Shoot/Pass
         controller
@@ -452,7 +459,7 @@ public class RobotContainer {
             System.out.println("Using cached auto command");
             return cmd;
         }
-        // Fallback: no cached command (e.g. chooser was never changed)f
+        // Fallback: no cached command (e.g. chooser was never changed)
         AutoOption option = autoChooser.get();
         return option == null ? Commands.none() : option.command();
     }
