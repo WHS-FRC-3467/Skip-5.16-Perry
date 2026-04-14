@@ -64,7 +64,7 @@ public class AutoCommands {
                                                 Commands.waitSeconds(0.5)
                                                         .andThen(
                                                                 Commands.defer(
-                                                                        intake::slowRetract,
+                                                                        intake::retractIntake,
                                                                         Set.of(intake))))))
                         .until(robotState.hopperEmpty)
                         .withTimeout(timeoutDuration)
