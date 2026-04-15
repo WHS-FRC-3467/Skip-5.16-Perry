@@ -536,6 +536,7 @@ public class RobotState {
      *
      * @return the angle to the target
      */
+    @AutoLogOutput(key = "RobotState/AngleToTarget")
     public Rotation2d getAngleToTarget() {
         return getTarget()
                 .getAllianceTranslation()

@@ -146,6 +146,19 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
                     getName() + "/StaticShotState",
                     () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
 
+    public final LoggedTrigger readyToShootAtCurrentTarget =
+            new LoggedTrigger(
+                    "RobotState/ReadyToShootAtCurrentTarget",
+                    this.profileComplete.and(
+                            robotState
+                                    .shouldFeed
+                                    .and(robotState.facingFeedTarget)
+                                    .or(
+                                            robotState
+                                                    .shouldFeed
+                                                    .negate()
+                                                    .and(robotState.facingTarget))));
+
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
      *
@@ -186,6 +199,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
+        profileComplete.getAsBoolean();
+        readyToShootAtCurrentTarget.getAsBoolean();
 
         // Centralize required polling for hopper detection and ball counting logic
         shotTracker.ballTrigger.getAsBoolean();

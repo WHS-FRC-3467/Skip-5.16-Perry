@@ -35,7 +35,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
-import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
@@ -199,19 +198,6 @@ public class RobotContainer {
                         () -> -controller.getLeftX(),
                         () -> -controller.getRightX()));
 
-        LoggedTrigger readyToShootAtCurrentTarget =
-                new LoggedTrigger(
-                        "RobotState/ReadyToShootAtCurrentTarget",
-                        shooter.profileComplete.and(
-                                robotState
-                                        .shouldFeed
-                                        .and(robotState.facingFeedTarget)
-                                        .or(
-                                                robotState
-                                                        .shouldFeed
-                                                        .negate()
-                                                        .and(robotState.facingTarget))));
-
         // Right Trigger: Shoot/Pass
         controller
                 .rightTrigger()
@@ -225,16 +211,16 @@ public class RobotContainer {
                                                         robotState.feedLookaheadSeconds,
                                                         false),
                                                 // DriveCommands.staticAimTowardsTarget(drive),
-                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                DriveCommands.joystickDriveFacingTarget(
                                                         drive,
                                                         () -> -controller.getLeftY() * 0.4,
                                                         () -> -controller.getLeftX() * 0.4,
-                                                        robotState.hubLookaheadSeconds,
                                                         true),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
-                                                Commands.waitUntil(readyToShootAtCurrentTarget),
+                                                Commands.waitUntil(
+                                                        shooter.readyToShootAtCurrentTarget),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
