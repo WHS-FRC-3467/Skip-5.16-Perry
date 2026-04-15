@@ -100,6 +100,12 @@ public class RobotContainer {
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
 
+    /**
+     * Pre-built auto command created during disabled by the {@code autoChooser.onChange()} callback
+     * so that {@code autonomousInit()} does not need to spend ~100-200 ms constructing the routine.
+     */
+    private Command cachedAutoCommand = null;
+
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
         drive = DriveConstants.get();
@@ -130,10 +136,8 @@ public class RobotContainer {
         //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
         // Citrus Autos
-        C1678Auto.create(ctx, false, false)
-                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
-        C1678Auto.create(ctx, true, false)
-                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
+        C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
+        C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
         FullNeutralAuto.create(ctx, Positions.Trench, Positions.Trench)
                 .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Trench-Trench", a));
@@ -156,6 +160,7 @@ public class RobotContainer {
                     if (auto == null) {
                         rawAutoPreviewPoses = new Pose2d[] {};
                         autoPreviewField.getObject("path").setPoses(new Pose2d[] {});
+                        cachedAutoCommand = null;
                         return;
                     }
                     var pathPoses = auto.previewPoses().toArray(Pose2d[]::new);
@@ -173,7 +178,10 @@ public class RobotContainer {
                                     .toArray(Pose2d[]::new);
                     autoPreviewField.getObject("path").setPoses(flippedPoses);
 
-                    auto.command();
+                    // Pre-build the auto command now (while still disabled) so that
+                    // autonomousInit() doesn't burn 100-200 ms of cycle time constructing
+                    // routines, triggers, and command objects.
+                    cachedAutoCommand = auto.command();
                 });
 
         autoChooser.addOption(
@@ -229,8 +237,8 @@ public class RobotContainer {
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
 
-        // Tap Right Bumper while Right Trigger held: Manually cycle intake
-        controller.rightBumper().onTrue(intake.slowRetract());
+        // Right Bumper: Retract Intake
+        controller.rightBumper().onTrue(intake.retractIntake());
 
         // Left Trigger: Intake
         controller
@@ -423,11 +431,35 @@ public class RobotContainer {
     /**
      * Gets the selected autonomous command from the dashboard chooser.
      *
+     * <p>Returns the pre-built command cached during the {@code autoChooser.onChange()} callback
+     * (fired while disabled) so that no expensive routine construction happens inside {@code
+     * autonomousInit()}. Falls back to building on the spot if the cache is empty.
+     *
      * @return the autonomous command to run
      */
     public Command getAutonomousCommand() {
+        if (cachedAutoCommand != null) {
+            // Consume the cached command so it is not reused across multiple auto enables
+            Command cmd = cachedAutoCommand;
+            cachedAutoCommand = null;
+            System.out.println("Using cached auto command");
+            return cmd;
+        }
+        // Fallback: no cached command (e.g. chooser was never changed)
         AutoOption option = autoChooser.get();
         return option == null ? Commands.none() : option.command();
+    }
+
+    /**
+     * Pre-builds the autonomous command for the currently selected auto option.
+     *
+     * <p>Call this when re-entering disabled (e.g. from {@code disabledInit()}) so the cache is
+     * populated for the next auto enable. Building routines while disabled avoids the 100-200 ms
+     * JVM overhead spike that occurs when constructing them inside {@code autonomousInit()}.
+     */
+    public void rebuildAutoCache() {
+        AutoOption option = autoChooser.get();
+        cachedAutoCommand = (option == null) ? null : option.command();
     }
 
     /**

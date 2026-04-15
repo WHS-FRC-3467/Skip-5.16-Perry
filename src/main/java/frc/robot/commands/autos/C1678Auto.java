@@ -14,6 +14,8 @@
  */
 package frc.robot.commands.autos;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
@@ -21,8 +23,10 @@ import choreo.trajectory.Trajectory;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
+import frc.robot.commands.ResilientTrajectoryFollower;
 import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
@@ -30,26 +34,20 @@ import frc.robot.commands.autos.utils.AutoUtil;
 import frc.robot.generated.ChoreoTraj;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public class C1678Auto {
 
     private static final Alert TRAJECTORIES_MISSING =
             new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
 
-    public static Optional<AutoOption> create(
-            AutoContext ctx, boolean shouldMirror, boolean isSafe) {
-        List<String> names =
-                isSafe
-                        ? List.of(ChoreoTraj.C1678Safe1.name(), ChoreoTraj.C16782.name())
-                        : List.of(ChoreoTraj.C16781.name(), ChoreoTraj.C16782.name());
+    public static Optional<AutoOption> create(AutoContext ctx, boolean shouldMirror) {
+        List<String> names = List.of(ChoreoTraj.C16781.name(), ChoreoTraj.C16782.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
 
-        Optional<Trajectory<SwerveSample>> bumpTrajectory =
-                AutoUtil.loadTrajectory(ChoreoTraj.BumpPath.name(), shouldMirror);
         if (trajectories == null) {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();
@@ -61,41 +59,54 @@ public class C1678Auto {
                             AutoRoutine routine =
                                     ctx.autoFactory()
                                             .newRoutine(
-                                                    "STSE"
-                                                            + (isSafe ? "Safe" : "Aggressive")
-                                                            + (shouldMirror ? "Right" : "Left"));
+                                                    "C1678" + (shouldMirror ? "Right" : "Left"));
 
+                            // Still use AutoTrajectory for resetOdometry() lifecycle.
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
-                            AutoTrajectory second = routine.trajectory(trajectories.get(1));
-                            Optional<AutoTrajectory> bump = bumpTrajectory.map(routine::trajectory);
-                            AutoUtil.bindEvents(ctx, first, second);
 
+                            Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
+
+                            // Declare trajectory-following commands up front so we
+                            // can grab the .done() trigger from each one.
+                            ResilientTrajectoryFollower firstFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
+                            ResilientTrajectoryFollower secondFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(1), eventBindings);
+                            ResilientTrajectoryFollower thirdFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(1), eventBindings);
+
+                            // Phase 1: Reset controllers, odometry, wait for delay,
+                            // then follow the first trajectory. Because the sequence
+                            // only contains Drive-requiring commands, the event-bound
+                            // commands (Intake, Shooter) can schedule without conflict.
                             routine.active()
+                                    .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
+
+                            firstFollow
+                                    .done()
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.runOnce(
-                                                            ctx.drive()
-                                                                    ::resetTrajectoryControllers),
-                                                    first.resetOdometry(),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
-                                                            Set.of()),
-                                                    first.spawnCmd()));
+                                                    AutoCommands.shootOnly(ctx, 3.0),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
+                                                    secondFollow.asProxy()));
 
-                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
-                            AutoCommands.retryTrigger(routine, first)
+                            secondFollow
+                                    .done()
                                     .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, first, bump, 3.0, second));
-
-                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
-                            AutoCommands.retryTrigger(routine, second)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, second, bump, 10.0, second));
+                                            Commands.sequence(
+                                                    AutoCommands.shootOnly(ctx, 5.0),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
+                                                    thirdFollow.asProxy()));
 
                             return routine;
                         }));
