@@ -14,6 +14,8 @@
  */
 package frc.robot.commands.autos;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
@@ -21,8 +23,10 @@ import choreo.trajectory.Trajectory;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
+import frc.robot.commands.ResilientTrajectoryFollower;
 import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
@@ -32,6 +36,7 @@ import frc.robot.generated.ChoreoTraj;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -75,6 +80,11 @@ public class FullNeutralAuto {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();
         }
+        final double autoDelay =
+                AutoCommands.getAutoDelay()
+                        - (startPosition.get()
+                                ? AutoCommands.getAutoDelay() - 3.0 > 0.0 ? 3.0 : 0.0
+                                : 0);
         return Optional.of(
                 AutoUtil.trajectoryOption(
                         trajectories,
@@ -89,46 +99,62 @@ public class FullNeutralAuto {
                                                             + (returnPosition.get()
                                                                     ? " Bump"
                                                                     : " Trench"));
-
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
-                            AutoTrajectory second = routine.trajectory(trajectories.get(1));
-                            AutoTrajectory third = routine.trajectory(trajectories.get(2));
-                            AutoTrajectory fourth = routine.trajectory(trajectories.get(3));
-                            AutoUtil.bindEvents(ctx, first, second, third, fourth);
+                            Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
+                            ResilientTrajectoryFollower firstFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
+                            ResilientTrajectoryFollower secondFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
+                            ResilientTrajectoryFollower thirdFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
+                            ResilientTrajectoryFollower fourthFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.runOnce(
-                                                            ctx.drive()
-                                                                    ::resetTrajectoryControllers),
                                                     first.resetOdometry(),
+                                                    startPosition.get()
+                                                            ? AutoCommands.shootOnly(ctx, 3.0)
+                                                            : Commands.none(),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
                                                     Commands.defer(
                                                             () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
+                                                                    autoDelay > 0.0
+                                                                            ? Commands.waitSeconds(
+                                                                                    autoDelay)
+                                                                            : Commands.none(),
                                                             Set.of()),
-                                                    first.spawnCmd()));
+                                                    firstFollow));
 
-                            first.done().onTrue(second.spawnCmd());
-                            AutoCommands.recoverThenFollow(
-                                    ctx, first, Optional.of(second), 10.0, third);
-                            second.done().onTrue(third.spawnCmd());
-                            AutoCommands.recoverThenFollow(
-                                    ctx, second, Optional.of(third), 10.0, fourth);
-                            third.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, fourth));
-                            fourth.done()
+                            firstFollow.done().onTrue(secondFollow.asProxy());
+                            secondFollow.done().onTrue(thirdFollow.asProxy());
+
+                            thirdFollow
+                                    .done()
                                     .onTrue(
                                             Commands.sequence(
-                                                    AutoCommands.shootCommand(
-                                                            ctx.drive(),
-                                                            ctx.intake(),
-                                                            ctx.indexer(),
-                                                            ctx.tower(),
-                                                            ctx.shooter(),
-                                                            10.0),
-                                                    ctx.shooter().retractHood()));
+                                                    AutoCommands.shootOnly(ctx, 10.0),
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy(),
+                                                    fourthFollow.asProxy()));
+                            fourthFollow
+                                    .done()
+                                    .onTrue(
+                                            Commands.sequence(
+                                                    AutoCommands.shootOnly(ctx, 5.0),
+                                                    ctx.shooter().setHoodAngle(Degrees.of(0.0))));
 
                             return routine;
                         }));
