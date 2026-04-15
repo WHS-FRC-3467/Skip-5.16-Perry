@@ -88,8 +88,7 @@ public class C1678Auto {
                             routine.active()
                                     .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
 
-                            firstFollow
-                                    .done()
+                            routine.observe(firstFollow.done())
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 3.0),
@@ -98,8 +97,7 @@ public class C1678Auto {
                                                             .asProxy(),
                                                     secondFollow.asProxy()));
 
-                            secondFollow
-                                    .done()
+                            routine.observe(secondFollow.done())
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 5.0),
