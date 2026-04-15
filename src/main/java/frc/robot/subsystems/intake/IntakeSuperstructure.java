@@ -26,6 +26,7 @@ import frc.lib.mechanisms.linear.LinearMechanism;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.robot.subsystems.shooter.FlywheelConstants;
 
 import java.util.function.Supplier;
 
@@ -165,7 +166,11 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                                 PIDSlot.SLOT_0,
                                                 cruiseVelocity,
                                                 acceleration)),
+<<<<<<< HEAD
+                        runRoller ? runRoller(120.0) : Commands.none(),
+=======
                         runRoller ? runRoller(80.0) : Commands.none(),
+>>>>>>> b0ec17315d607b34d5559b46c9651bb2bd4074f6
                         Commands.waitUntil(
                                 () ->
                                         MathUtil.isNear(
@@ -203,7 +208,11 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command extendWithRoller(Supplier<AngularVelocity> rollerVelocity, String name) {
         return Commands.sequence(
+<<<<<<< HEAD
+                        runRoller(120.0),
+=======
                         runRoller(80.0),
+>>>>>>> b0ec17315d607b34d5559b46c9651bb2bd4074f6
                         moveToPosition(
                                 IntakeLinearConstants.MAX_DISTANCE,
                                 IntakeLinearConstants.CRUISE_VELOCITY,
@@ -226,7 +235,11 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     private Command retractWithSpeed(LinearVelocity retractSpeed, String name) {
         return Commands.sequence(
+<<<<<<< HEAD
+                        runRoller(120.0),
+=======
                         runRoller(80.0),
+>>>>>>> b0ec17315d607b34d5559b46c9651bb2bd4074f6
                         moveToPosition(
                                 retractDistance,
                                 retractSpeed,
@@ -273,6 +286,19 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 .withTimeout(0.5),
                         stopRoller())
                 .withName("Intake Shuffle Step");
+    }
+
+    public Command torqueRetract(double torqueAmps) {
+        return torqueAmps < FlywheelConstants.MIN_TORQUE
+                ? moveByDistance(
+                        Inches.of(-3),
+                        shuffleVelocity,
+                        IntakeLinearConstants.MAX_ACCELERATION,
+                        true,
+                        0.6,
+                        Inches.of(0.5).in(Meters),
+                        "Torque Retract")
+                : Commands.none();
     }
 
     /**
