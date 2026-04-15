@@ -16,14 +16,13 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -36,6 +35,8 @@ import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 
 import lombok.Getter;
+
+import org.littletonrobotics.junction.Logger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -61,14 +62,11 @@ import java.util.function.Supplier;
  */
 public class DriveCommands {
     @Getter private static final double DEADBAND = 0.1;
-    @Getter private static final double ANGLE_MAX_VELOCITY = 8.3;
-    @Getter private static final double ANGLE_MAX_ACCELERATION = 20.0;
-    private static final LoggedTunableNumber ANGLE_KP =
-            new LoggedTunableNumber("Drive/AngleP", 9.0);
-    private static final LoggedTunableNumber ANGLE_KD =
-            new LoggedTunableNumber("Drive/AngleD", 0.6);
-    private static final LoggedTunableNumber ANGLE_TOLERANCE_ROTATIONS =
-            new LoggedTunableNumber("Drive/AngleToleranceRotations", 0.005);
+
+    private static final LoggedTunableNumber ANGLE_TOLERANCE_DEGREES =
+            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 4.0);
+
+    // FF characterization parameters
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 2.0; // Volts/Sec
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.2; // Rad/Sec
@@ -169,17 +167,10 @@ public class DriveCommands {
             Supplier<Rotation2d> rotationSupplier,
             boolean stopWithX) {
         RobotState robotState = RobotState.getInstance();
+        PIDController ANGLE_CONTROLLER = new PIDController(9.0, 0.0, 0.6);
 
-        // Create PID controller
-        ProfiledPIDController angleController =
-                new ProfiledPIDController(
-                        ANGLE_KP.get(),
-                        0.0,
-                        ANGLE_KD.get(),
-                        new TrapezoidProfile.Constraints(
-                                ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
-        angleController.setTolerance(Units.rotationsToRadians(ANGLE_TOLERANCE_ROTATIONS.get()));
-        angleController.enableContinuousInput(-Math.PI, Math.PI);
+        ANGLE_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
+        ANGLE_CONTROLLER.setTolerance(Units.degreesToRadians(ANGLE_TOLERANCE_DEGREES.get()));
 
         // Construct command
         return Commands.run(
@@ -191,14 +182,19 @@ public class DriveCommands {
 
                             // Calculate angular speed
                             double omega =
-                                    angleController.calculate(
+                                    ANGLE_CONTROLLER.calculate(
                                             robotState
                                                     .getEstimatedPose()
                                                     .getRotation()
                                                     .getRadians(),
                                             rotationSupplier.get().getRadians());
-
-                            if (angleController.atGoal()) {
+                            Logger.recordOutput(
+                                    "Drive/Angle PID/ErrorRads",
+                                    robotState.getEstimatedPose().getRotation().getRadians()
+                                            - rotationSupplier.get().getRadians());
+                            Logger.recordOutput(
+                                    "Drive/Angle PID/AtGoal", ANGLE_CONTROLLER.atSetpoint());
+                            if (ANGLE_CONTROLLER.atSetpoint()) {
                                 if (Math.hypot(linearVelocity.getX(), linearVelocity.getY())
                                                 < DEADBAND
                                         && stopWithX) {
@@ -209,8 +205,8 @@ public class DriveCommands {
                                     return;
                                 } else {
                                     // If we're at the angle goal but the driver is commanding
-                                    // linear
-                                    // motion, set angular speed to zero to prevent overshooting.
+                                    // linear motion, set angular speed to zero to prevent
+                                    // overshooting.
                                     omega = 0.0;
                                 }
                             }
@@ -238,15 +234,13 @@ public class DriveCommands {
                         },
                         drive)
 
-                // Reset PID controller when command starts
+                // Reset controller state when the command starts
                 .beforeStarting(
                         () -> {
-                            angleController.reset(
-                                    robotState.getEstimatedPose().getRotation().getRadians());
-                            angleController.setP(ANGLE_KP.get());
-                            angleController.setD(ANGLE_KD.get());
-                            angleController.setTolerance(
-                                    Units.rotationsToRadians(ANGLE_TOLERANCE_ROTATIONS.get()));
+                            ANGLE_CONTROLLER.reset();
+                            Logger.recordOutput(
+                                    "Drive/Angle PID/ToleranceRads",
+                                    ANGLE_CONTROLLER.getPositionTolerance());
                         })
                 .withName("Joystick Drive At Angle");
     }
@@ -261,10 +255,10 @@ public class DriveCommands {
      * @return the joystick drive facing target command
      */
     public static Command joystickDriveFacingTarget(
-            Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+            Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier, boolean stopWithX) {
         RobotState robotState = RobotState.getInstance();
         return joystickDriveAtAngle(
-                drive, xSupplier, ySupplier, robotState::getAngleToTarget, false);
+                drive, xSupplier, ySupplier, robotState::getAngleToTarget, stopWithX);
     }
 
     /**
@@ -281,7 +275,8 @@ public class DriveCommands {
             Drive drive,
             DoubleSupplier xSupplier,
             DoubleSupplier ySupplier,
-            DoubleSupplier lookAhead) {
+            DoubleSupplier lookAhead,
+            boolean stopWithX) {
         RobotState robotState = RobotState.getInstance();
         return joystickDriveAtAngle(
                 drive,
@@ -291,7 +286,7 @@ public class DriveCommands {
                     Pose2d pose = robotState.getFuturePose(lookAhead.getAsDouble());
                     return robotState.getAngleToTarget(pose.getTranslation());
                 },
-                false);
+                stopWithX);
     }
 
     /**

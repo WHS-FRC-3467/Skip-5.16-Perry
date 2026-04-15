@@ -198,13 +198,6 @@ public class RobotContainer {
                         () -> -controller.getLeftX(),
                         () -> -controller.getRightX()));
 
-        Trigger readyToShootAtCurrentTarget =
-                shooter.profileComplete.and(
-                        robotState
-                                .shouldFeed
-                                .and(robotState.facingFeedTarget)
-                                .or(robotState.shouldFeed.negate().and(robotState.facingTarget)));
-
         // Right Trigger: Shoot/Pass
         controller
                 .rightTrigger()
@@ -213,14 +206,21 @@ public class RobotContainer {
                                         Commands.either(
                                                 DriveCommands.joystickDriveFacingFutureTarget(
                                                         drive,
+                                                        () -> -controller.getLeftY() * 0.6,
+                                                        () -> -controller.getLeftX() * 0.6,
+                                                        robotState.feedLookaheadSeconds,
+                                                        false),
+                                                // DriveCommands.staticAimTowardsTarget(drive),
+                                                DriveCommands.joystickDriveFacingTarget(
+                                                        drive,
                                                         () -> -controller.getLeftY() * 0.4,
                                                         () -> -controller.getLeftX() * 0.4,
-                                                        robotState.feedLookaheadSeconds),
-                                                DriveCommands.staticAimTowardsTarget(drive),
+                                                        true),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
-                                                Commands.waitUntil(readyToShootAtCurrentTarget),
+                                                Commands.waitUntil(
+                                                        shooter.readyToShootAtCurrentTarget),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
@@ -374,7 +374,6 @@ public class RobotContainer {
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Retract", intake.retractIntake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Coast", intake.linearCoast());
-        SmartDashboard.putData(IntakeLinearConstants.NAME + "/SlowRetract", intake.slowRetract());
 
         // Tower Commands
         SmartDashboard.putData(TowerConstants.NAME + "/Stop", tower.stopCommand());
@@ -416,6 +415,17 @@ public class RobotContainer {
                 new DriveToPose(drive, () -> startPose)
                         .withDistanceTolerance(Meters.of(0.04))
                         .withAngularTolerance(Degrees.of(3)));
+
+        SmartDashboard.putData(
+                "Face Target",
+                Commands.deadline(
+                        Commands.waitSeconds(2.0),
+                        DriveCommands.joystickDriveAtAngle(
+                                drive,
+                                () -> -controller.getLeftY() * 0.4,
+                                () -> -controller.getLeftX() * 0.4,
+                                robotState::getAngleToTarget,
+                                true)));
     }
 
     /**
