@@ -22,6 +22,8 @@ import static edu.wpi.first.units.Units.Meters;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -179,7 +181,6 @@ public class RobotContainer {
 
         // autoChooser.addOption(
         //         "Feedforward Characterization", FeedforwardCharacterizationAuto.create(ctx));
-
         // Configure the button bindings
         configureButtonBindings();
         initializeDashboard();
@@ -353,6 +354,16 @@ public class RobotContainer {
                 .negate()
                 .and(new Trigger(DriverStation::isDisabled))
                 .whileTrue(controller.rumble(1.0).ignoringDisable(true));
+        Alert controllorDisconnected =
+                new Alert("Driver Controller Disconnected!", AlertType.kWarning);
+        Alert operatorControllorDisconnected =
+                new Alert("Operator Controller Disconnected!", AlertType.kWarning);
+        controller.controllerDisconnected.onTrue(
+                Commands.runOnce(() -> controllorDisconnected.set(true)));
+        operatorController.controllerDisconnected.onTrue(
+                Commands.runOnce(() -> operatorControllorDisconnected.set(true)));
+        controllorDisconnected.close();
+        operatorControllorDisconnected.close();
     }
 
     /**

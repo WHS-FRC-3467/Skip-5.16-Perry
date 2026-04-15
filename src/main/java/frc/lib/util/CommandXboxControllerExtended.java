@@ -51,6 +51,7 @@ public class CommandXboxControllerExtended extends CommandXboxController {
     private double deadband = 0.0;
     private boolean applyCurve = false;
 
+    public final Trigger controllerDisconnected = new Trigger(() -> !hid.isConnected());
     public final Trigger joysticksZeroed =
             new Trigger(
                     () ->
