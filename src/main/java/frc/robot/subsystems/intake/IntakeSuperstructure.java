@@ -141,7 +141,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 IntakeLinearConstants.MAX_ACCELERATION,
                                 "Extend Linear"),
                         Commands.waitUntil(isRollerSafe),
-                        runRoller(100.0),
+                        runRoller(90.0),
                         Commands.waitUntil(isExtended))
                 .withName("Extend Intake With Roller");
     }
@@ -153,7 +153,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                                 IntakeLinearConstants.CRUISE_VELOCITY,
                                 IntakeLinearConstants.MAX_ACCELERATION,
                                 "Retract Linear"),
-                        runRoller(100.0).onlyIf(isRollerSafe),
+                        runRoller(90.0).onlyIf(isRollerSafe),
                         Commands.waitUntil(isRollerSafe.negate()),
                         stopRoller(),
                         Commands.waitUntil(isRetracted))
