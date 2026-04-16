@@ -64,7 +64,7 @@ public class ShotTracker {
 
     // Heuristic for whether a shot has passed through the shooter in ~ 0.5s using flywheel velocity
     // drop and power spike
-    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.50, DebounceType.kRising);
+    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.75, DebounceType.kRising);
 
     /**
      * Trigger input for hopperEmpty trigger, made explicit for compartmentalization and
