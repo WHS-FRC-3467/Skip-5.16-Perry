@@ -58,10 +58,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new InterpolatingDoubleTreeMap();
 
     static {
-        hubFlywheelMap.put(1.8, 26.5);
+        hubFlywheelMap.put(1.8, 26.0);
         hubFlywheelMap.put(2.1, 27.0);
         hubFlywheelMap.put(2.5, 28.0);
-        hubFlywheelMap.put(3.15, 32.0);
+        hubFlywheelMap.put(3.15, 31.5);
         hubFlywheelMap.put(3.55, 32.0);
         hubFlywheelMap.put(4.0, 33.5);
         hubFlywheelMap.put(4.5, 33.5);
