@@ -84,7 +84,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     static {
         hubHoodMap.put(1.8, 0.0);
-        hubHoodMap.put(2.1, 6.0);
+        hubHoodMap.put(2.1, 4.5);
         hubHoodMap.put(2.51, 7.0);
         hubHoodMap.put(3.15, 8.67);
         hubHoodMap.put(3.55, 10.0);
