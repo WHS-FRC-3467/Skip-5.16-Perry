@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 
@@ -19,8 +20,6 @@ import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakeSuperstructure;
 import frc.robot.subsystems.shooter.ShooterSuperstructure;
 import frc.robot.subsystems.tower.Tower;
-
-import java.util.Set;
 
 /**
  * Class containing useful individual commands or small-group command sequences that can be strung
@@ -52,17 +51,16 @@ public class AutoCommands {
                 Commands.parallel(
                                 shooter.setShooterContinuous().asProxy(),
                                 Commands.sequence(
-                                        Commands.waitUntil(
-                                                shooter.profileComplete.and(
-                                                        RobotState.getInstance().facingTarget)),
-                                        Commands.parallel(
-                                                indexer.shoot(),
-                                                tower.shoot(),
-                                                Commands.waitSeconds(0.5)
-                                                        .andThen(
-                                                                Commands.defer(
-                                                                        intake::retractIntake,
-                                                                        Set.of(intake))))))
+                                        Commands.parallel(tower.eject(), indexer.eject())
+                                                .withTimeout(0.5)
+                                                .withInterruptBehavior(
+                                                        InterruptionBehavior.kCancelSelf)
+                                                .withDeadline(
+                                                        Commands.sequence(
+                                                                Commands.waitSeconds(0.001),
+                                                                Commands.waitUntil(
+                                                                        shooter.readyToShootAtCurrentTarget))),
+                                        Commands.parallel(indexer.shoot(), tower.shoot())))
                         .until(robotState.hopperEmpty)
                         .withTimeout(timeoutDuration)
                         .finallyDo(
