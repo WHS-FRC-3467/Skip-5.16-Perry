@@ -131,6 +131,19 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
 
+    public final LoggedTrigger readyToShootAtCurrentTarget =
+            new LoggedTrigger(
+                    "RobotState/ReadyToShootAtCurrentTarget",
+                    profileComplete.and(
+                            robotState
+                                    .shouldFeed
+                                    .and(robotState.facingFeedTarget)
+                                    .or(
+                                            robotState
+                                                    .shouldFeed
+                                                    .negate()
+                                                    .and(robotState.facingTarget))));
+
     // User-defined trim at runtime, not including default trim
     private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
 
