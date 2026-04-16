@@ -111,7 +111,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final RotaryMechanism<?, ?> hoodIO;
     private final FlywheelMechanism<?> flywheelIO;
 
-    private final Debouncer profileCompleteDebouncer = new Debouncer(0.04, DebounceType.kRising);
+    private final Debouncer profileCompleteDebouncer = new Debouncer(0.1, DebounceType.kRising);
     public final LoggedTrigger profileComplete =
             new LoggedTrigger(
                     this.getName() + "/ProfileComplete",
