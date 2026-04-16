@@ -43,7 +43,11 @@ public class C1678Auto {
             new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
 
     public static Optional<AutoOption> create(AutoContext ctx, boolean shouldMirror) {
-        List<String> names = List.of(ChoreoTraj.C16781.name(), ChoreoTraj.C16782.name());
+        List<String> names =
+                List.of(
+                        ChoreoTraj.C16781.name(),
+                        ChoreoTraj.C16782.name(),
+                        ChoreoTraj.C16783.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
@@ -79,7 +83,7 @@ public class C1678Auto {
                             ResilientTrajectoryFollower thirdFollow =
                                     ctx.drive()
                                             .followTrajectoryResilient(
-                                                    trajectories.get(1), eventBindings);
+                                                    trajectories.get(2), eventBindings);
 
                             // Phase 1: Reset controllers, odometry, wait for delay,
                             // then follow the first trajectory. Because the sequence
@@ -89,6 +93,7 @@ public class C1678Auto {
                                     .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
 
                             routine.observe(firstFollow.done())
+                                    .or(routine.observe(thirdFollow.done()))
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 3.0),
