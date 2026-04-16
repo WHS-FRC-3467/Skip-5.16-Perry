@@ -60,7 +60,12 @@ public class AutoCommands {
                                                                 Commands.waitSeconds(0.001),
                                                                 Commands.waitUntil(
                                                                         shooter.readyToShootAtCurrentTarget))),
-                                        Commands.parallel(indexer.shoot(), tower.shoot())))
+                                        Commands.parallel(
+                                                indexer.shoot(),
+                                                tower.shoot(),
+                                                Commands.sequence(
+                                                        Commands.waitSeconds(0.5),
+                                                        intake.retractIntake()))))
                         .until(robotState.hopperEmpty)
                         .withTimeout(timeoutDuration)
                         .finallyDo(
