@@ -38,7 +38,7 @@ public class ShotTracker {
     // drop
     // is approximately at parity with an inactive shot drop because of the large MOI.
     private final LoggedTunableNumber shotDetectionThresholdMPS =
-            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 1.0);
+            new LoggedTunableNumber("ShotTracker/ShotDetectionThresholdMPS", 0.75);
 
     // Power draw required to assume a shot has passed through shooter
     private final LoggedTunableNumber powerDetectionThresholdWatts =
@@ -64,7 +64,7 @@ public class ShotTracker {
 
     // Heuristic for whether a shot has passed through the shooter in ~ 0.5s using flywheel velocity
     // drop and power spike
-    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.75, DebounceType.kRising);
+    private final Debouncer hopperEmptyDebouncer = new Debouncer(0.9, DebounceType.kRising);
 
     /**
      * Trigger input for hopperEmpty trigger, made explicit for compartmentalization and
