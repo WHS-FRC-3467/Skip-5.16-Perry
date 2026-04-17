@@ -398,8 +398,6 @@ public class DriveCommands {
      * @return the wheel radius characterization command
      */
     public static Command wheelRadiusCharacterization(Drive drive) {
-        RobotState robotState = RobotState.getInstance();
-
         SlewRateLimiter limiter = new SlewRateLimiter(WHEEL_RADIUS_RAMP_RATE);
         WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
@@ -431,18 +429,14 @@ public class DriveCommands {
                                         () -> {
                                             state.positions =
                                                     drive.getWheelRadiusCharacterizationPositions();
-                                            state.lastAngle =
-                                                    robotState.getEstimatedPose().getRotation();
+                                            state.lastAngle = drive.getRawGyroAngle();
                                             state.gyroDelta = 0.0;
                                         }),
 
                                 // Update gyro delta
                                 Commands.run(
                                                 () -> {
-                                                    var rotation =
-                                                            robotState
-                                                                    .getEstimatedPose()
-                                                                    .getRotation();
+                                                    var rotation = drive.getRawGyroAngle();
                                                     state.gyroDelta +=
                                                             Math.abs(
                                                                     rotation.minus(state.lastAngle)
