@@ -68,7 +68,7 @@ public class AutoCommands {
                                                         intake.retractIntake()))))
                         .raceWith(
                                 Commands.sequence(
-                                        Commands.waitSeconds(3.0),
+                                        Commands.waitSeconds(2.0),
                                         Commands.waitUntil(robotState.hopperEmpty)))
                         .withTimeout(timeoutDuration)
                         .finallyDo(
