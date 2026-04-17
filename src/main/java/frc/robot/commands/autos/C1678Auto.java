@@ -46,8 +46,8 @@ public class C1678Auto {
         List<String> names =
                 List.of(
                         ChoreoTraj.C16781.name(),
-                        ChoreoTraj.C16782.name(),
-                        ChoreoTraj.C16783.name());
+                        ChoreoTraj.C16783.name(),
+                        ChoreoTraj.C16782.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
