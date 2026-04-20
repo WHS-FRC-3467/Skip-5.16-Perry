@@ -17,7 +17,6 @@ package frc.robot.commands.autos;
 import static edu.wpi.first.units.Units.Degrees;
 
 import choreo.auto.AutoRoutine;
-import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 
@@ -65,9 +64,6 @@ public class C1678Auto {
                                             .newRoutine(
                                                     "C1678" + (shouldMirror ? "Right" : "Left"));
 
-                            // Still use AutoTrajectory for resetOdometry() lifecycle.
-                            AutoTrajectory first = routine.trajectory(trajectories.get(0));
-
                             Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
                             // Declare trajectory-following commands up front so we
@@ -89,8 +85,7 @@ public class C1678Auto {
                             // then follow the first trajectory. Because the sequence
                             // only contains Drive-requiring commands, the event-bound
                             // commands (Intake, Shooter) can schedule without conflict.
-                            routine.active()
-                                    .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
+                            routine.active().onTrue(firstFollow);
 
                             routine.observe(firstFollow.done())
                                     .or(routine.observe(thirdFollow.done()))

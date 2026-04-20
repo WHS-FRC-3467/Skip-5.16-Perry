@@ -186,6 +186,9 @@ public class Robot extends LoggedRobot {
             Elastic.selectTab(1);
         }
 
+        // Reset robot pose to the starting pose of the selected auto
+        robotState.resetPose(robotContainer.startPose);
+
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         if (autonomousCommand != null) {

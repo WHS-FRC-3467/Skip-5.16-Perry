@@ -96,7 +96,7 @@ public class RobotContainer {
     private final LoggedDashboardChooser<AutoOption> autoChooser;
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
-    private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
+    public Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
 
     /**
      * Pre-built auto command created during disabled by the {@code autoChooser.onChange()} callback
