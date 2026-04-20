@@ -87,9 +87,9 @@ public class RobotContainer {
     // private final ObjectDetector objectDetector;
 
     // Controller
-    private final CommandXboxControllerExtended controller =
+    public final CommandXboxControllerExtended controller =
             new CommandXboxControllerExtended(0).withDeadband(0.1);
-    private final CommandXboxControllerExtended operatorController =
+    public final CommandXboxControllerExtended operatorController =
             new CommandXboxControllerExtended(1).withDeadband(0.1);
 
     // Dashboard inputs
@@ -197,16 +197,6 @@ public class RobotContainer {
      * for teleop control.`
      */
     private void configureButtonBindings() {
-        // Default command, normal field-relative drive
-        drive.setDefaultCommand(
-                Commands.either(
-                        Commands.none(),
-                        DriveCommands.joystickDrive(
-                                drive,
-                                () -> -controller.getLeftY(),
-                                () -> -controller.getLeftX(),
-                                () -> -controller.getRightX()),
-                        () -> DriverStation.isAutonomous()));
 
         // Right Trigger: Shoot/Pass
         controller

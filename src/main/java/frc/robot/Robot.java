@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
+import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.HubState;
@@ -209,7 +210,17 @@ public class Robot extends LoggedRobot {
             Elastic.selectTab(0);
         }
 
-        // Safety Hood retract
+        // Schedule teleop default drive command
+        CommandScheduler.getInstance()
+                .setDefaultCommand(
+                        robotContainer.drive,
+                        DriveCommands.joystickDrive(
+                                robotContainer.drive,
+                                () -> -robotContainer.controller.getLeftY(),
+                                () -> -robotContainer.controller.getLeftX(),
+                                () -> -robotContainer.controller.getRightX()));
+
+        // Stop and stow the shooter at start of teleop
         CommandScheduler.getInstance().schedule(robotContainer.shooter.stopAndStow());
     }
 
