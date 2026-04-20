@@ -7,7 +7,10 @@
     "pathfind",
     "pathfinding",
     "Pathing",
+    "Spinup",
     "teleop",
+    "Traj",
+    "Unflipped",
     "Windham",
     "WPILOG"
   ],

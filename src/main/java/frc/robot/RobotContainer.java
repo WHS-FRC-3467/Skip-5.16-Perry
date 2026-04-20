@@ -37,7 +37,6 @@ import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
 import frc.robot.commands.autos.tuning.*;
 import frc.robot.commands.autos.utils.AutoContext;
@@ -218,7 +217,6 @@ public class RobotContainer {
                                                         () -> -controller.getLeftX() * 0.6,
                                                         robotState.feedLookaheadSeconds,
                                                         false),
-                                                // DriveCommands.staticAimTowardsTarget(drive),
                                                 DriveCommands.joystickDriveFacingFutureTarget(
                                                         drive,
                                                         () -> -controller.getLeftY() * 0.4,
@@ -253,7 +251,8 @@ public class RobotContainer {
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
 
-        // Right Bumper: Retract Intake
+        // Left or Right Bumper: Retract Intake
+        controller.leftBumper().onTrue(intake.retractIntake());
         controller.rightBumper().onTrue(intake.retractIntake());
 
         // Left Trigger: Intake
@@ -271,9 +270,6 @@ public class RobotContainer {
                                                                 .withTimeout(TOWER_TIMEOUT.get()),
                                                 Set.of(tower, indexer))
                                         .withInterruptBehavior(InterruptionBehavior.kCancelSelf)));
-
-        // D-Pad Up: Force Intake Linear Slide Back
-        controller.leftBumper().onTrue(intake.retractIntake());
 
         // D-Pad Down: Unjam
         controller
@@ -415,10 +411,6 @@ public class RobotContainer {
                 ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
 
         SmartDashboard.putData(
-                "Debug/SetOdometryToTestPose",
-                Commands.runOnce(() -> robotState.resetPose(new Pose2d(8, 5, Rotation2d.k180deg))));
-
-        SmartDashboard.putData(
                 "Fountain",
                 Commands.sequence(
                                 Commands.sequence(
@@ -434,24 +426,6 @@ public class RobotContainer {
                                                         shooter.stopAndStow(),
                                                         indexer.stopCommand(),
                                                         tower.stopCommand())));
-
-        // Drivetrain Commands
-        SmartDashboard.putData(
-                "Drive to Start Pose",
-                new DriveToPose(drive, () -> startPose)
-                        .withDistanceTolerance(Meters.of(0.04))
-                        .withAngularTolerance(Degrees.of(3)));
-
-        SmartDashboard.putData(
-                "Face Target",
-                Commands.deadline(
-                        Commands.waitSeconds(2.0),
-                        DriveCommands.joystickDriveAtAngle(
-                                drive,
-                                () -> -controller.getLeftY() * 0.4,
-                                () -> -controller.getLeftX() * 0.4,
-                                robotState::getAngleToTarget,
-                                true)));
     }
 
     /**
