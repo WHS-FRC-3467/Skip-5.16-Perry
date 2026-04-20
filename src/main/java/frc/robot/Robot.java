@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.HubState;
@@ -111,10 +110,10 @@ public class Robot extends LoggedRobot {
                     || constants.SteerMotorType != SteerMotorArrangement.TalonFX_Integrated) {
                 throw new RuntimeException(
                         "You are using an unsupported swerve configuration, which this template"
-                                + " does not support without manual customization. The 2025 release of"
-                                + " Phoenix supports some swerve configurations which were not"
-                                + " available during 2025 beta testing, preventing any development and"
-                                + " support from the AdvantageKit developers.");
+                            + " does not support without manual customization. The 2025 release of"
+                            + " Phoenix supports some swerve configurations which were not"
+                            + " available during 2025 beta testing, preventing any development and"
+                            + " support from the AdvantageKit developers.");
             }
         }
 
@@ -163,7 +162,6 @@ public class Robot extends LoggedRobot {
 
         // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
         fieldMap.setRobotPose(robotState.getEstimatedPose());
-        SmartDashboard.putNumber("Auto Delay", AutoCommands.getAutoDelay());
     }
 
     /** This function is called once when the robot is disabled. */
@@ -201,9 +199,7 @@ public class Robot extends LoggedRobot {
 
     /** This function is called periodically during autonomous. */
     @Override
-    public void autonomousPeriodic() {
-        // robotContainer.autoPreviewField.setRobotPose(robotState.getEstimatedPose());
-    }
+    public void autonomousPeriodic() {}
 
     /** This function is called once when teleop is enabled. */
     @Override
