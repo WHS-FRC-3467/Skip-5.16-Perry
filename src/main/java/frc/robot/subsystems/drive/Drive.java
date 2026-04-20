@@ -898,4 +898,8 @@ public class Drive extends SubsystemBase {
 
         return 0.5 * (b + c);
     }
+
+    public Rotation2d getRawGyroAngle() {
+        return gyroInputs.yawPosition;
+    }
 }

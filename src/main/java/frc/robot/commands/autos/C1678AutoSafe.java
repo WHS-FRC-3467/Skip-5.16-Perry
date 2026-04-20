@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class C1678Auto {
+public class C1678AutoSafe {
 
     private static final Alert TRAJECTORIES_MISSING =
             new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
@@ -45,7 +45,7 @@ public class C1678Auto {
     public static Optional<AutoOption> create(AutoContext ctx, boolean shouldMirror) {
         List<String> names =
                 List.of(
-                        ChoreoTraj.C16781.name(),
+                        ChoreoTraj.C1678Safe1.name(),
                         ChoreoTraj.C16782.name(),
                         ChoreoTraj.C16783.name());
 
@@ -63,7 +63,8 @@ public class C1678Auto {
                             AutoRoutine routine =
                                     ctx.autoFactory()
                                             .newRoutine(
-                                                    "C1678" + (shouldMirror ? "Right" : "Left"));
+                                                    "C1678Safe"
+                                                            + (shouldMirror ? "Right" : "Left"));
 
                             // Still use AutoTrajectory for resetOdometry() lifecycle.
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));

@@ -138,6 +138,14 @@ public class RobotContainer {
         C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
         C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
+        C1678AutoSafe.create(ctx, false)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
+        C1678AutoSafe.create(ctx, true)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Right", a));
+
+        BAuto.create(ctx, false).ifPresent(a -> autoChooser.addOption("DNBAuto-Left", a));
+        BAuto.create(ctx, true).ifPresent(a -> autoChooser.addOption("DNBAuto-Right", a));
+
         // C1678Auto.create(ctx, false, true)
         //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
         // C1678Auto.create(ctx, true, true)
@@ -211,16 +219,34 @@ public class RobotContainer {
                                                         robotState.feedLookaheadSeconds,
                                                         false),
                                                 // DriveCommands.staticAimTowardsTarget(drive),
-                                                DriveCommands.joystickDriveFacingTarget(
+                                                DriveCommands.joystickDriveFacingFutureTarget(
                                                         drive,
                                                         () -> -controller.getLeftY() * 0.4,
                                                         () -> -controller.getLeftX() * 0.4,
+                                                        robotState.hubLookaheadSeconds,
                                                         true),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
-                                                Commands.waitUntil(
-                                                        shooter.readyToShootAtCurrentTarget),
+                                                Commands.defer(
+                                                                () ->
+                                                                        Commands.parallel(
+                                                                                        tower
+                                                                                                .eject(),
+                                                                                        indexer
+                                                                                                .eject())
+                                                                                .withTimeout(
+                                                                                        TOWER_TIMEOUT
+                                                                                                .get())
+                                                                                .withInterruptBehavior(
+                                                                                        InterruptionBehavior
+                                                                                                .kCancelSelf),
+                                                                Set.of(tower))
+                                                        .withDeadline(
+                                                                Commands.sequence(
+                                                                        Commands.waitSeconds(0.001),
+                                                                        Commands.waitUntil(
+                                                                                shooter.readyToShootAtCurrentTarget))),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(

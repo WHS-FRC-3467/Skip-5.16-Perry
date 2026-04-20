@@ -16,13 +16,14 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -62,11 +63,14 @@ import java.util.function.Supplier;
  */
 public class DriveCommands {
     @Getter private static final double DEADBAND = 0.1;
-
+    @Getter private static final double ANGLE_MAX_VELOCITY = 8.3;
+    @Getter private static final double ANGLE_MAX_ACCELERATION = 20.0;
+    private static final LoggedTunableNumber ANGLE_KP =
+            new LoggedTunableNumber("Drive/AngleP", 9.0);
+    private static final LoggedTunableNumber ANGLE_KD =
+            new LoggedTunableNumber("Drive/AngleD", 0.6);
     private static final LoggedTunableNumber ANGLE_TOLERANCE_DEGREES =
-            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 4.0);
-
-    // FF characterization parameters
+            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 1.0);
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 2.0; // Volts/Sec
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.2; // Rad/Sec
@@ -167,10 +171,17 @@ public class DriveCommands {
             Supplier<Rotation2d> rotationSupplier,
             boolean stopWithX) {
         RobotState robotState = RobotState.getInstance();
-        PIDController ANGLE_CONTROLLER = new PIDController(9.0, 0.0, 0.6);
 
-        ANGLE_CONTROLLER.enableContinuousInput(-Math.PI, Math.PI);
-        ANGLE_CONTROLLER.setTolerance(Units.degreesToRadians(ANGLE_TOLERANCE_DEGREES.get()));
+        // Create PID controller
+        ProfiledPIDController angleController =
+                new ProfiledPIDController(
+                        ANGLE_KP.get(),
+                        0.0,
+                        ANGLE_KD.get(),
+                        new TrapezoidProfile.Constraints(
+                                ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+        angleController.setTolerance(Units.degreesToRadians(ANGLE_TOLERANCE_DEGREES.get()));
+        angleController.enableContinuousInput(-Math.PI, Math.PI);
 
         // Construct command
         return Commands.run(
@@ -182,19 +193,15 @@ public class DriveCommands {
 
                             // Calculate angular speed
                             double omega =
-                                    ANGLE_CONTROLLER.calculate(
+                                    angleController.calculate(
                                             robotState
                                                     .getEstimatedPose()
                                                     .getRotation()
                                                     .getRadians(),
                                             rotationSupplier.get().getRadians());
-                            Logger.recordOutput(
-                                    "Drive/Angle PID/ErrorRads",
-                                    robotState.getEstimatedPose().getRotation().getRadians()
-                                            - rotationSupplier.get().getRadians());
-                            Logger.recordOutput(
-                                    "Drive/Angle PID/AtGoal", ANGLE_CONTROLLER.atSetpoint());
-                            if (ANGLE_CONTROLLER.atSetpoint()) {
+
+                            Logger.recordOutput("AngleAtGoal", angleController.atGoal());
+                            if (angleController.atSetpoint()) {
                                 if (Math.hypot(linearVelocity.getX(), linearVelocity.getY())
                                                 < DEADBAND
                                         && stopWithX) {
@@ -205,8 +212,8 @@ public class DriveCommands {
                                     return;
                                 } else {
                                     // If we're at the angle goal but the driver is commanding
-                                    // linear motion, set angular speed to zero to prevent
-                                    // overshooting.
+                                    // linear
+                                    // motion, set angular speed to zero to prevent overshooting.
                                     omega = 0.0;
                                 }
                             }
@@ -234,13 +241,15 @@ public class DriveCommands {
                         },
                         drive)
 
-                // Reset controller state when the command starts
+                // Reset PID controller when command starts
                 .beforeStarting(
                         () -> {
-                            ANGLE_CONTROLLER.reset();
-                            Logger.recordOutput(
-                                    "Drive/Angle PID/ToleranceRads",
-                                    ANGLE_CONTROLLER.getPositionTolerance());
+                            angleController.reset(
+                                    robotState.getEstimatedPose().getRotation().getRadians());
+                            angleController.setP(ANGLE_KP.get());
+                            angleController.setD(ANGLE_KD.get());
+                            angleController.setTolerance(
+                                    Units.degreesToRadians(ANGLE_TOLERANCE_DEGREES.get()));
                         })
                 .withName("Joystick Drive At Angle");
     }
@@ -255,10 +264,10 @@ public class DriveCommands {
      * @return the joystick drive facing target command
      */
     public static Command joystickDriveFacingTarget(
-            Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier, boolean stopWithX) {
+            Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         RobotState robotState = RobotState.getInstance();
         return joystickDriveAtAngle(
-                drive, xSupplier, ySupplier, robotState::getAngleToTarget, stopWithX);
+                drive, xSupplier, ySupplier, robotState::getAngleToTarget, false);
     }
 
     /**
@@ -389,8 +398,6 @@ public class DriveCommands {
      * @return the wheel radius characterization command
      */
     public static Command wheelRadiusCharacterization(Drive drive) {
-        RobotState robotState = RobotState.getInstance();
-
         SlewRateLimiter limiter = new SlewRateLimiter(WHEEL_RADIUS_RAMP_RATE);
         WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
@@ -422,18 +429,14 @@ public class DriveCommands {
                                         () -> {
                                             state.positions =
                                                     drive.getWheelRadiusCharacterizationPositions();
-                                            state.lastAngle =
-                                                    robotState.getEstimatedPose().getRotation();
+                                            state.lastAngle = drive.getRawGyroAngle();
                                             state.gyroDelta = 0.0;
                                         }),
 
                                 // Update gyro delta
                                 Commands.run(
                                                 () -> {
-                                                    var rotation =
-                                                            robotState
-                                                                    .getEstimatedPose()
-                                                                    .getRotation();
+                                                    var rotation = drive.getRawGyroAngle();
                                                     state.gyroDelta +=
                                                             Math.abs(
                                                                     rotation.minus(state.lastAngle)
