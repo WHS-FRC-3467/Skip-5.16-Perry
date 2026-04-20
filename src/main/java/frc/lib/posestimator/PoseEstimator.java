@@ -90,8 +90,9 @@ public class PoseEstimator {
 
     private Predicate<Pose2d> poseValidator = pose -> true;
 
-    @Getter private Pose2d estimatedPose = Pose2d.kZero;
-    private Pose2d odometryPoseAtReset = Pose2d.kZero;
+    // Initialize to value not outside the field
+    @Getter private Pose2d estimatedPose = new Pose2d(1, 1, new Rotation2d());
+    private Pose2d odometryPoseAtReset = new Pose2d(1, 1, new Rotation2d());
     private boolean visionLockedToReset = false;
 
     public PoseEstimator(

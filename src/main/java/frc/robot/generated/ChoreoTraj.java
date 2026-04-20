@@ -21,31 +21,59 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
+    public static final ChoreoTraj B1 = new ChoreoTraj(
+        "B1",
+        OptionalInt.empty(),
+        4.83467,
+        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
+    );
+    public static final ChoreoTraj B2 = new ChoreoTraj(
+        "B2",
+        OptionalInt.empty(),
+        7.01275,
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
+    );
+    public static final ChoreoTraj B22 = new ChoreoTraj(
+        "B22",
+        OptionalInt.empty(),
+        6.10957,
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
+    );
     public static final ChoreoTraj BumpPath = new ChoreoTraj(
         "BumpPath",
         OptionalInt.empty(),
-        1.43126,
-        new Pose2d(6.18074, 5.3, Rotation2d.fromRadians(-1.5708)),
+        1.44309,
+        new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
     public static final ChoreoTraj C16781 = new ChoreoTraj(
         "C16781",
         OptionalInt.empty(),
-        5.34257,
+        5.5923,
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
     public static final ChoreoTraj C16782 = new ChoreoTraj(
         "C16782",
         OptionalInt.empty(),
-        7.26849,
+        7.51303,
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
+    );
+    public static final ChoreoTraj C16783 = new ChoreoTraj(
+        "C16783",
+        OptionalInt.empty(),
+        7.01104,
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
+        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
     public static final ChoreoTraj C1678Safe1 = new ChoreoTraj(
         "C1678Safe1",
         OptionalInt.empty(),
-        5.30448,
+        5.42538,
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
@@ -132,9 +160,13 @@ public record ChoreoTraj(
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
+        Map.entry("B1", B1),
+        Map.entry("B2", B2),
+        Map.entry("B22", B22),
         Map.entry("BumpPath", BumpPath),
         Map.entry("C16781", C16781),
         Map.entry("C16782", C16782),
+        Map.entry("C16783", C16783),
         Map.entry("C1678Safe1", C1678Safe1),
         Map.entry("Depot1", Depot1),
         Map.entry("Neutral1ML_1_Safe", Neutral1ML_1_Safe),

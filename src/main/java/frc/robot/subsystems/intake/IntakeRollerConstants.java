@@ -49,7 +49,7 @@ public class IntakeRollerConstants {
 
     public static final String NAME = "Intake Roller";
 
-    public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(59.0);
+    public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(35.0);
     public static final AngularAcceleration MAX_ACCELERATION =
             RotationsPerSecondPerSecond.of(110.0);
 

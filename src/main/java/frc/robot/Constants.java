@@ -22,8 +22,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.RobotBase;
 
-import java.util.Set;
-
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
  * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics sim) and "replay"
@@ -53,6 +51,4 @@ public final class Constants {
     public static final Distance FULL_ROBOT_WIDTH = Inches.of(27.0 + 3.25);
     public static final Distance FULL_ROBOT_LENGTH = Inches.of(27.0 + 3.25);
     public static final Distance BUMPER_HEIGHT = Inches.of(4.0);
-    // public static final Set<Integer> FILTERED_TAGS = Set.of(1, 12, 22, 23, 28, 17, 7, 6);
-    public static final Set<Integer> FILTERED_TAGS = Set.of();
 }

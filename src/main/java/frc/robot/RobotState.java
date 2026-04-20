@@ -57,8 +57,9 @@ public class RobotState {
 
     private static final LoggedTunableNumber SHOOT_TOLERANCE_DEGREES =
             new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 2.0);
-    private static final LoggedTunableNumber MAX_HOOD_RETRACT_TIME =
-            new LoggedTunableNumber("RobotState/MaxHoodRetractTime", 0.2);
+
+    private static final LoggedTunableNumber FEED_TOLERANCE_DEGREES =
+            new LoggedTunableNumber("RobotState/FeedToleranceDegrees", 6.0);
 
     private static final double LINEAR_ODOMETRY_STD_DEV = 0.3;
     private static final double ANGULAR_ODOMETRY_STD_DEV = 0.15;
@@ -68,6 +69,9 @@ public class RobotState {
 
     public final LoggedTunableNumber feedLookaheadSeconds =
             new LoggedTunableNumber("RobotState/FeedLookaheadSeconds", 1.0);
+
+    public final LoggedTunableNumber hubLookaheadSeconds =
+            new LoggedTunableNumber("RobotState/HubLookaheadSeconds", .2);
 
     @AutoLogOutput(key = "Drive/ActiveTrajectoryPose")
     @Getter
@@ -105,78 +109,8 @@ public class RobotState {
                                         getAngleToTarget(futureTranslation)
                                                 .minus(getEstimatedPose().getRotation())
                                                 .getDegrees())
-                                < SHOOT_TOLERANCE_DEGREES.get();
+                                < FEED_TOLERANCE_DEGREES.get();
                     });
-
-    /**
-     * Whether or not the robot is entering the trench in {@code MAX_HOOD_RETRACT_TIME}. For use to
-     * check whether we need to force the hood to retract to prevent decapitation.
-     */
-    public final LoggedTrigger enteringTrench =
-            new LoggedTrigger(
-                    "RobotState/EnteringTrench",
-                    () -> {
-                        // Test if the robot is in motion
-                        ChassisSpeeds chassisVelocity = getFieldRelativeVelocity();
-                        double linearVelocityMPS =
-                                Math.hypot(
-                                        chassisVelocity.vxMetersPerSecond,
-                                        chassisVelocity.vyMetersPerSecond);
-                        double angularVelocityRadsPS = chassisVelocity.omegaRadiansPerSecond;
-
-                        // Arbitrary
-                        boolean inMotion = linearVelocityMPS > 0.02 || angularVelocityRadsPS > 0.03;
-
-                        // Predict future pose
-                        Pose2d futurePose = getFuturePose(MAX_HOOD_RETRACT_TIME.get());
-
-                        // Normalize to alliance frame
-                        Pose2d pose = FieldUtil.apply(futurePose);
-
-                        double x = pose.getX();
-                        double y = pose.getY();
-
-                        double halfRobotLength = Constants.FULL_ROBOT_LENGTH.in(Meters) / 2.0;
-
-                        // Alliance trench corridor
-                        double trenchMinX =
-                                FieldConstants.LeftBump.NEAR_LEFT_CORNER.getX() - halfRobotLength;
-                        double trenchMaxX =
-                                FieldConstants.LeftBump.FAR_LEFT_CORNER.getX() + halfRobotLength;
-
-                        // Opponent trench corridor (mirrored)
-                        double oppTrenchMinX = FieldConstants.FIELD_LENGTH - trenchMaxX;
-                        double oppTrenchMaxX = FieldConstants.FIELD_LENGTH - trenchMinX;
-
-                        boolean inAllianceCorridor = x >= trenchMinX && x <= trenchMaxX;
-
-                        boolean inOpponentCorridor = x >= oppTrenchMinX && x <= oppTrenchMaxX;
-
-                        boolean inRightTrench =
-                                y >= FieldConstants.LinesHorizontal.RIGHT_TRENCH_OPEN_END
-                                        && y
-                                                <= FieldConstants.LinesHorizontal
-                                                        .RIGHT_TRENCH_OPEN_START;
-
-                        boolean inLeftTrench =
-                                y >= FieldConstants.LinesHorizontal.LEFT_TRENCH_OPEN_END
-                                        && y
-                                                <= FieldConstants.LinesHorizontal
-                                                        .LEFT_TRENCH_OPEN_START;
-
-                        return (inAllianceCorridor || inOpponentCorridor)
-                                && (inLeftTrench || inRightTrench)
-                                // Allow hood actuation while stationary
-                                && inMotion;
-                    });
-
-    /** Trigger determining whether hood is safe to actuate for a HUB shot in auto. */
-    public final LoggedTrigger hoodSafe =
-            new LoggedTrigger(
-                    "RobotState/hoodSafe",
-                    () ->
-                            getFieldRegion() == FieldRegion.ALLIANCE_ZONE
-                                    && enteringTrench.negate().getAsBoolean());
 
     public final LoggedTrigger shouldFeed =
             new LoggedTrigger(
@@ -187,12 +121,15 @@ public class RobotState {
                                 case FEED_LEFT, FEED_RIGHT -> true;
                             });
 
-    /** Trigger determining whether robot is ready for a static shot */
-    private final Debouncer staticShootingDebouncer = new Debouncer(0.05, DebounceType.kRising);
+    private final Debouncer staticShootingDebouncer = new Debouncer(0.20, DebounceType.kRising);
 
+    /**
+     * Trigger determining whether robot is instantaneously positioned for a static shot -- robot
+     * stationary and facing the target.
+     */
     public final LoggedTrigger withinStaticShootingTolerance =
             new LoggedTrigger(
-                    "RobotState/withinStaticShootingTolerance",
+                    "RobotState/WithinStaticShootingTolerance",
                     () -> {
                         ChassisSpeeds chassisVelocity = getFieldRelativeVelocity();
                         double linearVelocityMPS =
@@ -201,15 +138,23 @@ public class RobotState {
                                         chassisVelocity.vyMetersPerSecond);
                         // Arbitrary threshold to determine if the robot is ready for a
                         // static shot
-                        return linearVelocityMPS < 0.05 && facingTarget.getAsBoolean();
+                        return linearVelocityMPS < 0.1 && facingTarget.getAsBoolean();
                     });
 
-    public final LoggedTrigger atStaticShootingState =
+    /**
+     * Trigger determining whether robot is steadily positioned for a static shot -- robot
+     * stationary and facing the target for at least 0.20s (i.e. debounced).
+     */
+    public final LoggedTrigger atStaticShootingPosition =
             new LoggedTrigger(
-                    "RobotState/atStaticShootingState",
+                    "RobotState/AtStaticShootingPosition",
                     () ->
                             staticShootingDebouncer.calculate(
                                     withinStaticShootingTolerance.getAsBoolean()));
+
+    @Setter
+    public LoggedTrigger hopperEmpty = new LoggedTrigger("RobotState/HopperEmpty", () -> false);
+
     // -------- POSE ESTIMATION --------
 
     private final PoseEstimator poseEstimator =
@@ -250,7 +195,7 @@ public class RobotState {
      * @param observation the odometry observation to add
      */
     public void addOdometryObservation(OdometryObservation observation) {
-        if (DriverStation.isDisabled()) return;
+        // if (DriverStation.isDisabled()) return;
 
         poseEstimator.addOdometryObservation(observation);
     }
@@ -594,6 +539,7 @@ public class RobotState {
      *
      * @return the angle to the target
      */
+    @AutoLogOutput(key = "RobotState/AngleToTarget")
     public Rotation2d getAngleToTarget() {
         return getTarget()
                 .getAllianceTranslation()
