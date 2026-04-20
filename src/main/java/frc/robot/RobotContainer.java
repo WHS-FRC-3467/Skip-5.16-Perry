@@ -199,11 +199,14 @@ public class RobotContainer {
     private void configureButtonBindings() {
         // Default command, normal field-relative drive
         drive.setDefaultCommand(
-                DriveCommands.joystickDrive(
-                        drive,
-                        () -> -controller.getLeftY(),
-                        () -> -controller.getLeftX(),
-                        () -> -controller.getRightX()));
+                Commands.either(
+                        Commands.none(),
+                        DriveCommands.joystickDrive(
+                                drive,
+                                () -> -controller.getLeftY(),
+                                () -> -controller.getLeftX(),
+                                () -> -controller.getRightX()),
+                        () -> DriverStation.isAutonomous()));
 
         // Right Trigger: Shoot/Pass
         controller
