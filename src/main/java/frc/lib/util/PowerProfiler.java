@@ -88,13 +88,13 @@ public class PowerProfiler {
     public void periodicAfterScheduler() {
         double loopTimeSeconds = getLoopTime();
         for (var reg : mechanisms) {
+            int numMotors = reg.mechanism().getNumberOfMotors();
             // Approximation: total mechanism supply current ~ leader supply current * total motor
-            // count.
-            double currentAmps =
-                    Math.abs(reg.mechanism().getSupplyCurrent().in(Amps))
-                            * reg.mechanism().getNumberOfMotors();
+            // count. Bus voltage ~ constant for all motors.
+            double currentAmps = Math.abs(reg.mechanism().getSupplyCurrent().in(Amps)) * numMotors;
             double appliedVolts = Math.abs(reg.mechanism().getAppliedVoltage().in(Volts));
             reportUsage(reg.key(), currentAmps, appliedVolts, loopTimeSeconds);
+            Logger.recordOutput("PowerProfiler/NumRegisteredMotors/" + reg.key(), numMotors);
         }
 
         for (var reg : generics) {
