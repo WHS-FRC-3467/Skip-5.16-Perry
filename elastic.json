@@ -184,7 +184,6 @@
             }
           },
           {
-<<<<<<< HEAD
             "title": "Inches from Start",
             "x": 450.0,
             "y": 400.0,
@@ -248,11 +247,6 @@
             "title": "Delay",
             "x": 900.0,
             "y": 550.0,
-=======
-            "title": "Auto Delay",
-            "x": 300.0,
-            "y": 400.0,
->>>>>>> origin/dev
             "width": 150.0,
             "height": 150.0,
             "type": "Text Display",
@@ -264,7 +258,6 @@
             }
           },
           {
-<<<<<<< HEAD
             "title": "SecondDelay",
             "x": 1050.0,
             "y": 550.0,
@@ -276,24 +269,12 @@
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": true
-=======
-            "title": "Alerts",
-            "x": 1050.0,
-            "y": 0.0,
-            "width": 300.0,
-            "height": 550.0,
-            "type": "Alerts",
-            "properties": {
-              "topic": "/SmartDashboard/Alerts",
-              "period": 0.06
->>>>>>> origin/dev
             }
           }
         ]
       }
     },
     {
-<<<<<<< HEAD
       "name": "Pit",
       "grid_layout": {
         "layouts": [
@@ -484,8 +465,6 @@
       }
     },
     {
-=======
->>>>>>> origin/dev
       "name": "Sim",
       "grid_layout": {
         "layouts": [
