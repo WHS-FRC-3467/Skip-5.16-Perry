@@ -227,10 +227,10 @@ public class Module {
      * Registers the drive and steer motors for each module as generic power devices with the power
      * profiler
      */
-    public void registerModule(String prefix, PowerProfiler powerProfile) {
-        powerProfile.registerGeneric(
+    public void registerModule(String prefix, PowerProfiler powerProfiler) {
+        powerProfiler.registerGeneric(
                 prefix + "/Drive", () -> inputs.driveCurrentAmps, () -> inputs.driveAppliedVolts);
-        powerProfile.registerGeneric(
+        powerProfiler.registerGeneric(
                 prefix + "/Steer", () -> inputs.turnCurrentAmps, () -> inputs.turnAppliedVolts);
     }
 }

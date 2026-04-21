@@ -56,6 +56,9 @@ public class PowerProfiler {
     private boolean isInitialized = false;
     private double lastTimestamp = 0.0;
 
+    private static final double DEFAULT_LOOP_TIME_SECONDS = 0.02;
+    private static final double MAX_LOOP_TIME_SECONDS  = 0.1;
+
     /**
      * Register a mechanism to the power profiler (e.g. rotary, linear)
      *
@@ -159,16 +162,27 @@ public class PowerProfiler {
 
     // RIO loop time in seconds
     private double getLoopTime() {
-        double dt;
-        double now = Timer.getFPGATimestamp();
+        double now = Timer.getTimestamp();
+
         if (!isInitialized) {
-            dt = 0.02;
+            lastTimestamp = now;
             isInitialized = true;
-        } else {
-            dt = now - lastTimestamp;
+            return DEFAULT_LOOP_TIME_SECONDS;
+        } 
+
+        if (Logger.hasReplaySource()) {
+            lastTimestamp = now; 
+            return DEFAULT_LOOP_TIME_SECONDS;
         }
+
+        double dt = now - lastTimestamp;
         lastTimestamp = now;
-        return dt;
+
+        if (dt <= 0.0) {
+            return DEFAULT_LOOP_TIME_SECONDS;
+        }
+
+        return Math.min(dt, MAX_LOOP_TIME_SECONDS);
     }
 
     // Reset loop totals but maintain accumulated values
@@ -179,7 +193,8 @@ public class PowerProfiler {
         subsystemPowers.replaceAll((k, v) -> 0.0);
     }
 
-    private static double energyToWattHours(double energy) {
-        return energy / 3600.0;
+    // 1 W*h = 1 J/s * h = 1 J/s * 3600 s = 3600 J
+    private static double energyToWattHours(double energyJoules) {
+        return energyJoules / 3600.0;
     }
 }
