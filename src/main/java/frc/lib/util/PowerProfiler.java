@@ -57,7 +57,7 @@ public class PowerProfiler {
     private double lastTimestamp = 0.0;
 
     private static final double DEFAULT_LOOP_TIME_SECONDS = 0.02;
-    private static final double MAX_LOOP_TIME_SECONDS  = 0.1;
+    private static final double MAX_LOOP_TIME_SECONDS = 0.1;
 
     /**
      * Register a mechanism to the power profiler (e.g. rotary, linear)
@@ -168,10 +168,10 @@ public class PowerProfiler {
             lastTimestamp = now;
             isInitialized = true;
             return DEFAULT_LOOP_TIME_SECONDS;
-        } 
+        }
 
         if (Logger.hasReplaySource()) {
-            lastTimestamp = now; 
+            lastTimestamp = now;
             return DEFAULT_LOOP_TIME_SECONDS;
         }
 
