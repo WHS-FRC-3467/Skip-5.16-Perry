@@ -16,8 +16,8 @@ public final class ChoreoVars {
     public static final Distance Neutral2ML_Safe_Y = Units.Meters.of(4.5);
 
     public static final class Poses {
-        public static final Pose2d BumpEntrance = new Pose2d(6.180738, 5.3, Rotation2d.fromRadians(4.712389));
-        public static final Pose2d BumpExit = new Pose2d(3.8853905, 5.3005624, Rotation2d.fromRadians(4.712389));
+        public static final Pose2d BumpEntrance = new Pose2d(6.180738, 5.408361, Rotation2d.fromRadians(4.712389));
+        public static final Pose2d BumpExit = new Pose2d(3.8853905, 5.408361, Rotation2d.fromRadians(4.712389));
         public static final Pose2d C1678Shoot = new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187));
         public static final Pose2d FullNeutralMid = new Pose2d(6.5138288, 4.2193413, Rotation2d.fromRadians(4.712389));
         public static final Pose2d NeutralShoot = new Pose2d(3.12514, 7.3089199, Rotation2d.fromRadians(-1.1536837));

@@ -53,7 +53,8 @@ public class FlywheelConstants {
 
     private static PID getPID() {
         if (RobotBase.isReal()) {
-            return new PID(16.0, 0.0, 0.0).withS(5.5).withA(0.8);
+            return new PID(16.0, 0.0, 0.0).withS(5.5).withA(0.8); // Flywheel tunings
+            // return new PID(20.0, 0.0, 0.0).withS(3).withA(0.47).withV(.11); // No flywheel tuning
         } else {
             return new PID(10.0, 0.0, 0.0).withV(1.8);
         }

@@ -151,12 +151,12 @@
         ],
         "containers": [
           {
-            "title": "Auto Preview",
-            "x": 0.0,
+            "title": "Starting Position",
+            "x": 900.0,
             "y": 0.0,
-            "width": 900.0,
+            "width": 150.0,
             "height": 400.0,
-            "type": "Field",
+            "type": "List Layout",
             "properties": {
               "topic": "/SmartDashboard/Auto Preview",
               "period": 0.06,
