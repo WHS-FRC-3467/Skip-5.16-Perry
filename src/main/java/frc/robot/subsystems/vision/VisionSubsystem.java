@@ -60,7 +60,10 @@ public class VisionSubsystem extends SubsystemBase {
     public static final double LINEAR_STDDEV_BASELINE = 0.03;
 
     /** Baseline angular standard deviation used for vision observations. */
-    public static final double ANGULAR_STDDEV_BASELINE = 0.05;
+    public static final double ANGULAR_STDDEV_BASELINE = 0.10;
+
+    /** Ignore rotation corrections from single-tag solves. */
+    public static final double SINGLE_TAG_ANGULAR_STDDEV = Double.POSITIVE_INFINITY;
 
     /** Maximum allowable height (Z-axis) of a detected pose to be considered valid. */
     public static final double MAX_Z_METERS = 0.75;
@@ -267,7 +270,10 @@ public class VisionSubsystem extends SubsystemBase {
                 double stdDevFactor = computeStdDevFactor(camera, result, poseRecord);
 
                 double linearStdDev = LINEAR_STDDEV_BASELINE * stdDevFactor;
-                double angularStdDev = ANGULAR_STDDEV_BASELINE * stdDevFactor;
+                double angularStdDev =
+                        poseRecord.tagsUsed().size() == 1
+                                ? SINGLE_TAG_ANGULAR_STDDEV
+                                : ANGULAR_STDDEV_BASELINE * stdDevFactor;
 
                 robotState.addVisionObservation(
                         new VisionPoseObservation(

@@ -17,6 +17,7 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.*;
 
@@ -32,16 +33,16 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
     private final LinearMechanism<?> intakeLinearIO;
     private final FlywheelMechanism<?> intakeRollerIO;
 
-    private static final LoggedTunableNumber ROLLER_EJECT_RPS =
-            new LoggedTunableNumber(IntakeRollerConstants.NAME + "/EjectRPS", -35.0);
-
-    private static final LoggedTunableNumber SLOW_MPS =
-            new LoggedTunableNumber(IntakeLinearConstants.NAME + "/SlowMPS", 0.25);
-
     private final LoggedTrigger isExtended;
     private final LoggedTrigger isRetracted;
+    private final LoggedTrigger isRollerSafe;
 
-    private final Distance retractDistance = IntakeLinearConstants.MIN_DISTANCE;
+    private final Debouncer rollerSafeDebouncer =
+            new Debouncer(0.02, Debouncer.DebounceType.kRising);
+
+    private static final LoggedTunableNumber MIN_SAFE_ROLLER_DISTANCE =
+            new LoggedTunableNumber(
+                    IntakeLinearConstants.NAME + "/MinSafeRollerDistanceInches", 5.0);
 
     public IntakeSuperstructure(
             LinearMechanism<?> intakeLinearIO, FlywheelMechanism<?> intakeRollerIO) {
@@ -49,6 +50,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
         this.intakeLinearIO = intakeLinearIO;
         this.intakeRollerIO = intakeRollerIO;
 
+        // Sets initial target position to fully retracted
         intakeLinearIO.runLinearPosition(
                 IntakeLinearConstants.MIN_DISTANCE,
                 PIDSlot.SLOT_0,
@@ -59,25 +61,44 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                 new LoggedTrigger(
                         "IntakeSuperstructure/IsExtended",
                         () ->
-                                MathUtil.isNear(
-                                        IntakeLinearConstants.MAX_DISTANCE.in(Meters),
-                                        intakeLinearIO.getLinearPosition().in(Meters),
-                                        IntakeLinearConstants.TOLERANCE.in(Meters)));
+                                intakeLinearIO
+                                        .getLinearPosition()
+                                        .isNear(
+                                                IntakeLinearConstants.MAX_DISTANCE,
+                                                IntakeLinearConstants.TOLERANCE));
 
         isRetracted =
                 new LoggedTrigger(
                         "IntakeSuperstructure/IsRetracted",
                         () ->
-                                MathUtil.isNear(
-                                        retractDistance.in(Meters),
-                                        intakeLinearIO.getLinearPosition().in(Meters),
-                                        IntakeLinearConstants.TOLERANCE.in(Meters)));
+                                intakeLinearIO
+                                        .getLinearPosition()
+                                        .isNear(
+                                                IntakeLinearConstants.MIN_DISTANCE,
+                                                IntakeLinearConstants.TOLERANCE));
+
+        isRollerSafe =
+                new LoggedTrigger(
+                        "IntakeSuperstructure/IsRollerSafe",
+                        () ->
+                                rollerSafeDebouncer.calculate(
+                                        intakeLinearIO
+                                                .getLinearPosition()
+                                                .gte(Inches.of(MIN_SAFE_ROLLER_DISTANCE.get()))));
     }
 
     /** Returns true if the intake roller is running and the intake is extended. */
     public boolean isIntaking() {
         return intakeRollerIO.getVelocity().in(RotationsPerSecond) > 1.0
                 && isExtended.getAsBoolean();
+    }
+
+    private Distance clampDistance(Distance goal) {
+        return Meters.of(
+                MathUtil.clamp(
+                        goal.in(Meters),
+                        IntakeLinearConstants.MIN_DISTANCE.in(Meters),
+                        IntakeLinearConstants.MAX_DISTANCE.in(Meters)));
     }
 
     /**
@@ -98,14 +119,6 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                 .withName(name);
     }
 
-    private Distance clampDistance(Distance goal) {
-        return Meters.of(
-                MathUtil.clamp(
-                        goal.in(Meters),
-                        IntakeLinearConstants.MIN_DISTANCE.in(Meters),
-                        IntakeLinearConstants.MAX_DISTANCE.in(Meters)));
-    }
-
     private Command runRoller(double amps) {
         return this.runOnce(() -> intakeRollerIO.runCurrent(Amps.of(amps))).withName("Run Roller");
     }
@@ -116,45 +129,36 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
 
     public Command ejectRoller() {
         return this.startEnd(
-                        () ->
-                                intakeRollerIO.runVelocity(
-                                        RotationsPerSecond.of(ROLLER_EJECT_RPS.get()),
-                                        PIDSlot.SLOT_0),
-                        intakeRollerIO::runBrake)
+                        () -> intakeRollerIO.runCurrent(Amps.of(-40.0)), intakeRollerIO::runBrake)
                 .withName("Eject Roller");
     }
 
     public Command intake() {
         return Commands.sequence(
-                        runRoller(80.0),
                         moveToPosition(
                                 IntakeLinearConstants.MAX_DISTANCE,
                                 IntakeLinearConstants.CRUISE_VELOCITY,
                                 IntakeLinearConstants.MAX_ACCELERATION,
-                                "Extend Linear"))
-                .withName("Extend With Roller");
+                                "Extend Linear"),
+                        Commands.waitUntil(isRollerSafe),
+                        runRoller(80.0),
+                        Commands.waitUntil(isExtended))
+                .withName("Extend Intake With Roller");
     }
 
     public Command retractIntake() {
-        return retractWithSpeed(IntakeLinearConstants.CRUISE_VELOCITY).withName("Retract Intake");
-    }
-
-    public Command slowRetract() {
-        return retractWithSpeed(MetersPerSecond.of(SLOW_MPS.get())).withName("Slow Retract Intake");
-    }
-
-    private Command retractWithSpeed(LinearVelocity retractSpeed) {
         return Commands.sequence(
-                        runRoller(80.0),
                         moveToPosition(
-                                retractDistance,
-                                retractSpeed,
+                                IntakeLinearConstants.MIN_DISTANCE,
+                                IntakeLinearConstants.CRUISE_VELOCITY,
                                 IntakeLinearConstants.MAX_ACCELERATION,
                                 "Retract Linear"),
-                        Commands.waitUntil(isRetracted),
-                        stopRoller())
+                        runRoller(80.0).onlyIf(isRollerSafe),
+                        Commands.waitUntil(isRollerSafe.negate()),
+                        stopRoller(),
+                        Commands.waitUntil(isRetracted))
                 .finallyDo(() -> intakeRollerIO.runBrake())
-                .withName("Retract With Speed");
+                .withName("Retract Intake With Roller");
     }
 
     public Command linearCoast() {
