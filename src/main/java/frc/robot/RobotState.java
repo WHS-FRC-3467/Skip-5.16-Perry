@@ -30,7 +30,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.posestimator.PoseEstimator;
@@ -58,6 +57,9 @@ public class RobotState {
     private static final LoggedTunableNumber SHOOT_TOLERANCE_DEGREES =
             new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 2.0);
 
+    private static final LoggedTunableNumber FEED_TOLERANCE_DEGREES =
+            new LoggedTunableNumber("RobotState/FeedToleranceDegrees", 6.0);
+
     private static final double LINEAR_ODOMETRY_STD_DEV = 0.3;
     private static final double ANGULAR_ODOMETRY_STD_DEV = 0.15;
 
@@ -66,6 +68,9 @@ public class RobotState {
 
     public final LoggedTunableNumber feedLookaheadSeconds =
             new LoggedTunableNumber("RobotState/FeedLookaheadSeconds", 1.0);
+
+    public final LoggedTunableNumber hubLookaheadSeconds =
+            new LoggedTunableNumber("RobotState/HubLookaheadSeconds", .2);
 
     @AutoLogOutput(key = "Drive/ActiveTrajectoryPose")
     @Getter
@@ -103,7 +108,7 @@ public class RobotState {
                                         getAngleToTarget(futureTranslation)
                                                 .minus(getEstimatedPose().getRotation())
                                                 .getDegrees())
-                                < SHOOT_TOLERANCE_DEGREES.get();
+                                < FEED_TOLERANCE_DEGREES.get();
                     });
 
     public final LoggedTrigger shouldFeed =
@@ -115,12 +120,15 @@ public class RobotState {
                                 case FEED_LEFT, FEED_RIGHT -> true;
                             });
 
-    /** Trigger determining whether robot is ready for a static shot */
-    private final Debouncer staticShootingDebouncer = new Debouncer(0.05, DebounceType.kRising);
+    private final Debouncer staticShootingDebouncer = new Debouncer(0.20, DebounceType.kRising);
 
+    /**
+     * Trigger determining whether robot is instantaneously positioned for a static shot -- robot
+     * stationary and facing the target.
+     */
     public final LoggedTrigger withinStaticShootingTolerance =
             new LoggedTrigger(
-                    "RobotState/withinStaticShootingTolerance",
+                    "RobotState/WithinStaticShootingTolerance",
                     () -> {
                         ChassisSpeeds chassisVelocity = getFieldRelativeVelocity();
                         double linearVelocityMPS =
@@ -129,12 +137,16 @@ public class RobotState {
                                         chassisVelocity.vyMetersPerSecond);
                         // Arbitrary threshold to determine if the robot is ready for a
                         // static shot
-                        return linearVelocityMPS < 0.05 && facingTarget.getAsBoolean();
+                        return linearVelocityMPS < 0.1 && facingTarget.getAsBoolean();
                     });
 
-    public final LoggedTrigger atStaticShootingState =
+    /**
+     * Trigger determining whether robot is steadily positioned for a static shot -- robot
+     * stationary and facing the target for at least 0.20s (i.e. debounced).
+     */
+    public final LoggedTrigger atStaticShootingPosition =
             new LoggedTrigger(
-                    "RobotState/atStaticShootingState",
+                    "RobotState/AtStaticShootingPosition",
                     () ->
                             staticShootingDebouncer.calculate(
                                     withinStaticShootingTolerance.getAsBoolean()));
@@ -182,7 +194,7 @@ public class RobotState {
      * @param observation the odometry observation to add
      */
     public void addOdometryObservation(OdometryObservation observation) {
-        if (DriverStation.isDisabled()) return;
+        // if (DriverStation.isDisabled()) return;
 
         poseEstimator.addOdometryObservation(observation);
     }
@@ -210,10 +222,6 @@ public class RobotState {
      * @param observation the vision observation to add
      */
     public void addVisionObservation(VisionPoseObservation observation) {
-        if (DriverStation.isDisabled()) {
-            poseEstimator.resetPose(observation.robotPose());
-            return;
-        }
         poseEstimator.addVisionObservation(observation);
     }
 
@@ -526,6 +534,7 @@ public class RobotState {
      *
      * @return the angle to the target
      */
+    @AutoLogOutput(key = "RobotState/AngleToTarget")
     public Rotation2d getAngleToTarget() {
         return getTarget()
                 .getAllianceTranslation()

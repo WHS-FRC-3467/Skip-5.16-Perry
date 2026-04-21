@@ -121,7 +121,7 @@ public class SwerveOdometry {
     private Rotation2d gyroOffset = Rotation2d.kZero;
 
     /** The most recent odometry-based robot pose. */
-    @Getter private Pose2d odometryPose = Pose2d.kZero;
+    @Getter private Pose2d odometryPose = new Pose2d(1.0, 1.0, gyroOffset);
 
     /** Optional validator for candidate odometry poses. */
     private Predicate<Pose2d> poseValidator = pose -> true;

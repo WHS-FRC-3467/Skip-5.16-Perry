@@ -17,6 +17,7 @@ package frc.robot.commands.autos;
 import static edu.wpi.first.units.Units.Degrees;
 
 import choreo.auto.AutoRoutine;
+import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 
@@ -36,17 +37,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class C1678Auto {
+public class BAuto {
 
     private static final Alert TRAJECTORIES_MISSING =
             new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
 
     public static Optional<AutoOption> create(AutoContext ctx, boolean shouldMirror) {
         List<String> names =
-                List.of(
-                        ChoreoTraj.C16781.name(),
-                        ChoreoTraj.C16782.name(),
-                        ChoreoTraj.C16783.name());
+                List.of(ChoreoTraj.B1.name(), ChoreoTraj.B2.name(), ChoreoTraj.C16783.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
@@ -61,8 +59,10 @@ public class C1678Auto {
                         () -> {
                             AutoRoutine routine =
                                     ctx.autoFactory()
-                                            .newRoutine(
-                                                    "C1678" + (shouldMirror ? "Right" : "Left"));
+                                            .newRoutine("B" + (shouldMirror ? "Right" : "Left"));
+
+                            // Still use AutoTrajectory for resetOdometry() lifecycle.
+                            AutoTrajectory first = routine.trajectory(trajectories.get(0));
 
                             Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
@@ -85,7 +85,8 @@ public class C1678Auto {
                             // then follow the first trajectory. Because the sequence
                             // only contains Drive-requiring commands, the event-bound
                             // commands (Intake, Shooter) can schedule without conflict.
-                            routine.active().onTrue(firstFollow);
+                            routine.active()
+                                    .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
 
                             routine.observe(firstFollow.done())
                                     .or(routine.observe(thirdFollow.done()))
