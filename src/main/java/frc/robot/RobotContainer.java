@@ -28,7 +28,6 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -404,23 +403,6 @@ public class RobotContainer {
                 ShooterSuperstructureConstants.NAME + "/Shoot", shooter.setShooterContinuous());
         SmartDashboard.putData(
                 ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
-
-        SmartDashboard.putData(
-                "Fountain",
-                Commands.sequence(
-                                Commands.sequence(
-                                        Commands.parallel(
-                                                shooter.fountain(),
-                                                indexer.fountain(),
-                                                tower.fountain())),
-                                Commands.parallel(shooter.idle(), indexer.idle(), tower.idle()))
-                        .finallyDo(
-                                () ->
-                                        CommandScheduler.getInstance()
-                                                .schedule(
-                                                        shooter.stopAndStow(),
-                                                        indexer.stopCommand(),
-                                                        tower.stopCommand())));
     }
 
     /**
