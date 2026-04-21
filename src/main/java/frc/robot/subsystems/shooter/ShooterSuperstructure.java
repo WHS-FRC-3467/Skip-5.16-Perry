@@ -293,7 +293,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         return flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent());
     }
 
-    /** Register the shooter with the power profiler. */
+    /** Register the Shooter subsystem with the power profiler. */
     public void registerMechanisms(PowerProfiler powerProfiler) {
         powerProfiler.registerMechanism(getName() + "/Flywheel", flywheelIO);
         powerProfiler.registerMechanism(getName() + "/Hood", hoodIO);

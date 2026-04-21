@@ -30,8 +30,8 @@ import java.util.Map;
 import java.util.function.DoubleSupplier;
 
 /**
- * A power profiling utility used to estimate time-dependent energy draw from the robot's battery as
- * a function of subsystem and mechanism.
+ * A power profiling utility used to estimate time-dependent current/power/energy draw from the
+ * robot's battery as a function of subsystem and mechanism.
  */
 public class PowerProfiler {
 
@@ -56,12 +56,23 @@ public class PowerProfiler {
     private boolean isInitialized = false;
     private double lastTimestamp = 0.0;
 
-    /** Register a mechanism to the power profiler (e.g. rotary, linear) */
+    /**
+     * Register a mechanism to the power profiler (e.g. rotary, linear)
+     *
+     * @param key a key to log under
+     * @param mechanism a Mechanism to register
+     */
     public void registerMechanism(String key, Mechanism<?> mechanism) {
         mechanisms.add(new MechanismRegistration(key, mechanism));
     }
 
-    /** Register a generic power channel to the power profiler (e.g. drive module, arducam) */
+    /**
+     * Register a generic power channel to the power profiler (e.g. drive module, arducam)
+     *
+     * @param key a key to log under
+     * @param currentAmpsSupplier supply current supplier in Amps
+     * @param appliedVoltSupplier supply voltage supplier in Volts
+     */
     public void registerGeneric(
             String key, DoubleSupplier currentAmpsSupplier, DoubleSupplier appliedVoltSupplier) {
         generics.add(new GenericRegistration(key, currentAmpsSupplier, appliedVoltSupplier));

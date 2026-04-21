@@ -106,6 +106,9 @@ public class RobotContainer {
      */
     private Command cachedAutoCommand = null;
 
+    /** A power profiler for characterizing current/power/energy draw from the battery */
+    public final PowerProfiler powerProfiler;
+
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
         drive = DriveConstants.get();
@@ -116,9 +119,10 @@ public class RobotContainer {
         VisionConstants.create();
         // objectDetector = ObjectDetectorConstants.get();
 
-        // Construct power profiler and register mechanisms
-        PowerProfiler powerProfiler = new PowerProfiler();
+        // Construct the power profiler and register drive/mechanisms
+        powerProfiler = new PowerProfiler();
 
+        drive.registerDrive(powerProfiler);
         shooter.registerMechanisms(powerProfiler);
         intake.registerMechanisms(powerProfiler);
         indexer.registerMechanisms(powerProfiler);

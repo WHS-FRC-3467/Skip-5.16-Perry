@@ -65,7 +65,7 @@ public class Indexer extends SubsystemBase {
         io.runVelocity(velocity, PIDSlot.SLOT_0);
     }
 
-    /** Register the indexer with the power profiler. */
+    /** Register the Indexer subsystem with the power profiler. */
     public void registerMechanisms(PowerProfiler powerProfiler) {
         powerProfiler.registerMechanism(getName() + "/Indexer", io);
     }

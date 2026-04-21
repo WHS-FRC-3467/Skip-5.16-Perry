@@ -102,7 +102,7 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                         IntakeLinearConstants.MAX_DISTANCE.in(Meters)));
     }
 
-    /** Register the intake with the power profiler. */
+    /** Register the Intake subsystem with the power profiler. */
     public void registerMechanisms(PowerProfiler powerProfiler) {
         powerProfiler.registerMechanism(getName() + "/IntakeLinear", intakeLinearIO);
         powerProfiler.registerMechanism(getName() + "/IntakeRoller", intakeRollerIO);

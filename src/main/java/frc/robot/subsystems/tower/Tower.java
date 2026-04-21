@@ -98,7 +98,7 @@ public class Tower extends SubsystemBase {
         return io.getVelocity().in(RotationsPerSecond);
     }
 
-    /** Register the tower with the power profiler. */
+    /** Register the Tower subsystem with the power profiler. */
     public void registerMechanisms(PowerProfiler powerProfiler) {
         powerProfiler.registerMechanism(getName(), io);
     }

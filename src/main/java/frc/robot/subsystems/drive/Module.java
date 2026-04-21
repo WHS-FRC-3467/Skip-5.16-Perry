@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 
 import frc.lib.util.PID;
+import frc.lib.util.PowerProfiler;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -220,5 +221,16 @@ public class Module {
      */
     public void setTurnPID(PID pid) {
         io.setTurnPID(pid);
+    }
+
+    /**
+     * Registers the drive and steer motors for each module as generic power devices with the power
+     * profiler
+     */
+    public void registerModule(String prefix, PowerProfiler powerProfile) {
+        powerProfile.registerGeneric(
+                prefix + "/Drive", () -> inputs.driveCurrentAmps, () -> inputs.driveAppliedVolts);
+        powerProfile.registerGeneric(
+                prefix + "/Steer", () -> inputs.turnCurrentAmps, () -> inputs.turnAppliedVolts);
     }
 }
