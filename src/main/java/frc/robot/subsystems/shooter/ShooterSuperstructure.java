@@ -21,13 +21,17 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Watts;
 
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Power;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,13 +59,14 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new InterpolatingDoubleTreeMap();
 
     static {
-        hubFlywheelMap.put(1.8, 26.5);
-        hubFlywheelMap.put(2.1, 26.5);
+        hubFlywheelMap.put(1.8, 26.0);
+        hubFlywheelMap.put(2.1, 27.0);
         hubFlywheelMap.put(2.5, 28.0);
-        hubFlywheelMap.put(3.0, 30.0);
+        hubFlywheelMap.put(3.15, 31.5);
         hubFlywheelMap.put(3.55, 32.0);
-        hubFlywheelMap.put(4.0, 34.0);
-        hubFlywheelMap.put(5.0, 36.0);
+        hubFlywheelMap.put(4.0, 33.5);
+        hubFlywheelMap.put(4.5, 33.5);
+        hubFlywheelMap.put(5.0, 35.5);
     }
 
     /** Distance from feed pose in meters -> flywheel speed in rotations per second */
@@ -69,7 +74,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new InterpolatingDoubleTreeMap();
 
     static {
-        feedFlywheelMap.put(3.35, 32.0);
+        feedFlywheelMap.put(3.35, 25.0); // 32
         feedFlywheelMap.put(4.5, 32.0);
         feedFlywheelMap.put(5.5, 35.0);
         feedFlywheelMap.put(8.0, 37.0);
@@ -80,11 +85,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     static {
         hubHoodMap.put(1.8, 0.0);
-        hubHoodMap.put(2.1, 6.0);
+        hubHoodMap.put(2.1, 4.5);
         hubHoodMap.put(2.51, 7.0);
-        hubHoodMap.put(3.0, 8.0);
+        hubHoodMap.put(3.15, 8.67);
         hubHoodMap.put(3.55, 10.0);
         hubHoodMap.put(4.0, 13.0);
+        hubHoodMap.put(4.5, 16.0);
         hubHoodMap.put(5.0, 21.0);
     }
 
@@ -92,7 +98,6 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private static final InterpolatingDoubleTreeMap feedHoodMap = new InterpolatingDoubleTreeMap();
 
     static {
-        feedFlywheelMap.put(3.35, 10.0);
         feedHoodMap.put(4.5, 24.0);
         feedHoodMap.put(5.0, 24.0);
         feedHoodMap.put(5.5, 27.0);
@@ -107,8 +112,11 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final RotaryMechanism<?, ?> hoodIO;
     private final FlywheelMechanism<?> flywheelIO;
 
+    private final Debouncer profileCompleteDebouncer = new Debouncer(0.1, DebounceType.kRising);
     public final LoggedTrigger profileComplete =
-            new LoggedTrigger(this.getName() + "/ProfileComplete", this::isProfileComplete);
+            new LoggedTrigger(
+                    this.getName() + "/ProfileComplete",
+                    () -> profileCompleteDebouncer.calculate(isProfileComplete()));
 
     private final LoggedTunableBoolean tuningMode =
             new LoggedTunableBoolean(getName() + "/Tuning/Enable", false);
@@ -119,19 +127,38 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // Default trim to apply
     private final AlwaysTunableNumber flywheelTrimDefaultRPS =
-            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -0.5);
+            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
 
+    public final LoggedTrigger readyToShootAtCurrentTarget =
+            new LoggedTrigger(
+                    "RobotState/ReadyToShootAtCurrentTarget",
+                    profileComplete.and(
+                            robotState
+                                    .shouldFeed
+                                    .and(robotState.facingFeedTarget)
+                                    .or(
+                                            robotState
+                                                    .shouldFeed
+                                                    .negate()
+                                                    .and(robotState.facingTarget))));
+
     // User-defined trim at runtime, not including default trim
-    private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
     private final LoggedDouble loggedFlywheelTrimRPS;
 
-    // Trigger for whether we are at the static shooting state (shooter ready, robot stationary &
-    // aligned to target)
+    // A dedicated utility helper to quantify shooter performance
+    private ShotTracker shotTracker;
+
+    /**
+     * Trigger for whether we are at the static shooting state (robot steadily stationary, steadily
+     * aligned to target, and shooter ready)
+     */
     public final LoggedTrigger staticShotState =
-            robotState.atStaticShootingState.and(profileComplete);
+            new LoggedTrigger(
+                    getName() + "/StaticShotState",
+                    () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
 
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
@@ -139,7 +166,8 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
      * @return The total flywheel trim to apply
      */
     private AngularVelocity getFlywheelTrim() {
-        return RotationsPerSecond.of(flywheelTrimDefaultRPS.get()).plus(flywheelTrim);
+        return RotationsPerSecond.of(flywheelTrimDefaultRPS.get())
+                .plus(RotationsPerSecond.of(loggedFlywheelTrimRPS.getLast()));
     }
 
     /**
@@ -153,7 +181,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         this.hoodIO = hoodIO;
         this.flywheelIO = flywheelIO;
         this.loggedFlywheelTrimRPS = new LoggedDouble(getName() + "/FlywheelTrimRPS");
-        ShotTracker.create(this);
+        shotTracker = ShotTracker.create(this);
     }
 
     @Override
@@ -174,14 +202,18 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
-        robotState.hopperEmpty.getAsBoolean();
-        staticShotState.getAsBoolean();
 
-        Logger.recordOutput(
-                getName() + "/TotalDrawWatts",
-                flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent()));
+        // Centralize required polling for hopper detection and ball counting logic
+        shotTracker.ballTrigger.getAsBoolean();
+        robotState.hopperEmpty.getAsBoolean();
+
+        Logger.recordOutput(getName() + "/TotalDrawWatts", getFlywheelPowerDraw().in(Watts));
 
         loggedFlywheelTrimRPS.log(getFlywheelTrim().in(RotationsPerSecond));
+
+        Logger.recordOutput(
+                getName() + "/DesiredFlywheelLinearVelocityMPS",
+                getDesiredFlywheelLinearVelocity().in(MetersPerSecond));
     }
 
     private void setFlywheelVelocity(AngularVelocity velocity) {
@@ -212,10 +244,6 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     public LinearVelocity getLinearVelocity() {
         return flywheelIO.getLinearVelocity();
-    }
-
-    private AngularVelocity getFlywheelTrimStep() {
-        return RotationsPerSecond.of(flywheelTrimStepRPS.get());
     }
 
     private AngularVelocity getDesiredFlywheelVelocity() {
@@ -255,6 +283,14 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     }
 
     /**
+     * Return the current power draw of the flywheel mechanism based on applied voltage and supply
+     * current.
+     */
+    public Power getFlywheelPowerDraw() {
+        return flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent());
+    }
+
+    /**
      * Creates a command to set the hood to a specific angle.
      *
      * @param angle the target angle for the hood
@@ -290,7 +326,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     }
 
     public Command stopAndStow() {
-        return Commands.sequence(coastFlywheels(), setHoodAngle(Rotations.zero()))
+        return Commands.sequence(setHoodAngle(Rotations.zero()), coastFlywheels())
                 .withName("Stop and Stow Shooter");
     }
 
@@ -360,12 +396,20 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     public Command trimFlywheelSpeedUp() {
         // Doesn't require subsystem to allow for trimming while shooting
-        return Commands.runOnce(() -> flywheelTrim = flywheelTrim.plus(getFlywheelTrimStep()));
+        return Commands.runOnce(
+                () ->
+                        loggedFlywheelTrimRPS.log(
+                                loggedFlywheelTrimRPS.getLast()
+                                        + flywheelTrimStepRPS.getAsDouble()));
     }
 
     public Command trimFlywheelSpeedDown() {
         // Doesn't require subsystem to allow for trimming while shooting
-        return Commands.runOnce(() -> flywheelTrim = flywheelTrim.minus(getFlywheelTrimStep()));
+        return Commands.runOnce(
+                () ->
+                        loggedFlywheelTrimRPS.log(
+                                loggedFlywheelTrimRPS.getLast()
+                                        - flywheelTrimStepRPS.getAsDouble()));
     }
 
     /** Closes all underlying mechanisms and releases resources. */

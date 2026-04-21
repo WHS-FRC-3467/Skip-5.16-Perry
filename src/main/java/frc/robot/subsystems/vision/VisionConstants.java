@@ -23,7 +23,6 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N3;
@@ -380,7 +379,7 @@ public class VisionConstants {
      * mode. Instantiates cameras with appropriate IO implementations (real, sim, or replay).
      */
     public static void create() {
-        Logger.recordOutput("zero", Pose2d.kZero);
+        // Logger.recordOutput("zero", Pose2d.kZero);
         Logger.recordOutput("frontleft", FRONT_LEFT_TRANSFORM);
         Logger.recordOutput("frontright", FRONT_RIGHT_TRANSFORM);
 

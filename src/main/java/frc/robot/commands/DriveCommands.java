@@ -15,11 +15,6 @@
 
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.Meters;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -30,8 +25,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -44,11 +37,12 @@ import frc.robot.subsystems.drive.Drive;
 
 import lombok.Getter;
 
+import org.littletonrobotics.junction.Logger;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -72,11 +66,11 @@ public class DriveCommands {
     @Getter private static final double ANGLE_MAX_VELOCITY = 8.3;
     @Getter private static final double ANGLE_MAX_ACCELERATION = 20.0;
     private static final LoggedTunableNumber ANGLE_KP =
-            new LoggedTunableNumber("Drive/AngleP", 8.0);
+            new LoggedTunableNumber("Drive/AngleP", 9.0);
     private static final LoggedTunableNumber ANGLE_KD =
-            new LoggedTunableNumber("Drive/AngleD", 0.2);
-    private static final LoggedTunableNumber ANGLE_TOLERANCE_ROTATIONS =
-            new LoggedTunableNumber("Drive/AngleToleranceRotations", 0.005);
+            new LoggedTunableNumber("Drive/AngleD", 0.6);
+    private static final LoggedTunableNumber ANGLE_TOLERANCE_DEGREES =
+            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 1.0);
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 2.0; // Volts/Sec
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.2; // Rad/Sec
@@ -186,7 +180,7 @@ public class DriveCommands {
                         ANGLE_KD.get(),
                         new TrapezoidProfile.Constraints(
                                 ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
-        angleController.setTolerance(Units.rotationsToRadians(ANGLE_TOLERANCE_ROTATIONS.get()));
+        angleController.setTolerance(Units.degreesToRadians(ANGLE_TOLERANCE_DEGREES.get()));
         angleController.enableContinuousInput(-Math.PI, Math.PI);
 
         // Construct command
@@ -206,7 +200,8 @@ public class DriveCommands {
                                                     .getRadians(),
                                             rotationSupplier.get().getRadians());
 
-                            if (angleController.atGoal()) {
+                            Logger.recordOutput("AngleAtGoal", angleController.atGoal());
+                            if (angleController.atSetpoint()) {
                                 if (Math.hypot(linearVelocity.getX(), linearVelocity.getY())
                                                 < DEADBAND
                                         && stopWithX) {
@@ -254,7 +249,7 @@ public class DriveCommands {
                             angleController.setP(ANGLE_KP.get());
                             angleController.setD(ANGLE_KD.get());
                             angleController.setTolerance(
-                                    Units.rotationsToRadians(ANGLE_TOLERANCE_ROTATIONS.get()));
+                                    Units.degreesToRadians(ANGLE_TOLERANCE_DEGREES.get()));
                         })
                 .withName("Joystick Drive At Angle");
     }
@@ -289,7 +284,8 @@ public class DriveCommands {
             Drive drive,
             DoubleSupplier xSupplier,
             DoubleSupplier ySupplier,
-            DoubleSupplier lookAhead) {
+            DoubleSupplier lookAhead,
+            boolean stopWithX) {
         RobotState robotState = RobotState.getInstance();
         return joystickDriveAtAngle(
                 drive,
@@ -299,7 +295,7 @@ public class DriveCommands {
                     Pose2d pose = robotState.getFuturePose(lookAhead.getAsDouble());
                     return robotState.getAngleToTarget(pose.getTranslation());
                 },
-                false);
+                stopWithX);
     }
 
     /**
@@ -402,8 +398,6 @@ public class DriveCommands {
      * @return the wheel radius characterization command
      */
     public static Command wheelRadiusCharacterization(Drive drive) {
-        RobotState robotState = RobotState.getInstance();
-
         SlewRateLimiter limiter = new SlewRateLimiter(WHEEL_RADIUS_RAMP_RATE);
         WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
@@ -435,18 +429,14 @@ public class DriveCommands {
                                         () -> {
                                             state.positions =
                                                     drive.getWheelRadiusCharacterizationPositions();
-                                            state.lastAngle =
-                                                    robotState.getEstimatedPose().getRotation();
+                                            state.lastAngle = drive.getRawGyroAngle();
                                             state.gyroDelta = 0.0;
                                         }),
 
                                 // Update gyro delta
                                 Commands.run(
                                                 () -> {
-                                                    var rotation =
-                                                            robotState
-                                                                    .getEstimatedPose()
-                                                                    .getRotation();
+                                                    var rotation = drive.getRawGyroAngle();
                                                     state.gyroDelta +=
                                                             Math.abs(
                                                                     rotation.minus(state.lastAngle)
@@ -496,52 +486,6 @@ public class DriveCommands {
                                                     DriverStation.reportWarning(results, false);
                                                 })))
                 .withName("Wheel Radius Characterization");
-    }
-
-    /**
-     * Pathfinding command that uses the AutoBuilder to generate a path to a target position.
-     *
-     * @param drive the drive subsystem used for pathfinding
-     * @param currentPose supplier for the robot's current pose
-     * @param targetPose the target pose to pathfind to
-     * @param constraints the path constraints to apply
-     * @param goalEndVelocity the goal final velocity
-     * @param tolerance the allowed position tolerance from the target pose
-     * @return the pathfinding command
-     */
-    public static Command pathFindToPose(
-            Drive drive,
-            Supplier<Pose2d> currentPose,
-            Supplier<Pose2d> targetPose,
-            PathConstraints constraints,
-            LinearVelocity goalEndVelocity,
-            Distance tolerance) {
-
-        // Defer command construction so targetPose is evaluated at schedule time, not build time.
-        // This ensures that if startPose (or any other target) is updated after this command is
-        // built, the pathfinder uses the latest value when the command is actually run.
-        return Commands.defer(
-                        () ->
-                                AutoBuilder.pathfindToPose(
-                                                targetPose.get(),
-                                                constraints,
-                                                goalEndVelocity // Goal end velocity in meters/sec
-                                                )
-                                        .raceWith(
-                                                // Interrupt the pathfinding command once the robot
-                                                // gets within the tolerance of the target pose
-                                                Commands.waitUntil(
-                                                        () ->
-                                                                currentPose
-                                                                                .get()
-                                                                                .minus(
-                                                                                        targetPose
-                                                                                                .get())
-                                                                                .getTranslation()
-                                                                                .getNorm()
-                                                                        < tolerance.in(Meters))),
-                        Set.of(drive))
-                .withName("Pathfind to Pose");
     }
 
     private static class WheelRadiusCharacterizationState {

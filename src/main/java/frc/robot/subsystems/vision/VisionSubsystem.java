@@ -59,7 +59,7 @@ public class VisionSubsystem extends SubsystemBase {
     public static final double LINEAR_STDDEV_BASELINE = 0.03;
 
     /** Baseline angular standard deviation used for vision observations. */
-    public static final double ANGULAR_STDDEV_BASELINE = 0.05;
+    public static final double ANGULAR_STDDEV_BASELINE = 0.10;
 
     /** Ignore rotation corrections from single-tag solves. */
     public static final double SINGLE_TAG_ANGULAR_STDDEV = Double.POSITIVE_INFINITY;
