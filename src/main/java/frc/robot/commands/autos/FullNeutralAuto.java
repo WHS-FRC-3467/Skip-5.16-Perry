@@ -42,6 +42,8 @@ import java.util.Set;
 
 public class FullNeutralAuto {
 
+    private static final double preloadShootTimeout = 3.0;
+
     @AllArgsConstructor
     @SuppressWarnings("ImmutableEnumChecker")
     public enum Positions {
@@ -68,9 +70,6 @@ public class FullNeutralAuto {
                                 ? ChoreoTraj.FullNeutralBump2.name()
                                 : ChoreoTraj.FullNeutralTrench2.name(),
                         returnPosition.get()
-                                ? ChoreoTraj.BumpPath.name()
-                                : ChoreoTraj.TunnelPath.name(),
-                        returnPosition.get()
                                 ? ChoreoTraj.FullNeutralBump3.name()
                                 : ChoreoTraj.FullNeutralTrench3.name());
 
@@ -83,8 +82,10 @@ public class FullNeutralAuto {
         final double autoDelay =
                 AutoCommands.getAutoDelay()
                         - (startPosition.get()
-                                ? AutoCommands.getAutoDelay() - 3.0 > 0.0 ? 3.0 : 0.0
-                                : 0);
+                                ? AutoCommands.getAutoDelay() - preloadShootTimeout > 0.0
+                                        ? preloadShootTimeout
+                                        : 0.0
+                                : 0.0);
         return Optional.of(
                 AutoUtil.trajectoryOption(
                         trajectories,
@@ -109,21 +110,19 @@ public class FullNeutralAuto {
                             ResilientTrajectoryFollower secondFollow =
                                     ctx.drive()
                                             .followTrajectoryResilient(
-                                                    trajectories.get(0), eventBindings);
+                                                    trajectories.get(1), eventBindings);
                             ResilientTrajectoryFollower thirdFollow =
                                     ctx.drive()
                                             .followTrajectoryResilient(
-                                                    trajectories.get(0), eventBindings);
-                            ResilientTrajectoryFollower fourthFollow =
-                                    ctx.drive()
-                                            .followTrajectoryResilient(
-                                                    trajectories.get(0), eventBindings);
+                                                    trajectories.get(2), eventBindings);
+
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
                                                     first.resetOdometry(),
                                                     startPosition.get()
-                                                            ? AutoCommands.shootOnly(ctx, 3.0)
+                                                            ? AutoCommands.shootOnly(
+                                                                    ctx, preloadShootTimeout)
                                                             : Commands.none(),
                                                     ctx.shooter()
                                                             .setHoodAngle(Degrees.of(0.0))
@@ -138,9 +137,8 @@ public class FullNeutralAuto {
                                                     firstFollow));
 
                             firstFollow.done().onTrue(secondFollow.asProxy());
-                            secondFollow.done().onTrue(thirdFollow.asProxy());
 
-                            thirdFollow
+                            secondFollow
                                     .done()
                                     .onTrue(
                                             Commands.sequence(
@@ -148,12 +146,12 @@ public class FullNeutralAuto {
                                                     ctx.shooter()
                                                             .setHoodAngle(Degrees.of(0.0))
                                                             .asProxy(),
-                                                    fourthFollow.asProxy()));
-                            fourthFollow
+                                                    thirdFollow.asProxy()));
+                            thirdFollow
                                     .done()
                                     .onTrue(
                                             Commands.sequence(
-                                                    AutoCommands.shootOnly(ctx, 5.0),
+                                                    AutoCommands.shootOnly(ctx, 10.0),
                                                     ctx.shooter().setHoodAngle(Degrees.of(0.0))));
 
                             return routine;
