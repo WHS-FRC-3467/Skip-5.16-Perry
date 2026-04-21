@@ -23,6 +23,7 @@ public final class ChoreoVars {
         public static final Pose2d NeutralShoot = new Pose2d(3.12514, 7.3089199, Rotation2d.fromRadians(-1.1536837));
         public static final Pose2d TunnelEntrance = new Pose2d(4, 7.3992772, Rotation2d.fromRadians(-1.5707963));
         public static final Pose2d TunnelExit = new Pose2d(5.65, 7.3992772, Rotation2d.fromRadians(-1.5707963));
+        public static final Pose2d fullNeutralShoot = new Pose2d(1.2892084, 4.8416977, Rotation2d.fromRadians(-0.2275179));
     }
 }
 // spotless:on
