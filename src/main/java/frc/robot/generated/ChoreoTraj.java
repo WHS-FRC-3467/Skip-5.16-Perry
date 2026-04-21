@@ -35,19 +35,12 @@ public record ChoreoTraj(
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
     );
-    public static final ChoreoTraj B22 = new ChoreoTraj(
-        "B22",
+    public static final ChoreoTraj B3 = new ChoreoTraj(
+        "B3",
         OptionalInt.empty(),
         6.10957,
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185))
-    );
-    public static final ChoreoTraj BumpPath = new ChoreoTraj(
-        "BumpPath",
-        OptionalInt.empty(),
-        1.44309,
-        new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
     public static final ChoreoTraj C16781 = new ChoreoTraj(
         "C16781",
@@ -147,13 +140,6 @@ public record ChoreoTraj(
         new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.06667, 5.47686, Rotation2d.fromRadians(-0.80285))
     );
-    public static final ChoreoTraj TunnelPath = new ChoreoTraj(
-        "TunnelPath",
-        OptionalInt.empty(),
-        1.20567,
-        new Pose2d(5.65, 7.39928, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
-    );
 
     /**
      * A map between trajectory names and their corresponding data.
@@ -162,8 +148,7 @@ public record ChoreoTraj(
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
         Map.entry("B1", B1),
         Map.entry("B2", B2),
-        Map.entry("B22", B22),
-        Map.entry("BumpPath", BumpPath),
+        Map.entry("B3", B3),
         Map.entry("C16781", C16781),
         Map.entry("C16782", C16782),
         Map.entry("C16783", C16783),
@@ -177,8 +162,7 @@ public record ChoreoTraj(
         Map.entry("Neutral2ML_1", Neutral2ML_1),
         Map.entry("Neutral2ML_1_Safe1", Neutral2ML_1_Safe1),
         Map.entry("Neutral2ML_1_Safe2", Neutral2ML_1_Safe2),
-        Map.entry("Neutral2ML_1_Safe3", Neutral2ML_1_Safe3),
-        Map.entry("TunnelPath", TunnelPath)
+        Map.entry("Neutral2ML_1_Safe3", Neutral2ML_1_Safe3)
     );
 
     /**

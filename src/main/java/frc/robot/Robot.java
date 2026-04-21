@@ -15,7 +15,7 @@
 
 package frc.robot;
 
-import au.grapplerobotics.CanBridge;
+import choreo.util.ChoreoAllianceFlipUtil;
 
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-import frc.robot.commands.autos.utils.AutoCommands;
+import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.HubState;
@@ -57,7 +57,7 @@ public class Robot extends LoggedRobot {
     private final Set<String> activeCommandNames = new LinkedHashSet<>();
 
     public Robot() {
-        CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
+        // CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
 
         // Record metadata
         Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -109,12 +109,7 @@ public class Robot extends LoggedRobot {
         for (var constants : modules) {
             if (constants.DriveMotorType != DriveMotorArrangement.TalonFX_Integrated
                     || constants.SteerMotorType != SteerMotorArrangement.TalonFX_Integrated) {
-                throw new RuntimeException(
-                        "You are using an unsupported swerve configuration, which this template"
-                                + " does not support without manual customization. The 2025 release of"
-                                + " Phoenix supports some swerve configurations which were not"
-                                + " available during 2025 beta testing, preventing any development and"
-                                + " support from the AdvantageKit developers.");
+                throw new RuntimeException("You are using an unsupported swerve configuration");
             }
         }
 
@@ -142,6 +137,16 @@ public class Robot extends LoggedRobot {
 
         // Warms up elastic function call to prevent delay during enable of auto
         Elastic.selectTab(1);
+
+        ChoreoAllianceFlipUtil.getFlipper();
+        FieldConstants.initialize();
+        CommandScheduler.getInstance()
+                .schedule(
+                        robotContainer
+                                .testCommand
+                                .command()
+                                .ignoringDisable(true)
+                                .withTimeout(0.1));
     }
 
     /**
@@ -163,7 +168,6 @@ public class Robot extends LoggedRobot {
 
         // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
         fieldMap.setRobotPose(robotState.getEstimatedPose());
-        SmartDashboard.putNumber("Auto Delay", AutoCommands.getAutoDelay());
     }
 
     /** This function is called once when the robot is disabled. */
@@ -188,9 +192,12 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         // Switch to Autonomous tab in Elastic Dashboard
-        if (RobotBase.isReal()) {
-            Elastic.selectTab(1);
-        }
+        // if (RobotBase.isReal()) {
+        //     Elastic.selectTab(1);
+        // }
+
+        // Reset robot pose to the starting pose of the selected auto
+        robotState.resetPose(robotContainer.startPose);
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -201,9 +208,7 @@ public class Robot extends LoggedRobot {
 
     /** This function is called periodically during autonomous. */
     @Override
-    public void autonomousPeriodic() {
-        // robotContainer.autoPreviewField.setRobotPose(robotState.getEstimatedPose());
-    }
+    public void autonomousPeriodic() {}
 
     /** This function is called once when teleop is enabled. */
     @Override
@@ -218,7 +223,17 @@ public class Robot extends LoggedRobot {
             Elastic.selectTab(0);
         }
 
-        // Safety Hood retract
+        // Schedule teleop default drive command
+        CommandScheduler.getInstance()
+                .setDefaultCommand(
+                        robotContainer.drive,
+                        DriveCommands.joystickDrive(
+                                robotContainer.drive,
+                                () -> -robotContainer.controller.getLeftY(),
+                                () -> -robotContainer.controller.getLeftX(),
+                                () -> -robotContainer.controller.getRightX()));
+
+        // Stop and stow the shooter at start of teleop
         CommandScheduler.getInstance().schedule(robotContainer.shooter.stopAndStow());
     }
 
