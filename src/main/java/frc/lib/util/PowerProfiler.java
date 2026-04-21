@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleSupplier;
 
 /**
  * A power profiling utility used to estimate time-dependent energy draw from the robot's battery as
@@ -36,7 +37,11 @@ public class PowerProfiler {
 
     public record MechanismRegistration(String key, Mechanism<?> mechanism) {}
 
+    public record GenericRegistration(
+            String key, DoubleSupplier currentAmpsSupplier, DoubleSupplier appliedVoltSupplier) {}
+
     private final List<MechanismRegistration> mechanisms = new ArrayList<>();
+    private final List<GenericRegistration> generics = new ArrayList<>();
 
     // Per loop current draw
     private double totalCurrentAmps = 0.0;
@@ -51,15 +56,39 @@ public class PowerProfiler {
     private boolean isInitialized = false;
     private double lastTimestamp = 0.0;
 
+    /** Register a mechanism to the power profiler (e.g. rotary, linear) */
     public void registerMechanism(String key, Mechanism<?> mechanism) {
         mechanisms.add(new MechanismRegistration(key, mechanism));
     }
 
+    /** Register a generic power channel to the power profiler (e.g. drive module, arducam) */
+    public void registerGeneric(
+            String key, DoubleSupplier currentAmpsSupplier, DoubleSupplier appliedVoltSupplier) {
+        generics.add(new GenericRegistration(key, currentAmpsSupplier, appliedVoltSupplier));
+    }
+
+    /**
+     * Loops through each registered mechanism and generic power channel, retrieves its present
+     * applied voltage and supply current (including the draw of any followers), adds the {current,
+     * power, energy} profile results to the accumulators, logs the full profile, and attributes it
+     * by subsystem/mechanism/generic. Resets the per-loop values (current, power) every scan while
+     * maintaining energy tracking since boot.
+     */
     public void periodicAfterScheduler() {
         double loopTimeSeconds = getLoopTime();
         for (var reg : mechanisms) {
-            double currentAmps = Math.abs(reg.mechanism().getSupplyCurrent().in(Amps));
+            // Approximation: total mechanism supply current ~ leader supply current * total motor
+            // count.
+            double currentAmps =
+                    Math.abs(reg.mechanism().getSupplyCurrent().in(Amps))
+                            * reg.mechanism().getNumberOfMotors();
             double appliedVolts = Math.abs(reg.mechanism().getAppliedVoltage().in(Volts));
+            reportUsage(reg.key(), currentAmps, appliedVolts, loopTimeSeconds);
+        }
+
+        for (var reg : generics) {
+            double currentAmps = Math.abs(reg.currentAmpsSupplier().getAsDouble());
+            double appliedVolts = Math.abs(reg.appliedVoltSupplier().getAsDouble());
             reportUsage(reg.key(), currentAmps, appliedVolts, loopTimeSeconds);
         }
 
@@ -76,7 +105,7 @@ public class PowerProfiler {
         }
         for (var entry : subsystemEnergies.entrySet()) {
             Logger.recordOutput(
-                    "PowerProfiler/TotalEnergyWattHours/" + entry.getKey(),
+                    "PowerProfiler/EnergyWattHours/" + entry.getKey(),
                     energyToWattHours(entry.getValue()));
         }
         resetLoopTotals();
@@ -102,7 +131,7 @@ public class PowerProfiler {
         rollUpSubsystemTotals(key, currentAmps, powerWatts, energyJoules);
     }
 
-    // Roll up the subsystem totals from the mechanism level
+    // Roll up the subsystem totals from the mechanism / generic level
     private void rollUpSubsystemTotals(
             String key, double currentAmps, double powerWatts, double energyJoules) {
         String[] parts = key.split("/");
@@ -117,7 +146,7 @@ public class PowerProfiler {
         }
     }
 
-    // Approximate RIO loop time in seconds
+    // RIO loop time in seconds
     private double getLoopTime() {
         double dt;
         double now = Timer.getFPGATimestamp();

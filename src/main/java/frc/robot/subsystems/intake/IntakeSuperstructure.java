@@ -27,6 +27,7 @@ import frc.lib.mechanisms.linear.LinearMechanism;
 import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 
 public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable {
 
@@ -99,6 +100,12 @@ public class IntakeSuperstructure extends SubsystemBase implements AutoCloseable
                         goal.in(Meters),
                         IntakeLinearConstants.MIN_DISTANCE.in(Meters),
                         IntakeLinearConstants.MAX_DISTANCE.in(Meters)));
+    }
+
+    /** Register the intake with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName() + "/IntakeLinear", intakeLinearIO);
+        powerProfiler.registerMechanism(getName() + "/IntakeRoller", intakeRollerIO);
     }
 
     /**

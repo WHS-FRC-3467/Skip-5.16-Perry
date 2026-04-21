@@ -24,6 +24,7 @@ import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 
 /**
  * Subsystem that controls the indexer floor and indexer centering mechanism for moving game pieces
@@ -62,6 +63,11 @@ public class Indexer extends SubsystemBase {
 
     private void runVelocity(AngularVelocity velocity) {
         io.runVelocity(velocity, PIDSlot.SLOT_0);
+    }
+
+    /** Register the indexer with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName() + "/Indexer", io);
     }
 
     /**

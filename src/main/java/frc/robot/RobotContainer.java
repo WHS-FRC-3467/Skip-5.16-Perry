@@ -36,6 +36,7 @@ import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
+import frc.lib.util.PowerProfiler;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
@@ -114,6 +115,14 @@ public class RobotContainer {
         tower = TowerConstants.get();
         VisionConstants.create();
         // objectDetector = ObjectDetectorConstants.get();
+
+        // Construct power profiler and register mechanisms
+        PowerProfiler powerProfiler = new PowerProfiler();
+
+        shooter.registerMechanisms(powerProfiler);
+        intake.registerMechanisms(powerProfiler);
+        indexer.registerMechanisms(powerProfiler);
+        tower.registerMechanisms(powerProfiler);
 
         if (RobotBase.isSimulation()) {
             RobotSim.getInstance().addMechanismData(drive, shooter, indexer, intake);

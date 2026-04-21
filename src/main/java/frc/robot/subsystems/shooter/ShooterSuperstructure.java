@@ -44,6 +44,7 @@ import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 import frc.robot.RobotState;
 import frc.robot.util.ShotTracker;
 
@@ -290,6 +291,12 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
      */
     public Power getFlywheelPowerDraw() {
         return flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent());
+    }
+
+    /** Register the shooter with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName() + "/Flywheel", flywheelIO);
+        powerProfiler.registerMechanism(getName() + "/Hood", hoodIO);
     }
 
     /**
