@@ -67,7 +67,7 @@ public class Indexer extends SubsystemBase {
 
     /** Register the Indexer subsystem with the power profiler. */
     public void registerMechanisms(PowerProfiler powerProfiler) {
-        powerProfiler.registerMechanism(getName() + "/Indexer", io);
+        powerProfiler.registerMechanism(getName(), io);
     }
 
     /**
