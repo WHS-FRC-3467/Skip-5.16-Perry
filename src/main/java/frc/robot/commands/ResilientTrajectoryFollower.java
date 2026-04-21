@@ -199,6 +199,7 @@ public class ResilientTrajectoryFollower extends Command {
 
     @Override
     public void initialize() {
+        double time = Timer.getFPGATimestamp();
         finished = false;
         state = State.TRACKING;
         trajectoryTime = 0.0;
@@ -214,6 +215,7 @@ public class ResilientTrajectoryFollower extends Command {
 
         Logger.recordOutput("Odometry/Trajectory", FieldUtil.apply(trajectory.getPoses()));
         Logger.recordOutput("Auto/ResilientFollower/State", state.name());
+        Logger.recordOutput("Auto/Init Delay", Timer.getFPGATimestamp() - time);
     }
 
     @Override

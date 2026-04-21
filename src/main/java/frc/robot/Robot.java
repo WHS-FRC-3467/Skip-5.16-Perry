@@ -15,7 +15,7 @@
 
 package frc.robot;
 
-import au.grapplerobotics.CanBridge;
+import choreo.util.ChoreoAllianceFlipUtil;
 
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
@@ -57,7 +57,7 @@ public class Robot extends LoggedRobot {
     private final Set<String> activeCommandNames = new LinkedHashSet<>();
 
     public Robot() {
-        CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
+        // CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
 
         // Record metadata
         Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -137,6 +137,16 @@ public class Robot extends LoggedRobot {
 
         // Warms up elastic function call to prevent delay during enable of auto
         Elastic.selectTab(1);
+
+        ChoreoAllianceFlipUtil.getFlipper();
+        FieldConstants.initialize();
+        CommandScheduler.getInstance()
+                .schedule(
+                        robotContainer
+                                .testCommand
+                                .command()
+                                .ignoringDisable(true)
+                                .withTimeout(0.1));
     }
 
     /**
@@ -182,9 +192,9 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         // Switch to Autonomous tab in Elastic Dashboard
-        if (RobotBase.isReal()) {
-            Elastic.selectTab(1);
-        }
+        // if (RobotBase.isReal()) {
+        //     Elastic.selectTab(1);
+        // }
 
         // Reset robot pose to the starting pose of the selected auto
         robotState.resetPose(robotContainer.startPose);

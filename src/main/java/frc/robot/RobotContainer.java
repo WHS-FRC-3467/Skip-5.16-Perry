@@ -93,7 +93,8 @@ public class RobotContainer {
             new CommandXboxControllerExtended(1).withDeadband(0.1);
 
     // Dashboard inputs
-    private final LoggedDashboardChooser<AutoOption> autoChooser;
+    public final LoggedDashboardChooser<AutoOption> autoChooser;
+    public final AutoOption testCommand;
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
     public Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
@@ -134,6 +135,7 @@ public class RobotContainer {
         //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
         // Citrus Autos
+        testCommand = C1678Auto.create(ctx, false).get();
         C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
         C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
