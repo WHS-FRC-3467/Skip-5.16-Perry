@@ -40,13 +40,7 @@ public record ChoreoTraj(
                     6.10957,
                     new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)),
                     new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68185)));
-    public static final ChoreoTraj C16781 =
-            new ChoreoTraj(
-                    "C16781",
-                    OptionalInt.empty(),
-                    5.5923,
-                    new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
-                    new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187)));
+
     public static final ChoreoTraj C16782 =
             new ChoreoTraj(
                     "C16782",
@@ -179,7 +173,6 @@ public record ChoreoTraj(
                     Map.entry("B2", B2),
                     Map.entry("B3", B3),
                     Map.entry("C16781", C16781),
-                    Map.entry("Neutral2ML_0_Safe2", Neutral2ML_0_Safe2),
                     Map.entry("C16782", C16782),
                     Map.entry("C16783", C16783),
                     Map.entry("Neutral2ML_0", Neutral2ML_0),
