@@ -39,7 +39,6 @@ import frc.lib.util.LoggedTunableNumber;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
-import frc.robot.commands.autos.FullNeutralAuto.Positions;
 import frc.robot.commands.autos.tuning.*;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
@@ -139,14 +138,8 @@ public class RobotContainer {
         C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
         C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
-        FullNeutralAuto.create(ctx, Positions.Trench, Positions.Trench)
+        FullNeutralAuto.create(ctx)
                 .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Trench-Trench", a));
-        FullNeutralAuto.create(ctx, Positions.Bump, Positions.Bump)
-                .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Bump-Bump", a));
-        FullNeutralAuto.create(ctx, Positions.Bump, Positions.Trench)
-                .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Bump-Trench", a));
-        FullNeutralAuto.create(ctx, Positions.Trench, Positions.Bump)
-                .ifPresent(a -> autoChooser.addOption("FullNeutralAuto-Trench-Bump", a));
 
         // C1678Auto.create(ctx, false, true)
         //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));

@@ -33,8 +33,6 @@ import frc.robot.commands.autos.utils.AutoOption;
 import frc.robot.commands.autos.utils.AutoUtil;
 import frc.robot.generated.ChoreoTraj;
 
-import lombok.AllArgsConstructor;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,36 +40,15 @@ import java.util.Set;
 
 public class FullNeutralAuto {
 
-    private static final double preloadShootTimeout = 3.0;
-
-    @AllArgsConstructor
-    @SuppressWarnings("ImmutableEnumChecker")
-    public enum Positions {
-        Bump(true),
-        Trench(false);
-        private final boolean position;
-
-        public boolean get() {
-            return position;
-        }
-    }
-
     private static final Alert TRAJECTORIES_MISSING =
             new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
 
-    public static Optional<AutoOption> create(
-            AutoContext ctx, Positions startPosition, Positions returnPosition) {
+    public static Optional<AutoOption> create(AutoContext ctx) {
         List<String> names =
                 List.of(
-                        startPosition.get()
-                                ? ChoreoTraj.FullNeutralBump1.name()
-                                : ChoreoTraj.FullNeutralTrench1.name(),
-                        returnPosition.get()
-                                ? ChoreoTraj.FullNeutralBump2.name()
-                                : ChoreoTraj.FullNeutralTrench2.name(),
-                        returnPosition.get()
-                                ? ChoreoTraj.FullNeutralBump3.name()
-                                : ChoreoTraj.FullNeutralTrench3.name());
+                        ChoreoTraj.FullNeutral1.name(),
+                        ChoreoTraj.FullNeutral2.name(),
+                        ChoreoTraj.FullNeutral3.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, false).orElse(null);
@@ -79,27 +56,12 @@ public class FullNeutralAuto {
             TRAJECTORIES_MISSING.set(true);
             return Optional.empty();
         }
-        final double autoDelay =
-                AutoCommands.getAutoDelay()
-                        - (startPosition.get()
-                                ? AutoCommands.getAutoDelay() - preloadShootTimeout > 0.0
-                                        ? preloadShootTimeout
-                                        : 0.0
-                                : 0.0);
+
         return Optional.of(
                 AutoUtil.trajectoryOption(
                         trajectories,
                         () -> {
-                            AutoRoutine routine =
-                                    ctx.autoFactory()
-                                            .newRoutine(
-                                                    "FullNeutral"
-                                                            + (startPosition.get()
-                                                                    ? " Bump"
-                                                                    : " Trench")
-                                                            + (returnPosition.get()
-                                                                    ? " Bump"
-                                                                    : " Trench"));
+                            AutoRoutine routine = ctx.autoFactory().newRoutine("FullNeutralAuto");
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
                             Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
@@ -120,23 +82,24 @@ public class FullNeutralAuto {
                                     .onTrue(
                                             Commands.sequence(
                                                     first.resetOdometry(),
-                                                    startPosition.get()
-                                                            ? AutoCommands.shootOnly(
-                                                                    ctx, preloadShootTimeout)
-                                                            : Commands.none(),
                                                     ctx.shooter()
                                                             .setHoodAngle(Degrees.of(0.0))
                                                             .asProxy(),
                                                     Commands.defer(
                                                             () ->
-                                                                    autoDelay > 0.0
-                                                                            ? Commands.waitSeconds(
-                                                                                    autoDelay)
-                                                                            : Commands.none(),
+                                                                    Commands.waitSeconds(
+                                                                            AutoCommands
+                                                                                    .getAutoDelay()),
                                                             Set.of()),
                                                     firstFollow));
 
-                            firstFollow.done().onTrue(secondFollow.asProxy());
+                            firstFollow
+                                    .done()
+                                    .onTrue(
+                                            Commands.sequence(
+                                                    Commands.waitSeconds(
+                                                            AutoCommands.getSecondAutoDelay()),
+                                                    secondFollow.asProxy()));
 
                             secondFollow
                                     .done()

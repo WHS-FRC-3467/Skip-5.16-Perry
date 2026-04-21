@@ -31,6 +31,8 @@ public class AutoCommands {
 
     // Delay before following paths in auto.
     private static AlwaysTunableNumber autoDelay = new AlwaysTunableNumber("Auto/Delay", 0.0);
+    private static AlwaysTunableNumber secondAutoDelay =
+            new AlwaysTunableNumber("Auto/SecondDelay", 0.0);
 
     /**
      * Accesses the value in the autoDelay AlwaysTunableNumber
@@ -39,6 +41,10 @@ public class AutoCommands {
      */
     public static double getAutoDelay() {
         return autoDelay.get();
+    }
+
+    public static double getSecondAutoDelay() {
+        return secondAutoDelay.get();
     }
 
     public static Command shootCommand(
