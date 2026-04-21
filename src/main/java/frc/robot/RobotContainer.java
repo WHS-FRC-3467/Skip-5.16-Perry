@@ -41,7 +41,6 @@ import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggedValue;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.DriveToPose;
 import frc.robot.commands.autos.*;
 import frc.robot.commands.autos.tuning.*;
 import frc.robot.commands.autos.utils.AutoContext;
@@ -90,16 +89,17 @@ public class RobotContainer {
     // private final ObjectDetector objectDetector;
 
     // Controller
-    private final CommandXboxControllerExtended controller =
+    public final CommandXboxControllerExtended controller =
             new CommandXboxControllerExtended(0).withDeadband(0.1);
-    private final CommandXboxControllerExtended operatorController =
+    public final CommandXboxControllerExtended operatorController =
             new CommandXboxControllerExtended(1).withDeadband(0.1);
 
     // Dashboard inputs
-    private final LoggedDashboardChooser<AutoOption> autoChooser;
+    public final LoggedDashboardChooser<AutoOption> autoChooser;
+    public final AutoOption testCommand;
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
-    private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
+    public Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
     // Change-only loggers for auto start pose checks
     private final LoggedValue<Pose2d> loggedStartPose;
     private final DashboardDouble dashboardInchesFromStart;
@@ -155,10 +155,17 @@ public class RobotContainer {
         //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
         // Citrus Autos
-        C1678Auto.create(ctx, false, false)
-                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
-        C1678Auto.create(ctx, true, false)
-                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
+        testCommand = C1678Auto.create(ctx, false).get();
+        C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
+        C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
+
+        C1678AutoSafe.create(ctx, false)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
+        C1678AutoSafe.create(ctx, true)
+                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Right", a));
+
+        BAuto.create(ctx, false).ifPresent(a -> autoChooser.addOption("DNBAuto-Left", a));
+        BAuto.create(ctx, true).ifPresent(a -> autoChooser.addOption("DNBAuto-Right", a));
 
         // C1678Auto.create(ctx, false, true)
         //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
@@ -212,20 +219,6 @@ public class RobotContainer {
      * for teleop control.`
      */
     private void configureButtonBindings() {
-        // Default command, normal field-relative drive
-        drive.setDefaultCommand(
-                DriveCommands.joystickDrive(
-                        drive,
-                        () -> -controller.getLeftY(),
-                        () -> -controller.getLeftX(),
-                        () -> -controller.getRightX()));
-
-        Trigger readyToShootAtCurrentTarget =
-                shooter.profileComplete.and(
-                        robotState
-                                .shouldFeed
-                                .and(robotState.facingFeedTarget)
-                                .or(robotState.shouldFeed.negate().and(robotState.facingTarget)));
 
         // Right Trigger: Shoot/Pass
         controller
@@ -235,19 +228,44 @@ public class RobotContainer {
                                         Commands.either(
                                                 DriveCommands.joystickDriveFacingFutureTarget(
                                                         drive,
+                                                        () -> -controller.getLeftY() * 0.6,
+                                                        () -> -controller.getLeftX() * 0.6,
+                                                        robotState.feedLookaheadSeconds,
+                                                        false),
+                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                        drive,
                                                         () -> -controller.getLeftY() * 0.4,
                                                         () -> -controller.getLeftX() * 0.4,
-                                                        robotState.feedLookaheadSeconds),
-                                                DriveCommands.staticAimTowardsTarget(drive),
+                                                        robotState.hubLookaheadSeconds,
+                                                        true),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
-                                                Commands.waitUntil(readyToShootAtCurrentTarget),
+                                                Commands.defer(
+                                                                () ->
+                                                                        Commands.parallel(
+                                                                                        tower
+                                                                                                .eject(),
+                                                                                        indexer
+                                                                                                .eject())
+                                                                                .withTimeout(
+                                                                                        TOWER_TIMEOUT
+                                                                                                .get())
+                                                                                .withInterruptBehavior(
+                                                                                        InterruptionBehavior
+                                                                                                .kCancelSelf),
+                                                                Set.of(tower))
+                                                        .withDeadline(
+                                                                Commands.sequence(
+                                                                        Commands.waitSeconds(0.001),
+                                                                        Commands.waitUntil(
+                                                                                shooter.readyToShootAtCurrentTarget))),
                                                 Commands.parallel(indexer.shoot(), tower.shoot())))
                                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(stopAllShooterAndRetract());
 
-        // Right Bumper: Retract Intake
+        // Left or Right Bumper: Retract Intake
+        controller.leftBumper().onTrue(intake.retractIntake());
         controller.rightBumper().onTrue(intake.retractIntake());
 
         // Left Trigger: Intake
@@ -265,9 +283,6 @@ public class RobotContainer {
                                                                 .withTimeout(TOWER_TIMEOUT.get()),
                                                 Set.of(tower, indexer))
                                         .withInterruptBehavior(InterruptionBehavior.kCancelSelf)));
-
-        // D-Pad Up: Force Intake Linear Slide Back
-        controller.leftBumper().onTrue(intake.retractIntake());
 
         // D-Pad Down: Unjam
         controller
@@ -383,11 +398,19 @@ public class RobotContainer {
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Intake", intake.intake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Retract", intake.retractIntake());
         SmartDashboard.putData(IntakeLinearConstants.NAME + "/Coast", intake.linearCoast());
-        SmartDashboard.putData(IntakeLinearConstants.NAME + "/SlowRetract", intake.slowRetract());
 
+        // Tower Commands
+        SmartDashboard.putData(TowerConstants.NAME + "/Stop", tower.stopCommand());
+        SmartDashboard.putData(TowerConstants.NAME + "/Shoot", tower.shoot());
+        SmartDashboard.putData(TowerConstants.NAME + "/Eject", tower.eject());
+
+        // Shooter Commands
         SmartDashboard.putData(
-                "Debug/SetOdometryToTestPose",
-                Commands.runOnce(() -> robotState.resetPose(new Pose2d(8, 5, Rotation2d.k180deg))));
+                ShooterSuperstructureConstants.NAME + "/Stop", shooter.coastFlywheels());
+        SmartDashboard.putData(
+                ShooterSuperstructureConstants.NAME + "/Shoot", shooter.setShooterContinuous());
+        SmartDashboard.putData(
+                ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
 
         SmartDashboard.putData(
                 "Fountain",
@@ -405,13 +428,6 @@ public class RobotContainer {
                                                         shooter.stopAndStow(),
                                                         indexer.stopCommand(),
                                                         tower.stopCommand())));
-
-        // Drivetrain Commands
-        SmartDashboard.putData(
-                "Drive to Start Pose",
-                new DriveToPose(drive, () -> startPose)
-                        .withDistanceTolerance(Meters.of(0.04))
-                        .withAngularTolerance(Degrees.of(3)));
     }
 
     /**

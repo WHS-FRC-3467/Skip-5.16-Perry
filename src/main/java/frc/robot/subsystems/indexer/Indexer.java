@@ -33,10 +33,10 @@ import frc.lib.util.LoggerHelper;
 public class Indexer extends SubsystemBase {
     private final FlywheelMechanism<?> io;
 
-    private static final LoggedTunableNumber SHOOT_RPS =
-            new LoggedTunableNumber(
-                    IndexerConstants.NAME + "/ShootRPS",
-                    IndexerConstants.MAX_VELOCITY.in(RotationsPerSecond));
+    // private static final LoggedTunableNumber SHOOT_RPS =
+    //         new LoggedTunableNumber(
+    //                 IndexerConstants.NAME + "/ShootRPS",
+    //                 IndexerConstants.MAX_VELOCITY.in(RotationsPerSecond));
 
     private static final LoggedTunableNumber EJECT_RPS =
             new LoggedTunableNumber(IndexerConstants.NAME + "/EjectRPS", -30.0);

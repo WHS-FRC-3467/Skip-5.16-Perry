@@ -15,13 +15,11 @@
 
 package frc.robot;
 
-import au.grapplerobotics.CanBridge;
+import choreo.util.ChoreoAllianceFlipUtil;
 
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -31,11 +29,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
+import frc.robot.commands.DriveCommands;
 import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.HubState;
-import frc.robot.util.LocalADStarAK;
 import frc.robot.util.RobotSim;
 
 import org.littletonrobotics.junction.LogFileUtil;
@@ -62,7 +60,7 @@ public class Robot extends LoggedRobot {
     private final Set<String> activeCommandNames = new LinkedHashSet<>();
 
     public Robot() {
-        CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
+        // CanBridge.runTCP(); // Used for configuring LaserCANs via Grapplehook
 
         // Record metadata
         Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -140,9 +138,6 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void robotInit() {
-        // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
-        Pathfinding.setPathfinder(new LocalADStarAK());
-        CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         // Log first 8 character of robot serial
         Logger.recordOutput("Robot Serial", System.getenv("serialnum"));
 
@@ -150,6 +145,16 @@ public class Robot extends LoggedRobot {
 
         // Warms up elastic function call to prevent delay during enable of auto
         Elastic.selectTab(1);
+
+        ChoreoAllianceFlipUtil.getFlipper();
+        FieldConstants.initialize();
+        CommandScheduler.getInstance()
+                .schedule(
+                        robotContainer
+                                .testCommand
+                                .command()
+                                .ignoringDisable(true)
+                                .withTimeout(0.1));
     }
 
     /**
@@ -178,6 +183,9 @@ public class Robot extends LoggedRobot {
         // Log the names of all currently running commands so we can review them in
         // AdvantageScope log files
         Logger.recordOutput("ActiveCommands", activeCommandNames.toArray(new String[0]));
+
+        // Driver Elastic Dashboard - Update the robot's pose on the main fieldmap
+        fieldMap.setRobotPose(RobotState.getInstance().getEstimatedPose());
     }
 
     /** This function is called once when the robot is disabled. */
@@ -187,15 +195,6 @@ public class Robot extends LoggedRobot {
         if (DriverStation.isFMSAttached()) {
             Elastic.selectTab(1);
         }
-
-        // Pre-build the next auto command now (during disabled) so it's ready instantly when
-        // autonomousInit() runs.  This avoids the 100-200 ms JVM overhead spike that
-        // previously lagged the first few auto cycles.
-        robotContainer.rebuildAutoCache();
-
-        // Hint the JVM to collect garbage now while cycle time doesn't matter, reducing
-        // the chance of a GC pause during the critical first few auto cycles.
-        System.gc();
     }
 
     /** This function is called periodically when disabled. */
@@ -208,9 +207,12 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         // Switch to Autonomous tab in Elastic Dashboard
-        if (RobotBase.isReal()) {
-            Elastic.selectTab(1);
-        }
+        // if (RobotBase.isReal()) {
+        //     Elastic.selectTab(1);
+        // }
+
+        // Reset robot pose to the starting pose of the selected auto
+        robotState.resetPose(robotContainer.startPose);
 
         autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -236,7 +238,17 @@ public class Robot extends LoggedRobot {
             Elastic.selectTab(0);
         }
 
-        // Safety Hood retract
+        // Schedule teleop default drive command
+        CommandScheduler.getInstance()
+                .setDefaultCommand(
+                        robotContainer.drive,
+                        DriveCommands.joystickDrive(
+                                robotContainer.drive,
+                                () -> -robotContainer.controller.getLeftY(),
+                                () -> -robotContainer.controller.getLeftX(),
+                                () -> -robotContainer.controller.getRightX()));
+
+        // Stop and stow the shooter at start of teleop
         CommandScheduler.getInstance().schedule(robotContainer.shooter.stopAndStow());
     }
 
