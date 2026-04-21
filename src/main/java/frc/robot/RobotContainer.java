@@ -87,16 +87,17 @@ public class RobotContainer {
     // private final ObjectDetector objectDetector;
 
     // Controller
-    private final CommandXboxControllerExtended controller =
+    public final CommandXboxControllerExtended controller =
             new CommandXboxControllerExtended(0).withDeadband(0.1);
-    private final CommandXboxControllerExtended operatorController =
+    public final CommandXboxControllerExtended operatorController =
             new CommandXboxControllerExtended(1).withDeadband(0.1);
 
     // Dashboard inputs
-    private final LoggedDashboardChooser<AutoOption> autoChooser;
+    public final LoggedDashboardChooser<AutoOption> autoChooser;
+    public final AutoOption testCommand;
     public final Field2d autoPreviewField = new Field2d();
     private Pose2d[] rawAutoPreviewPoses = new Pose2d[] {}; // Unflipped (blue-alliance) poses
-    private Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
+    public Pose2d startPose = new Pose2d(); // Initialize start pose for auto dashboard tab
 
     /**
      * Pre-built auto command created during disabled by the {@code autoChooser.onChange()} callback
@@ -134,6 +135,7 @@ public class RobotContainer {
         //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
         // Citrus Autos
+        testCommand = C1678Auto.create(ctx, false).get();
         C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
         C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
@@ -197,13 +199,6 @@ public class RobotContainer {
      * for teleop control.`
      */
     private void configureButtonBindings() {
-        // Default command, normal field-relative drive
-        drive.setDefaultCommand(
-                DriveCommands.joystickDrive(
-                        drive,
-                        () -> -controller.getLeftY(),
-                        () -> -controller.getLeftX(),
-                        () -> -controller.getRightX()));
 
         // Right Trigger: Shoot/Pass
         controller
