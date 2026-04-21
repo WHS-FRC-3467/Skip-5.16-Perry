@@ -30,6 +30,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.posestimator.PoseEstimator;
@@ -65,6 +66,9 @@ public class RobotState {
 
     public final LoggedTunableNumber feedLookaheadSeconds =
             new LoggedTunableNumber("RobotState/FeedLookaheadSeconds", 1.0);
+
+    public final LoggedTunableNumber hubLookaheadSeconds =
+            new LoggedTunableNumber("RobotState/HubLookaheadSeconds", .2);
 
     @AutoLogOutput(key = "Drive/ActiveTrajectoryPose")
     @Getter
@@ -216,10 +220,10 @@ public class RobotState {
      * @param observation the vision observation to add
      */
     public void addVisionObservation(VisionPoseObservation observation) {
-        // if (DriverStation.isDisabled()) {
-        //     poseEstimator.resetPose(observation.robotPose());
-        //     return;
-        // }
+        if (DriverStation.isDisabled()) {
+            poseEstimator.resetPose(observation.robotPose());
+            return;
+        }
         poseEstimator.addVisionObservation(observation);
     }
 
@@ -532,6 +536,7 @@ public class RobotState {
      *
      * @return the angle to the target
      */
+    @AutoLogOutput(key = "RobotState/AngleToTarget")
     public Rotation2d getAngleToTarget() {
         return getTarget()
                 .getAllianceTranslation()
