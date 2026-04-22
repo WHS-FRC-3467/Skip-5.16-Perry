@@ -35,6 +35,7 @@ import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
+import frc.lib.util.PowerProfiler;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.autos.*;
 import frc.robot.commands.autos.tuning.*;
@@ -104,6 +105,9 @@ public class RobotContainer {
      */
     private Command cachedAutoCommand = null;
 
+    /** A power profiler for characterizing current/power/energy draw from the battery */
+    public final PowerProfiler powerProfiler;
+
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
         drive = DriveConstants.get();
@@ -113,6 +117,15 @@ public class RobotContainer {
         tower = TowerConstants.get();
         VisionConstants.create();
         // objectDetector = ObjectDetectorConstants.get();
+
+        // Construct the power profiler and register drive/mechanisms
+        powerProfiler = new PowerProfiler();
+
+        drive.registerDrive(powerProfiler);
+        shooter.registerMechanisms(powerProfiler);
+        intake.registerMechanisms(powerProfiler);
+        indexer.registerMechanisms(powerProfiler);
+        tower.registerMechanisms(powerProfiler);
 
         if (RobotBase.isSimulation()) {
             RobotSim.getInstance().addMechanismData(drive, shooter, indexer, intake);

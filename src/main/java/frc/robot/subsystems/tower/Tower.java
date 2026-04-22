@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 
 /**
  * Subsystem that controls the tower mechanism that transfers game pieces from the indexer to the
@@ -75,6 +76,11 @@ public class Tower extends SubsystemBase {
      */
     public double getSpeed() {
         return io.getVelocity().in(RotationsPerSecond);
+    }
+
+    /** Register the Tower subsystem with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName(), io);
     }
 
     /**

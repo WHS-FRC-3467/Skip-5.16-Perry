@@ -228,6 +228,15 @@ public interface MotorIO extends AutoCloseable {
      */
     public default void setPID(PIDSlot slot, PID pid) {}
 
+    /**
+     * Return the total number of motors associated with this motor object
+     *
+     * @return The number of motors associated with the motor object (leader + all followers)
+     */
+    public default int getNumberOfMotors() {
+        return 1;
+    }
+
     @Override
     public default void close() {}
 }
