@@ -30,7 +30,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.posestimator.PoseEstimator;
@@ -57,6 +56,9 @@ public class RobotState {
 
     private static final LoggedTunableNumber SHOOT_TOLERANCE_DEGREES =
             new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 2.0);
+
+    private static final LoggedTunableNumber FEED_TOLERANCE_DEGREES =
+            new LoggedTunableNumber("RobotState/FeedToleranceDegrees", 6.0);
 
     private static final double LINEAR_ODOMETRY_STD_DEV = 0.3;
     private static final double ANGULAR_ODOMETRY_STD_DEV = 0.15;
@@ -106,7 +108,7 @@ public class RobotState {
                                         getAngleToTarget(futureTranslation)
                                                 .minus(getEstimatedPose().getRotation())
                                                 .getDegrees())
-                                < SHOOT_TOLERANCE_DEGREES.get();
+                                < FEED_TOLERANCE_DEGREES.get();
                     });
 
     public final LoggedTrigger shouldFeed =
@@ -220,10 +222,6 @@ public class RobotState {
      * @param observation the vision observation to add
      */
     public void addVisionObservation(VisionPoseObservation observation) {
-        if (DriverStation.isDisabled()) {
-            poseEstimator.resetPose(observation.robotPose());
-            return;
-        }
         poseEstimator.addVisionObservation(observation);
     }
 

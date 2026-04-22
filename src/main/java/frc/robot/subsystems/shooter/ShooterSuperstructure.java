@@ -58,14 +58,14 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new InterpolatingDoubleTreeMap();
 
     static {
-        hubFlywheelMap.put(1.8, 26.5);
-        hubFlywheelMap.put(2.1, 26.5);
+        hubFlywheelMap.put(1.8, 26.0);
+        hubFlywheelMap.put(2.1, 27.0);
         hubFlywheelMap.put(2.5, 28.0);
-        hubFlywheelMap.put(3.15, 32.0);
+        hubFlywheelMap.put(3.15, 31.5);
         hubFlywheelMap.put(3.55, 32.0);
-        hubFlywheelMap.put(4.0, 34.0);
-        hubFlywheelMap.put(4.5, 34.0);
-        hubFlywheelMap.put(5.0, 36.0);
+        hubFlywheelMap.put(4.0, 33.5);
+        hubFlywheelMap.put(4.5, 33.5);
+        hubFlywheelMap.put(5.0, 35.5);
     }
 
     /** Distance from feed pose in meters -> flywheel speed in rotations per second */
@@ -84,7 +84,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     static {
         hubHoodMap.put(1.8, 0.0);
-        hubHoodMap.put(2.1, 6.0);
+        hubHoodMap.put(2.1, 4.5);
         hubHoodMap.put(2.51, 7.0);
         hubHoodMap.put(3.15, 8.67);
         hubHoodMap.put(3.55, 10.0);
@@ -111,7 +111,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final RotaryMechanism<?, ?> hoodIO;
     private final FlywheelMechanism<?> flywheelIO;
 
-    private final Debouncer profileCompleteDebouncer = new Debouncer(0.04, DebounceType.kRising);
+    private final Debouncer profileCompleteDebouncer = new Debouncer(0.1, DebounceType.kRising);
     public final LoggedTrigger profileComplete =
             new LoggedTrigger(
                     this.getName() + "/ProfileComplete",
@@ -126,10 +126,23 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // Default trim to apply
     private final AlwaysTunableNumber flywheelTrimDefaultRPS =
-            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -0.5);
+            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
+
+    public final LoggedTrigger readyToShootAtCurrentTarget =
+            new LoggedTrigger(
+                    "RobotState/ReadyToShootAtCurrentTarget",
+                    profileComplete.and(
+                            robotState
+                                    .shouldFeed
+                                    .and(robotState.facingFeedTarget)
+                                    .or(
+                                            robotState
+                                                    .shouldFeed
+                                                    .negate()
+                                                    .and(robotState.facingTarget))));
 
     // User-defined trim at runtime, not including default trim
     private AngularVelocity flywheelTrim = RotationsPerSecond.zero();
@@ -145,19 +158,6 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new LoggedTrigger(
                     getName() + "/StaticShotState",
                     () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
-
-    public final LoggedTrigger readyToShootAtCurrentTarget =
-            new LoggedTrigger(
-                    "RobotState/ReadyToShootAtCurrentTarget",
-                    this.profileComplete.and(
-                            robotState
-                                    .shouldFeed
-                                    .and(robotState.facingFeedTarget)
-                                    .or(
-                                            robotState
-                                                    .shouldFeed
-                                                    .negate()
-                                                    .and(robotState.facingTarget))));
 
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
@@ -199,8 +199,6 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
         flywheelIO.periodic();
         hoodIO.periodic();
-        profileComplete.getAsBoolean();
-        readyToShootAtCurrentTarget.getAsBoolean();
 
         // Centralize required polling for hopper detection and ball counting logic
         shotTracker.ballTrigger.getAsBoolean();
