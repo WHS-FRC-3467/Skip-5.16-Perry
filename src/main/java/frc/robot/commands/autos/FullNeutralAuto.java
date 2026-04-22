@@ -82,27 +82,28 @@ public class FullNeutralAuto {
                                     .onTrue(
                                             Commands.sequence(
                                                     first.resetOdometry(),
+                                                    Commands.defer(
+                                                            () ->
+                                                                    Commands.deadline(
+                                                                            Commands.waitSeconds(
+                                                                                    AutoCommands
+                                                                                            .getStartDelay()),
+                                                                            AutoCommands.shootOnly(
+                                                                                    ctx, 3.0)),
+                                                            Set.of()),
                                                     ctx.shooter()
                                                             .setHoodAngle(Degrees.of(0.0))
                                                             .asProxy(),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
-                                                            Set.of()),
                                                     firstFollow));
 
-                            firstFollow
-                                    .done()
+                            routine.observe(firstFollow.done())
                                     .onTrue(
                                             Commands.sequence(
                                                     Commands.waitSeconds(
-                                                            AutoCommands.getSecondAutoDelay()),
+                                                            AutoCommands.getBumpDelay()),
                                                     secondFollow.asProxy()));
 
-                            secondFollow
-                                    .done()
+                            routine.observe(secondFollow.done())
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 10.0),
@@ -110,8 +111,7 @@ public class FullNeutralAuto {
                                                             .setHoodAngle(Degrees.of(0.0))
                                                             .asProxy(),
                                                     thirdFollow.asProxy()));
-                            thirdFollow
-                                    .done()
+                            routine.observe(thirdFollow.done())
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 10.0),
