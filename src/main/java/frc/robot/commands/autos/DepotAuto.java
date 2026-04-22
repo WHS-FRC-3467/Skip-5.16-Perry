@@ -21,8 +21,10 @@ import choreo.trajectory.Trajectory;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
+import frc.robot.commands.ResilientTrajectoryFollower;
 import frc.robot.commands.autos.utils.AutoCommands;
 import frc.robot.commands.autos.utils.AutoContext;
 import frc.robot.commands.autos.utils.AutoOption;
@@ -30,8 +32,8 @@ import frc.robot.commands.autos.utils.AutoUtil;
 import frc.robot.generated.ChoreoTraj;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public class DepotAuto {
 
@@ -56,34 +58,27 @@ public class DepotAuto {
                         () -> {
                             AutoRoutine routine = ctx.autoFactory().newRoutine("Depot");
 
+                            // Still use AutoTrajectory for resetOdometry() lifecycle.
                             AutoTrajectory first = routine.trajectory(trajectories.get(0));
-                            AutoTrajectory second = routine.trajectory(trajectories.get(1));
 
-                            Optional<AutoTrajectory> bump = bumpTrajectory.map(routine::trajectory);
-                            AutoUtil.bindEvents(ctx, first, second);
+                            Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
+                            // Declare the trajectory-following command up front so we
+                            // can grab the .done() trigger.
+                            ResilientTrajectoryFollower firstFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(0), eventBindings);
+
+                            // Phase 1: Reset controllers, odometry, wait for delay,
+                            // then follow the first trajectory. Because the sequence
+                            // only contains Drive-requiring commands, the event-bound
+                            // commands (Intake, Shooter) can schedule without conflict.
                             routine.active()
-                                    .onTrue(
-                                            Commands.sequence(
-                                                    Commands.runOnce(
-                                                            ctx.drive()
-                                                                    ::resetTrajectoryControllers),
-                                                    first.resetOdometry(),
-                                                    Commands.defer(
-                                                            () ->
-                                                                    Commands.waitSeconds(
-                                                                            AutoCommands
-                                                                                    .getAutoDelay()),
-                                                            Set.of()),
-                                                    first.spawnCmd()));
+                                    .onTrue(Commands.sequence(first.resetOdometry(), firstFollow));
 
-                            first.done().onTrue(AutoCommands.shootThenFollow(ctx, 3.0, second));
-
-                            second.done().onTrue(AutoCommands.shootThenFollow(ctx, 10.0, second));
-                            AutoCommands.retryTrigger(routine, second)
-                                    .onTrue(
-                                            AutoCommands.recoverThenFollow(
-                                                    ctx, second, bump, 10.0, second));
+                            // Phase 2: When the trajectory completes, shoot.
+                            firstFollow.done().onTrue(AutoCommands.shootOnly(ctx, 5.0));
 
                             return routine;
                         }));

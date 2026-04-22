@@ -90,9 +90,9 @@ public class PoseEstimator {
 
     private Predicate<Pose2d> poseValidator = pose -> true;
 
-    @Getter private Pose2d estimatedPose = Pose2d.kZero;
-    private Pose2d odometryPoseAtReset = Pose2d.kZero;
-    private boolean visionLockedToReset = false;
+    // Initialize to value not outside the field
+    @Getter private Pose2d estimatedPose = new Pose2d(1, 1, new Rotation2d());
+    private Pose2d odometryPoseAtReset = new Pose2d(1, 1, new Rotation2d());
 
     public PoseEstimator(
             SwerveDriveKinematics kinematics,
@@ -161,24 +161,6 @@ public class PoseEstimator {
         Twist2d twist = lastOdometryPose.log(newOdometryPose);
 
         estimatedPose = estimatedPose.exp(twist);
-
-        if (visionLockedToReset) {
-            double translationStdDev = Math.sqrt(Math.max(odometryVariances[0], 0.0));
-            double rotationStdDev = Math.sqrt(Math.max(odometryVariances[2], 0.0));
-            double translationDelta =
-                    newOdometryPose
-                            .getTranslation()
-                            .getDistance(odometryPoseAtReset.getTranslation());
-            double rotationDelta =
-                    Math.abs(
-                            newOdometryPose
-                                    .getRotation()
-                                    .minus(odometryPoseAtReset.getRotation())
-                                    .getRadians());
-            if (translationDelta >= translationStdDev || rotationDelta >= rotationStdDev) {
-                visionLockedToReset = false;
-            }
-        }
     }
 
     /**
@@ -266,16 +248,6 @@ public class PoseEstimator {
      * @param observation The vision pose observation
      */
     public void addVisionObservation(VisionPoseObservation observation) {
-        if (visionLockedToReset) {
-            logVisionObservation(
-                    observation,
-                    null,
-                    false,
-                    VisionObservationReason.RESET_LOCKED,
-                    Double.NaN,
-                    Double.NaN);
-            return;
-        }
 
         // Attempt to get heading. Fails if the odometer has not recorded
         // a measurement near this timestamp
@@ -415,7 +387,6 @@ public class PoseEstimator {
         odometry.resetPose(pose);
         estimatedPose = pose;
         odometryPoseAtReset = pose;
-        visionLockedToReset = true;
 
         odometryStdDevMultiplierLinear = 1.0;
         odometryStdDevMultiplierAngular = 1.0;
