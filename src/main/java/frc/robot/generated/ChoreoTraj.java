@@ -186,8 +186,7 @@ public record ChoreoTraj(
                     Map.entry("Neutral2ML_1_Safe1", Neutral2ML_1_Safe1),
                     Map.entry("Neutral2ML_1_Safe2", Neutral2ML_1_Safe2),
                     Map.entry("FullNeutral1", FullNeutral1),
-                    Map.entry("Neutral2ML_0_Safe1", Neutral2ML_0_Safe1),
-                    Map.entry("C16781", C16781));
+                    Map.entry("Neutral2ML_0_Safe1", Neutral2ML_0_Safe1));
 
     /**
      * Looks up the ChoreoTraj segment of the given overall ChoreoTraj. WARNING: will raise an
