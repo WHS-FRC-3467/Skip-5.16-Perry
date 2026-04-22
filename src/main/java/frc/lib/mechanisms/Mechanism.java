@@ -316,6 +316,15 @@ public abstract class Mechanism<T extends MotorIO> {
     }
 
     /**
+     * Returns the number of motors associated with the mechanism.
+     *
+     * @return the number of motors associated with the mechanism
+     */
+    public int getNumberOfMotors() {
+        return io.getNumberOfMotors();
+    }
+
+    /**
      * Gets the supply current draw of the mechanism.
      *
      * @return The supply current

@@ -478,6 +478,11 @@ public class MotorIOTalonFX implements MotorIO {
         motor.setPosition(position);
     }
 
+    @Override
+    public int getNumberOfMotors() {
+        return followers.length + 1;
+    }
+
     private void queueMotionMagicConfigUpdate(double cruiseVelocity, double acceleration) {
         if (cruiseVelocity == lastRequestedMmCruiseVelocity
                 && acceleration == lastRequestedMmAcceleration) {

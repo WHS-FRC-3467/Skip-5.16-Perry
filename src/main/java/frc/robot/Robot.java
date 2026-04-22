@@ -167,6 +167,9 @@ public class Robot extends LoggedRobot {
         // the Command-based framework to work.
         CommandScheduler.getInstance().run();
 
+        // Run power profile telemetry after subsystem machinery is executed
+        robotContainer.powerProfiler.periodicAfterScheduler();
+
         // Log the names of all currently running commands so we can review them in
         // AdvantageScope log files
         Logger.recordOutput("ActiveCommands", activeCommandNames.toArray(new String[0]));

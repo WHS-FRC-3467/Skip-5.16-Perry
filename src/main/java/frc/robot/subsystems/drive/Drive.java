@@ -53,6 +53,7 @@ import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
 import frc.lib.util.PID;
+import frc.lib.util.PowerProfiler;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.RobotState;
@@ -901,5 +902,14 @@ public class Drive extends SubsystemBase {
 
     public Rotation2d getRawGyroAngle() {
         return gyroInputs.yawPosition;
+    }
+
+    /** Registers the Drive subsystem with the power profiler. */
+    public void registerDrive(PowerProfiler powerProfiler) {
+        // FL, FR, BL, BR
+        modules[0].registerModule("Drive/FrontLeft", powerProfiler);
+        modules[1].registerModule("Drive/FrontRight", powerProfiler);
+        modules[2].registerModule("Drive/BackLeft", powerProfiler);
+        modules[3].registerModule("Drive/BackRight", powerProfiler);
     }
 }
