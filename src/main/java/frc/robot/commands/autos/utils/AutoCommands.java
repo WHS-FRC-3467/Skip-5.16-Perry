@@ -29,21 +29,25 @@ public class AutoCommands {
     private static final RobotState robotState = RobotState.getInstance();
 
     // Delay before following paths in auto.
-    private static AlwaysTunableNumber autoDelay = new AlwaysTunableNumber("Auto/Delay", 0.0);
-    private static AlwaysTunableNumber secondAutoDelay =
-            new AlwaysTunableNumber("Auto/SecondDelay", 0.0);
+    private static AlwaysTunableNumber startDelay = new AlwaysTunableNumber("Auto/StartDelay", 0.0);
+    private static AlwaysTunableNumber bumpDelay = new AlwaysTunableNumber("Auto/BumpDelay", 0.0);
 
     /**
-     * Accesses the value in the autoDelay AlwaysTunableNumber
+     * Accesses the value in the startDelay AlwaysTunableNumber
      *
      * @return the delay, in seconds, to wait at the start of auto
      */
-    public static double getAutoDelay() {
-        return autoDelay.get();
+    public static double getStartDelay() {
+        return startDelay.get();
     }
 
-    public static double getSecondAutoDelay() {
-        return secondAutoDelay.get();
+    /**
+     * Accesses the value in the bumpDelay AlwaysTunableNumber
+     *
+     * @return the delay, in seconds, to wait before going over the bump
+     */
+    public static double getBumpDelay() {
+        return bumpDelay.get();
     }
 
     public static Command shootCommand(

@@ -244,28 +244,28 @@
             }
           },
           {
-            "title": "Delay",
+            "title": "`StartDelay`",
             "x": 900.0,
             "y": 550.0,
             "width": 150.0,
             "height": 150.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/SmartDashboard/TunableNumbers/Auto/Delay",
+              "topic": "/SmartDashboard/TunableNumbers/Auto/StartDelay",
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": true
             }
           },
           {
-            "title": "SecondDelay",
+            "title": "BumpDelay",
             "x": 1050.0,
             "y": 550.0,
             "width": 150.0,
             "height": 150.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/SmartDashboard/TunableNumbers/Auto/SecondDelay",
+              "topic": "/SmartDashboard/TunableNumbers/Auto/BumpDelay",
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": true
