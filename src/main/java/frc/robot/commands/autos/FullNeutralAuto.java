@@ -111,7 +111,9 @@ public class FullNeutralAuto {
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 5.0),
-                                                    ctx.shooter().setHoodAngle(Degrees.of(0.0))));
+                                                    ctx.shooter()
+                                                            .setHoodAngle(Degrees.of(0.0))
+                                                            .asProxy()));
 
                             return routine;
                         }));
