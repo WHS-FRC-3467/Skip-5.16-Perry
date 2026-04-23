@@ -77,7 +77,18 @@ public class DriveConstants {
     // cannot be null.
     // Some configs will be overwritten; check the `with*InitialConfigs()` API
     // documentation.
-    private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
+    static final double DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 55.0;
+    static final double BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 30.0;
+
+    private static final TalonFXConfiguration driveInitialConfigs =
+            new TalonFXConfiguration()
+                    .withCurrentLimits(
+                            // Default is 70
+                            // https://www.chiefdelphi.com/t/methodologies-to-reduce-power-draw-without-impacting-robot-performance/516076/8
+                            new CurrentLimitsConfigs()
+                                    .withSupplyCurrentLimitEnable(true)
+                                    .withSupplyCurrentLimit(
+                                            Amps.of(DRIVE_SUPPLY_CURRENT_LIMIT_AMPS)));
     private static final TalonFXConfiguration steerInitialConfigs =
             new TalonFXConfiguration()
                     .withCurrentLimits(
