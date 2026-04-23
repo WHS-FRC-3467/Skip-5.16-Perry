@@ -17,7 +17,6 @@ package frc.robot.commands.autos;
 import static edu.wpi.first.units.Units.Degrees;
 
 import choreo.auto.AutoRoutine;
-import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
 
@@ -62,7 +61,7 @@ public class FullNeutralAuto {
                         trajectories,
                         () -> {
                             AutoRoutine routine = ctx.autoFactory().newRoutine("FullNeutralAuto");
-                            AutoTrajectory first = routine.trajectory(trajectories.get(0));
+
                             Map<String, Command> eventBindings = AutoUtil.createEventBindings(ctx);
 
                             ResilientTrajectoryFollower firstFollow =
@@ -103,7 +102,7 @@ public class FullNeutralAuto {
                             routine.observe(secondFollow.done())
                                     .onTrue(
                                             Commands.sequence(
-                                                    AutoCommands.shootOnly(ctx, 10.0),
+                                                    AutoCommands.shootOnly(ctx, 5.0),
                                                     ctx.shooter()
                                                             .setHoodAngle(Degrees.of(0.0))
                                                             .asProxy(),
@@ -111,7 +110,7 @@ public class FullNeutralAuto {
                             routine.observe(thirdFollow.done())
                                     .onTrue(
                                             Commands.sequence(
-                                                    AutoCommands.shootOnly(ctx, 10.0),
+                                                    AutoCommands.shootOnly(ctx, 5.0),
                                                     ctx.shooter().setHoodAngle(Degrees.of(0.0))));
 
                             return routine;
