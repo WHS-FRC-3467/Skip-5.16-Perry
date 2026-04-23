@@ -388,7 +388,13 @@ public class RobotContainer {
 
         SmartDashboard.putBoolean("Browned Out!", false);
         new Trigger(Count.over(1.0, RobotController::isBrownedOut).greaterThanEquals(5))
-                .onTrue(Commands.runOnce(() -> SmartDashboard.putBoolean("Browned Out!", true)));
+                .onTrue(
+                        Commands.runOnce(
+                                () -> {
+                                    SmartDashboard.putBoolean("Browned Out!", true);
+                                    drive.setBrownedOut(true);
+                                    shooter.setBrownedOut(true);
+                                }));
     }
 
     /**

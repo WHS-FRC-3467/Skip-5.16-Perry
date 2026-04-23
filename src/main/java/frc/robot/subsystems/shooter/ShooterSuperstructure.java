@@ -150,6 +150,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // A dedicated utility helper to quantify shooter performance
     private ShotTracker shotTracker;
+    private boolean brownedOut = false;
 
     /**
      * Trigger for whether we are at the static shooting state (robot steadily stationary, steadily
@@ -218,7 +219,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private void setFlywheelVelocity(AngularVelocity velocity) {
         flywheelIO.runVelocity(
                 velocity.plus(getFlywheelTrim()),
-                FlywheelConstants.MAX_ACCELERATION,
+                brownedOut
+                        ? FlywheelConstants.BROWNOUT_MAX_ACCELERATION
+                        : FlywheelConstants.MAX_ACCELERATION,
                 PIDSlot.SLOT_0);
     }
 
@@ -291,6 +294,15 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
      */
     public Power getFlywheelPowerDraw() {
         return flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent());
+    }
+
+    /**
+     * Slows the flywheel Motion Magic ramp during brownout recovery.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        this.brownedOut = brownedOut;
     }
 
     /** Register the Shooter subsystem with the power profiler. */

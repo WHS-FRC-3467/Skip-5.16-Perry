@@ -63,8 +63,8 @@ public class IndexerConstants {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         config.CurrentLimits.SupplyCurrentLimitEnable = Robot.isReal();
-        config.CurrentLimits.SupplyCurrentLimit = 40.0;
-        config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
+        config.CurrentLimits.SupplyCurrentLimit = 30.0;
+        config.CurrentLimits.SupplyCurrentLowerLimit = 30.0;
         config.CurrentLimits.SupplyCurrentLowerTime = 0.1;
 
         if (Robot.isReal()) {

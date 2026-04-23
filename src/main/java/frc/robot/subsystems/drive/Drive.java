@@ -438,6 +438,17 @@ public class Drive extends SubsystemBase {
         }
     }
 
+    /**
+     * Updates the drive motor current limit on every module for brownout protection.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        for (Module module : modules) {
+            module.setBrownedOut(brownedOut);
+        }
+    }
+
     /** Stops the drive. */
     public void stop() {
         runVelocity(new ChassisSpeeds());

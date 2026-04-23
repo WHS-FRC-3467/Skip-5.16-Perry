@@ -108,6 +108,7 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     private volatile TalonFXConfiguration driveConfig;
     private volatile TalonFXConfiguration turnConfig;
+    private boolean brownedOut = false;
 
     /**
      * Constructs a new ModuleIOTalonFX instance.
@@ -330,6 +331,30 @@ public class ModuleIOTalonFX implements ModuleIO {
                 .withKV(pid.V())
                 .withKG(pid.G())
                 .withKS(pid.S());
+
+        updateThread
+                .ctreCheckErrorAndRetry(() -> driveTalon.getConfigurator().apply(driveConfig))
+                .exceptionally(
+                        ex -> {
+                            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+                            return null;
+                        });
+    }
+
+    @Override
+    public void setBrownedOut(boolean brownedOut) {
+        if (this.brownedOut == brownedOut) {
+            return;
+        }
+        this.brownedOut = brownedOut;
+
+        driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        driveConfig.CurrentLimits.SupplyCurrentLimit =
+                brownedOut
+                        ? DriveConstants.BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS
+                        : DriveConstants.DRIVE_SUPPLY_CURRENT_LIMIT_AMPS;
+        driveConfig.CurrentLimits.SupplyCurrentLowerLimit =
+                brownedOut ? DriveConstants.BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS : 40.0;
 
         updateThread
                 .ctreCheckErrorAndRetry(() -> driveTalon.getConfigurator().apply(driveConfig))
