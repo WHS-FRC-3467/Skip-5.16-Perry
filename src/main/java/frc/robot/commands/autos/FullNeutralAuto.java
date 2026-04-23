@@ -14,7 +14,6 @@
  */
 package frc.robot.commands.autos;
 
-
 import choreo.auto.AutoRoutine;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;

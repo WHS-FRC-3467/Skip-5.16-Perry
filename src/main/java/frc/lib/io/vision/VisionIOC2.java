@@ -334,8 +334,8 @@ public class VisionIOC2 implements VisionIO {
                 DEFAULT_CAMERA_EXPOSURE,
                 DEFAULT_CAMERA_GAIN,
                 DEFAULT_FIDUCIAL_SIZE_METERS,
-                AprilTagLayoutType.OFFICIAL.getLayout(),
-                AprilTagLayoutType.OFFICIAL.getLayoutString(),
+                AprilTagLayoutType.NO_TRENCH.getLayout(),
+                AprilTagLayoutType.NO_TRENCH.getLayoutString(),
                 DEFAULT_POLL_STORAGE_DEPTH);
     }
 
