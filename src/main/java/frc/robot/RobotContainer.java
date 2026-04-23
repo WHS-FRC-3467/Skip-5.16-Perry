@@ -111,6 +111,8 @@ public class RobotContainer {
     /** A power profiler for characterizing current/power/energy draw from the battery */
     public final PowerProfiler powerProfiler;
 
+    private boolean disableAutomaticBrownoutMitigation = false;
+
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
         drive = DriveConstants.get();
@@ -367,6 +369,18 @@ public class RobotContainer {
         // Operator POV Down: Trim shot power down
         operatorController.povDown().onTrue(shooter.trimFlywheelSpeedDown());
 
+        // Operator POV Left: Toggle brownout mitigation
+        operatorController
+                .povLeft()
+                .onTrue(
+                        Commands.runOnce(
+                                () -> {
+                                    disableAutomaticBrownoutMitigation = true;
+                                    drive.toggleBrownedOut();
+                                    indexer.toggleBrownedOut();
+                                    shooter.toggleBrownedOut();
+                                }));
+
         // Operator Y: Manual Spinup
         operatorController
                 .y()
@@ -392,7 +406,10 @@ public class RobotContainer {
                         Commands.runOnce(
                                 () -> {
                                     SmartDashboard.putBoolean("Browned Out!", true);
+
+                                    if (disableAutomaticBrownoutMitigation) return;
                                     drive.setBrownedOut(true);
+                                    indexer.setBrownedOut(true);
                                     shooter.setBrownedOut(true);
                                 }));
     }
@@ -429,6 +446,15 @@ public class RobotContainer {
                 ShooterSuperstructureConstants.NAME + "/Shoot", shooter.setShooterContinuous());
         SmartDashboard.putData(
                 ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
+
+        SmartDashboard.putData(
+                "Reset Brownout Mitigation",
+                Commands.runOnce(
+                        () -> {
+                            drive.setBrownedOut(false);
+                            indexer.setBrownedOut(false);
+                            shooter.setBrownedOut(false);
+                        }));
 
         SmartDashboard.putData(
                 "Fountain",

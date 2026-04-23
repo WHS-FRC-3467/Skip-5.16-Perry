@@ -449,6 +449,13 @@ public class Drive extends SubsystemBase {
         }
     }
 
+    /** Toggles the drive motor current limit on every module for brownout protection. */
+    public void toggleBrownedOut() {
+        for (Module module : modules) {
+            module.toggleBrownedOut();
+        }
+    }
+
     /** Stops the drive. */
     public void stop() {
         runVelocity(new ChassisSpeeds());

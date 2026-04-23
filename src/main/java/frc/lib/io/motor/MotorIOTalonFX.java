@@ -15,12 +15,14 @@
 
 package frc.lib.io.motor;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -476,6 +478,37 @@ public class MotorIOTalonFX implements MotorIO {
     @Override
     public void setEncoderPosition(Angle position) {
         motor.setPosition(position);
+    }
+
+    @Override
+    public void setSupplyCurrentLimit(Current currentLimit) {
+        double currentLimitAmps = Math.abs(currentLimit.in(Amps));
+        currentConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        currentConfig.CurrentLimits.SupplyCurrentLimit = currentLimitAmps;
+        currentConfig.CurrentLimits.SupplyCurrentLowerLimit = currentLimitAmps;
+
+        updateThread
+                .ctreCheckErrorAndRetry(
+                        () -> {
+                            StatusCode status = motor.getConfigurator().apply(currentConfig);
+                            if (!status.isOK()) {
+                                return status;
+                            }
+
+                            for (TalonFX follower : followers) {
+                                status = follower.getConfigurator().apply(currentConfig);
+                                if (!status.isOK()) {
+                                    return status;
+                                }
+                            }
+
+                            return StatusCode.OK;
+                        })
+                .exceptionally(
+                        ex -> {
+                            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+                            return null;
+                        });
     }
 
     @Override

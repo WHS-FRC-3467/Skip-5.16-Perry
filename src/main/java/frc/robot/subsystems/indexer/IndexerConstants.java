@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.indexer;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -17,6 +18,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MomentOfInertia;
 
@@ -47,6 +49,8 @@ public class IndexerConstants {
     public static final Distance RADIUS = Inches.of(1.25);
 
     public static final AngularVelocity TOLERANCE = RotationsPerSecond.of(5.0);
+    public static final Current SUPPLY_CURRENT_LIMIT = Amps.of(30.0);
+    public static final Current BROWNOUT_SUPPLY_CURRENT_LIMIT = Amps.of(20.0);
 
     private static final DCMotor DCMOTOR = DCMotor.getKrakenX44Foc(1);
     public static final MomentOfInertia MOI = KilogramSquareMeters.of(0.001);
@@ -63,8 +67,8 @@ public class IndexerConstants {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         config.CurrentLimits.SupplyCurrentLimitEnable = Robot.isReal();
-        config.CurrentLimits.SupplyCurrentLimit = 30.0;
-        config.CurrentLimits.SupplyCurrentLowerLimit = 30.0;
+        config.CurrentLimits.SupplyCurrentLimit = SUPPLY_CURRENT_LIMIT.in(Amps);
+        config.CurrentLimits.SupplyCurrentLowerLimit = SUPPLY_CURRENT_LIMIT.in(Amps);
         config.CurrentLimits.SupplyCurrentLowerTime = 0.1;
 
         if (Robot.isReal()) {

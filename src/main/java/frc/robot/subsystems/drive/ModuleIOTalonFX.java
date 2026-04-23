@@ -366,6 +366,11 @@ public class ModuleIOTalonFX implements ModuleIO {
     }
 
     @Override
+    public void toggleBrownedOut() {
+        setBrownedOut(!brownedOut);
+    }
+
+    @Override
     public void setTurnPID(PID pid) {
         turnConfig
                 .Slot0

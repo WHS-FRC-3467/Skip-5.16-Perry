@@ -94,4 +94,7 @@ public interface ModuleIO {
      * @param brownedOut True when the robot is actively browned out
      */
     public default void setBrownedOut(boolean brownedOut) {}
+
+    /** Toggles the drive motor current limit for brownout protection. */
+    public default void toggleBrownedOut() {}
 }

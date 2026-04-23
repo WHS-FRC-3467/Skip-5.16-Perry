@@ -232,6 +232,11 @@ public class Module {
         io.setBrownedOut(brownedOut);
     }
 
+    /** Toggles the drive motor current limit for brownout protection. */
+    public void toggleBrownedOut() {
+        io.toggleBrownedOut();
+    }
+
     /**
      * Registers the drive and steer motors for each module as generic power devices with the power
      * profiler

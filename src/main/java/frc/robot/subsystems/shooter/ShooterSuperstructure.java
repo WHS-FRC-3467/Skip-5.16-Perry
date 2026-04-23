@@ -305,6 +305,11 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         this.brownedOut = brownedOut;
     }
 
+    /** Toggles whether to use brownout-recovery motion profiles or not */
+    public void toggleBrownedOut() {
+        this.brownedOut = !brownedOut;
+    }
+
     /** Register the Shooter subsystem with the power profiler. */
     public void registerMechanisms(PowerProfiler powerProfiler) {
         powerProfiler.registerMechanism(getName() + "/Flywheel", flywheelIO);
