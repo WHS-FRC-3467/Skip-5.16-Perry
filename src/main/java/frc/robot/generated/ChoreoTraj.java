@@ -45,16 +45,16 @@ public record ChoreoTraj(
     public static final ChoreoTraj FullNeutral2 = new ChoreoTraj(
         "FullNeutral2",
         OptionalInt.empty(),
-        2.21117,
+        2.58762,
         new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(1.28921, 4.8417, Rotation2d.fromRadians(-0.22752))
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.38336))
     );
     public static final ChoreoTraj FullNeutral3 = new ChoreoTraj(
         "FullNeutral3",
         OptionalInt.empty(),
-        4.50995,
-        new Pose2d(1.28921, 4.8417, Rotation2d.fromRadians(-0.22752)),
-        new Pose2d(1.28921, 4.8417, Rotation2d.fromRadians(-0.22752))
+        2.85807,
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136)),
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.36366))
     );
     public static final ChoreoTraj Neutral2ML_1 = new ChoreoTraj(
         "Neutral2ML_1",
@@ -143,7 +143,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj FullNeutral1 = new ChoreoTraj(
         "FullNeutral1",
         OptionalInt.empty(),
-        4.40729,
+        5.82847,
         new Pose2d(3.65, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708))
     );
