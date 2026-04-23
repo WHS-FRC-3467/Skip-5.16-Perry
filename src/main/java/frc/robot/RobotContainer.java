@@ -308,7 +308,7 @@ public class RobotContainer {
                                 shooter.setShooterToFixedDistance(
                                         FieldConstants.FIELD_CENTER.getMeasureX(), true),
                                 Commands.sequence(
-                                        Commands.waitUntil(shooter.profileComplete),
+                                        Commands.waitUntil(shooter.isNearGoal),
                                         Commands.parallel(indexer.shoot(), tower.shoot()))))
                 .onFalse(
                         Commands.parallel(

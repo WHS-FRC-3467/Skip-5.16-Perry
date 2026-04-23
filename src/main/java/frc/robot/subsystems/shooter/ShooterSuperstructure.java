@@ -112,11 +112,11 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final RotaryMechanism<?, ?> hoodIO;
     private final FlywheelMechanism<?> flywheelIO;
 
-    private final Debouncer profileCompleteDebouncer = new Debouncer(0.1, DebounceType.kRising);
-    public final LoggedTrigger profileComplete =
+    private final Debouncer nearGoalDebouncer = new Debouncer(0.1, DebounceType.kRising);
+    public final LoggedTrigger isNearGoal =
             new LoggedTrigger(
                     this.getName() + "/ProfileComplete",
-                    () -> profileCompleteDebouncer.calculate(isProfileComplete()));
+                    () -> nearGoalDebouncer.calculate(isNearGoal()));
 
     private final LoggedTunableBoolean tuningMode =
             new LoggedTunableBoolean(getName() + "/Tuning/Enable", false);
@@ -135,7 +135,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public final LoggedTrigger readyToShootAtCurrentTarget =
             new LoggedTrigger(
                     "RobotState/ReadyToShootAtCurrentTarget",
-                    profileComplete.and(
+                    isNearGoal.and(
                             robotState
                                     .shouldFeed
                                     .and(robotState.facingFeedTarget)
@@ -158,7 +158,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public final LoggedTrigger staticShotState =
             new LoggedTrigger(
                     getName() + "/StaticShotState",
-                    () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
+                    () -> robotState.atStaticShootingPosition.and(isNearGoal).getAsBoolean());
 
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
@@ -226,9 +226,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         hoodIO.runUnprofiledPosition(angle, PIDSlot.SLOT_0);
     }
 
-    private boolean isProfileComplete() {
+    private boolean isNearGoal() {
         return flywheelIO
-                .getVelocitySetpoint()
+                .getVelocity()
                 .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(0.2));
     }
 
