@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -390,6 +391,8 @@ public class RobotContainer {
                 .negate()
                 .and(new Trigger(DriverStation::isDisabled))
                 .whileTrue(controller.rumble(1.0).ignoringDisable(true));
+
+        new Trigger(RobotController::isBrownedOut).debounce(0.5).whileTrue(controller.rumble(1.0));
     }
 
     /**
