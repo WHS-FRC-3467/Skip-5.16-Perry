@@ -14,7 +14,6 @@
  */
 package frc.robot.commands.autos;
 
-import static edu.wpi.first.units.Units.Degrees;
 
 import choreo.auto.AutoRoutine;
 import choreo.trajectory.SwerveSample;
@@ -103,17 +102,9 @@ public class FullNeutralAuto {
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 5.0),
-                                                    ctx.shooter()
-                                                            .setHoodAngle(Degrees.of(0.0))
-                                                            .asProxy(),
                                                     thirdFollow.asProxy()));
                             routine.observe(thirdFollow.done())
-                                    .onTrue(
-                                            Commands.sequence(
-                                                    AutoCommands.shootOnly(ctx, 5.0),
-                                                    ctx.shooter()
-                                                            .setHoodAngle(Degrees.of(0.0))
-                                                            .asProxy()));
+                                    .onTrue(Commands.sequence(AutoCommands.shootOnly(ctx, 5.0)));
 
                             return routine;
                         }));
