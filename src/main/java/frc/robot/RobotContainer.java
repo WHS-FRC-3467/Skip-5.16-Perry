@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
+import frc.lib.util.Count;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
@@ -383,6 +385,10 @@ public class RobotContainer {
                 .negate()
                 .and(new Trigger(DriverStation::isDisabled))
                 .whileTrue(controller.rumble(1.0).ignoringDisable(true));
+
+        SmartDashboard.putBoolean("Browned Out!", false);
+        new Trigger(Count.over(1.0, RobotController::isBrownedOut).greaterThanEquals(5))
+                .onTrue(Commands.runOnce(() -> SmartDashboard.putBoolean("Browned Out!", true)));
     }
 
     /**
