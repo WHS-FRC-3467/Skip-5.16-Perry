@@ -32,6 +32,7 @@ import frc.lib.util.PowerProfiler;
  */
 public class Indexer extends SubsystemBase {
     private final FlywheelMechanism<?> io;
+    private boolean brownedOut = false;
 
     private static final LoggedTunableNumber SHOOT_TORQUECURRENT =
             new LoggedTunableNumber(IndexerConstants.NAME + "/ShootTorqueCurrent", 40.0);
@@ -96,6 +97,27 @@ public class Indexer extends SubsystemBase {
 
     public AngularVelocity getVelocity() {
         return io.getVelocity();
+    }
+
+    /**
+     * Updates the indexer supply current limit for brownout protection.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        if (this.brownedOut == brownedOut) {
+            return;
+        }
+        this.brownedOut = brownedOut;
+        io.setSupplyCurrentLimit(
+                brownedOut
+                        ? IndexerConstants.BROWNOUT_SUPPLY_CURRENT_LIMIT
+                        : IndexerConstants.SUPPLY_CURRENT_LIMIT);
+    }
+
+    /** Toggles the indexer supply current limit for brownout protection. */
+    public void toggleBrownedOut() {
+        setBrownedOut(!brownedOut);
     }
 
     /**

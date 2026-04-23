@@ -307,6 +307,15 @@ public abstract class Mechanism<T extends MotorIO> {
     }
 
     /**
+     * Updates the mechanism supply current limit.
+     *
+     * @param currentLimit Desired supply current limit.
+     */
+    public void setSupplyCurrentLimit(Current currentLimit) {
+        io.setSupplyCurrentLimit(currentLimit);
+    }
+
+    /**
      * Sets the position of the motor's internal encoder
      *
      * @param position Desired position to set encoder to

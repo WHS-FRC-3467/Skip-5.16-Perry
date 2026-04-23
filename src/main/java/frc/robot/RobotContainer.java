@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
+import frc.lib.util.Count;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
@@ -108,6 +109,8 @@ public class RobotContainer {
 
     /** A power profiler for characterizing current/power/energy draw from the battery */
     public final PowerProfiler powerProfiler;
+
+    private boolean disableAutomaticBrownoutMitigation = false;
 
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
@@ -374,6 +377,18 @@ public class RobotContainer {
         // Operator POV Down: Trim shot power down
         operatorController.povDown().onTrue(shooter.trimFlywheelSpeedDown());
 
+        // Operator POV Left: Toggle brownout mitigation
+        operatorController
+                .povLeft()
+                .onTrue(
+                        Commands.runOnce(
+                                () -> {
+                                    disableAutomaticBrownoutMitigation = true;
+                                    drive.toggleBrownedOut();
+                                    indexer.toggleBrownedOut();
+                                    shooter.toggleBrownedOut();
+                                }));
+
         // Operator Y: Manual Spinup
         operatorController
                 .y()
@@ -394,6 +409,19 @@ public class RobotContainer {
                 .whileTrue(controller.rumble(1.0).ignoringDisable(true));
 
         new Trigger(RobotController::isBrownedOut).debounce(0.5).whileTrue(controller.rumble(1.0));
+
+        SmartDashboard.putBoolean("Browned Out!", false);
+        new Trigger(Count.over(1.0, RobotController::isBrownedOut).greaterThanEquals(5))
+                .onTrue(
+                        Commands.runOnce(
+                                () -> {
+                                    SmartDashboard.putBoolean("Browned Out!", true);
+
+                                    if (disableAutomaticBrownoutMitigation) return;
+                                    drive.setBrownedOut(true);
+                                    indexer.setBrownedOut(true);
+                                    shooter.setBrownedOut(true);
+                                }));
     }
 
     /**
@@ -428,6 +456,15 @@ public class RobotContainer {
                 ShooterSuperstructureConstants.NAME + "/Shoot", shooter.setShooterContinuous());
         SmartDashboard.putData(
                 ShooterSuperstructureConstants.NAME + "/SpinUp", shooter.spinUpFlywheel());
+
+        SmartDashboard.putData(
+                "Reset Brownout Mitigation",
+                Commands.runOnce(
+                        () -> {
+                            drive.setBrownedOut(false);
+                            indexer.setBrownedOut(false);
+                            shooter.setBrownedOut(false);
+                        }));
     }
 
     /**
