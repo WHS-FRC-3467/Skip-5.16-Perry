@@ -14,7 +14,6 @@ public class Count {
     private final double timeWindow;
 
     private final ArrayDeque<Double> events = new ArrayDeque<>();
-    private boolean last = false;
 
     /**
      * Constructs a Count detector.
@@ -44,14 +43,12 @@ public class Count {
      * from this class
      */
     public void update() {
-        boolean now = source.getAsBoolean();
         double t = Timer.getTimestamp();
 
-        // Rising edge detection
-        if (now && !last) {
+        // source is already wrapped in RisingEdge, so a true value is a single event pulse
+        if (source.getAsBoolean()) {
             events.addLast(t);
         }
-        last = now;
 
         // Remove events older than the time window
         double cutoff = t - timeWindow;
