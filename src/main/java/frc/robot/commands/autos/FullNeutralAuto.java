@@ -81,26 +81,23 @@ public class FullNeutralAuto {
                             routine.active()
                                     .onTrue(
                                             Commands.sequence(
-                                                    first.resetOdometry(),
                                                     Commands.defer(
                                                             () ->
-                                                                    Commands.deadline(
-                                                                            Commands.waitSeconds(
-                                                                                    AutoCommands
-                                                                                            .getStartDelay()),
-                                                                            AutoCommands.shootOnly(
-                                                                                    ctx, 3.0)),
+                                                                    Commands.waitSeconds(
+                                                                            AutoCommands
+                                                                                    .getStartDelay()),
                                                             Set.of()),
-                                                    ctx.shooter()
-                                                            .setHoodAngle(Degrees.of(0.0))
-                                                            .asProxy(),
                                                     firstFollow));
 
                             routine.observe(firstFollow.done())
                                     .onTrue(
                                             Commands.sequence(
-                                                    Commands.waitSeconds(
-                                                            AutoCommands.getBumpDelay()),
+                                                    Commands.defer(
+                                                            () ->
+                                                                    Commands.waitSeconds(
+                                                                            AutoCommands
+                                                                                    .getBumpDelay()),
+                                                            Set.of()),
                                                     secondFollow.asProxy()));
 
                             routine.observe(secondFollow.done())
