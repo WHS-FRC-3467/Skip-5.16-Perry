@@ -41,6 +41,8 @@ public class FlywheelConstants {
 
     public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(69.0);
     public static final AngularAcceleration MAX_ACCELERATION = RotationsPerSecondPerSecond.of(30.0);
+    public static final AngularAcceleration BROWNOUT_MAX_ACCELERATION =
+            RotationsPerSecondPerSecond.of(15.0);
 
     private static final double GEARING = (32.0 / 24.0);
 
@@ -142,7 +144,15 @@ public class FlywheelConstants {
                                 TOLERANCE);
                 break;
             case REPLAY:
-                mechanism = new FlywheelMechanism<>(NAME, new MotorIO() {}) {};
+                mechanism =
+                        new FlywheelMechanism<>(
+                                NAME,
+                                new MotorIO() {
+                                    @Override
+                                    public int getNumberOfMotors() {
+                                        return 4;
+                                    }
+                                }) {};
                 break;
             default:
                 throw new IllegalStateException("Unrecognized Robot Mode");

@@ -77,7 +77,18 @@ public class DriveConstants {
     // cannot be null.
     // Some configs will be overwritten; check the `with*InitialConfigs()` API
     // documentation.
-    private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
+    static final double DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 55.0;
+    static final double BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 30.0;
+
+    private static final TalonFXConfiguration driveInitialConfigs =
+            new TalonFXConfiguration()
+                    .withCurrentLimits(
+                            // Default is 70
+                            // https://www.chiefdelphi.com/t/methodologies-to-reduce-power-draw-without-impacting-robot-performance/516076/8
+                            new CurrentLimitsConfigs()
+                                    .withSupplyCurrentLimitEnable(true)
+                                    .withSupplyCurrentLimit(
+                                            Amps.of(DRIVE_SUPPLY_CURRENT_LIMIT_AMPS)));
     private static final TalonFXConfiguration steerInitialConfigs =
             new TalonFXConfiguration()
                     .withCurrentLimits(
@@ -156,7 +167,7 @@ public class DriveConstants {
     private static final int kFrontLeftDriveMotorId = 4;
     private static final int kFrontLeftSteerMotorId = 6;
     private static final int kFrontLeftEncoderId = 5;
-    private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.383056640625);
+    private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.24951171875);
     private static final boolean kFrontLeftSteerMotorInverted = false;
     private static final boolean kFrontLeftEncoderInverted = false;
 
@@ -167,7 +178,7 @@ public class DriveConstants {
     private static final int kFrontRightDriveMotorId = 9;
     private static final int kFrontRightSteerMotorId = 8;
     private static final int kFrontRightEncoderId = 10;
-    private static final Angle kFrontRightEncoderOffset = Rotations.of(0.152099609375);
+    private static final Angle kFrontRightEncoderOffset = Rotations.of(0.2041015625);
     private static final boolean kFrontRightSteerMotorInverted = false;
     private static final boolean kFrontRightEncoderInverted = false;
 
@@ -178,7 +189,7 @@ public class DriveConstants {
     private static final int kBackLeftDriveMotorId = 2;
     private static final int kBackLeftSteerMotorId = 1;
     private static final int kBackLeftEncoderId = 3;
-    private static final Angle kBackLeftEncoderOffset = Rotations.of(0.47998046875);
+    private static final Angle kBackLeftEncoderOffset = Rotations.of(0.479736328125);
     private static final boolean kBackLeftSteerMotorInverted = false;
     private static final boolean kBackLeftEncoderInverted = false;
 
@@ -189,7 +200,7 @@ public class DriveConstants {
     private static final int kBackRightDriveMotorId = 11;
     private static final int kBackRightSteerMotorId = 13;
     private static final int kBackRightEncoderId = 12;
-    private static final Angle kBackRightEncoderOffset = Rotations.of(0.451416015625);
+    private static final Angle kBackRightEncoderOffset = Rotations.of(0.454833984375);
     private static final boolean kBackRightSteerMotorInverted = false;
     private static final boolean kBackRightEncoderInverted = false;
 

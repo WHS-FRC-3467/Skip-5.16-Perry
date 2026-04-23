@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 
 import frc.lib.util.PID;
+import frc.lib.util.PowerProfiler;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -220,5 +221,30 @@ public class Module {
      */
     public void setTurnPID(PID pid) {
         io.setTurnPID(pid);
+    }
+
+    /**
+     * Updates the drive motor current limit for brownout protection.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        io.setBrownedOut(brownedOut);
+    }
+
+    /** Toggles the drive motor current limit for brownout protection. */
+    public void toggleBrownedOut() {
+        io.toggleBrownedOut();
+    }
+
+    /**
+     * Registers the drive and steer motors for each module as generic power devices with the power
+     * profiler
+     */
+    public void registerModule(String prefix, PowerProfiler powerProfiler) {
+        powerProfiler.registerGeneric(
+                prefix + "/Drive", () -> inputs.driveCurrentAmps, () -> inputs.driveAppliedVolts);
+        powerProfiler.registerGeneric(
+                prefix + "/Steer", () -> inputs.turnCurrentAmps, () -> inputs.turnAppliedVolts);
     }
 }
