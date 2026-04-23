@@ -40,7 +40,7 @@ public class Count {
 
     /**
      * Should be called periodically. Automatically called by {@link Count#get()} and other
-     * data-accesssing methods. Only call this manually if you are not periodically accessing values
+     * data-accessing methods. Only call this manually if you are not periodically accessing values
      * from this class
      */
     public void update() {
