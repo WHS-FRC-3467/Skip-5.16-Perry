@@ -224,12 +224,10 @@ public class RobotContainer {
                                                         () -> -controller.getLeftX() * 0.6,
                                                         robotState.feedLookaheadSeconds,
                                                         false),
-                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                DriveCommands.joystickDriveFacingTarget(
                                                         drive,
                                                         () -> -controller.getLeftY() * 0.4,
-                                                        () -> -controller.getLeftX() * 0.4,
-                                                        robotState.hubLookaheadSeconds,
-                                                        true),
+                                                        () -> -controller.getLeftX() * 0.4),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
@@ -260,7 +258,17 @@ public class RobotContainer {
 
         // Left or Right Bumper: Retract Intake
         controller.leftBumper().onTrue(intake.retractIntake());
-        controller.rightBumper().onTrue(intake.retractIntake());
+
+        controller
+                .rightTrigger()
+                .negate()
+                .and(controller.rightBumper())
+                .whileTrue(
+                        Commands.parallel(
+                                DriveCommands.joystickDriveFacingTarget(
+                                        drive,
+                                        () -> -controller.getLeftY(),
+                                        () -> -controller.getLeftX())));
 
         // Left Trigger: Intake
         controller
