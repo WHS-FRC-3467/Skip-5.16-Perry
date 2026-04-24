@@ -164,9 +164,9 @@ public record ChoreoTraj(
     public static final ChoreoTraj FullNeutral3 = new ChoreoTraj(
         "FullNeutral3",
         OptionalInt.empty(),
-        1.2404,
+        1.30279,
         new Pose2d(3.11879, 5.40836, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.39773))
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.39706))
     );
 
     /**
