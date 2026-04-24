@@ -38,7 +38,9 @@ import java.util.Set;
 public class FullNeutralAuto {
 
     private static final Alert TRAJECTORIES_MISSING =
-            new Alert("Neutral Auto Trajectories Missing, Auto(s) Unavailable", AlertType.kError);
+            new Alert(
+                    "Full Neutral Auto Trajectories Missing, Auto(s) Unavailable",
+                    AlertType.kError);
 
     public static Optional<AutoOption> create(AutoContext ctx) {
         List<String> names =

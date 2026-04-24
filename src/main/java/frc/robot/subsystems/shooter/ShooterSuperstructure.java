@@ -115,7 +115,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final Debouncer nearGoalDebouncer = new Debouncer(0.1, DebounceType.kRising);
     public final LoggedTrigger isNearGoal =
             new LoggedTrigger(
-                    this.getName() + "/ProfileComplete",
+                    this.getName() + "/isNearGoal",
                     () -> nearGoalDebouncer.calculate(isNearGoal()));
 
     private final LoggedTunableBoolean tuningMode =

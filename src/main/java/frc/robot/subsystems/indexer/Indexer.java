@@ -34,10 +34,10 @@ public class Indexer extends SubsystemBase {
     private final FlywheelMechanism<?> io;
     private boolean brownedOut = false;
 
-    private static final LoggedTunableNumber SHOOT_TORQUECURRENT =
+    private static final LoggedTunableNumber SHOOT_TORQUE_CURRENT =
             new LoggedTunableNumber(IndexerConstants.NAME + "/ShootTorqueCurrent", 40.0);
 
-    private static final LoggedTunableNumber EJECT_TORQUECURRENT =
+    private static final LoggedTunableNumber EJECT_TORQUE_CURRENT =
             new LoggedTunableNumber(IndexerConstants.NAME + "/EjectTorqueCurrent", -40.0);
 
     /**
@@ -80,7 +80,7 @@ public class Indexer extends SubsystemBase {
      * @return a command that runs the indexer at shooting speed
      */
     public Command shoot() {
-        return this.startEnd(() -> io.runCurrent(Amps.of(SHOOT_TORQUECURRENT.get())), () -> stop())
+        return this.startEnd(() -> io.runCurrent(Amps.of(SHOOT_TORQUE_CURRENT.get())), () -> stop())
                 .withName("Shoot");
     }
 
@@ -91,7 +91,7 @@ public class Indexer extends SubsystemBase {
      * @return a command that runs the indexer in reverse
      */
     public Command eject() {
-        return this.startEnd(() -> io.runCurrent(Amps.of(EJECT_TORQUECURRENT.get())), () -> stop())
+        return this.startEnd(() -> io.runCurrent(Amps.of(EJECT_TORQUE_CURRENT.get())), () -> stop())
                 .withName("Eject");
     }
 
