@@ -232,7 +232,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private boolean isNearGoal() {
         return flywheelIO
                 .getVelocity()
-                .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(0.2));
+                .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(2.0));
     }
 
     /**
