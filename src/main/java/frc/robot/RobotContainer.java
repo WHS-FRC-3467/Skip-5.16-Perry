@@ -19,6 +19,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
@@ -408,7 +409,9 @@ public class RobotContainer {
                 .and(new Trigger(DriverStation::isDisabled))
                 .whileTrue(controller.rumble(1.0).ignoringDisable(true));
 
-        new Trigger(RobotController::isBrownedOut).debounce(0.5).whileTrue(controller.rumble(1.0));
+        new Trigger(RobotController::isBrownedOut)
+                .debounce(0.5, DebounceType.kFalling)
+                .whileTrue(controller.rumble(1.0));
 
         SmartDashboard.putBoolean("Browned Out!", false);
         new Trigger(Count.over(1.0, RobotController::isBrownedOut).greaterThanEquals(5))

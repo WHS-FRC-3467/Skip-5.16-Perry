@@ -126,8 +126,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new LoggedTunableNumber(getName() + "/Tuning/HoodAngleDegrees", 0.0);
 
     // Default trim to apply
+    // private final AlwaysTunableNumber flywheelTrimDefaultRPS =
+    //         new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
     private final AlwaysTunableNumber flywheelTrimDefaultRPS =
-            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
+            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 0.0);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
