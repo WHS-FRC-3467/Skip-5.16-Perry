@@ -45,7 +45,8 @@ public class FullNeutralAuto {
                 List.of(
                         ChoreoTraj.FullNeutral1.name(),
                         ChoreoTraj.FullNeutral2.name(),
-                        ChoreoTraj.FullNeutral3.name());
+                        ChoreoTraj.FullNeutral3.name(),
+                        ChoreoTraj.FullNeutral4.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, false).orElse(null);
@@ -74,6 +75,10 @@ public class FullNeutralAuto {
                                     ctx.drive()
                                             .followTrajectoryResilient(
                                                     trajectories.get(2), eventBindings);
+                            ResilientTrajectoryFollower fourthFollow =
+                                    ctx.drive()
+                                            .followTrajectoryResilient(
+                                                    trajectories.get(3), eventBindings);
 
                             routine.active()
                                     .onTrue(
@@ -97,12 +102,14 @@ public class FullNeutralAuto {
                                                             Set.of()),
                                                     secondFollow.asProxy()));
 
-                            routine.observe(secondFollow.done())
+                            routine.observe(secondFollow.done()).onTrue(thirdFollow.asProxy());
+                            routine.observe(thirdFollow.done())
                                     .onTrue(
                                             Commands.sequence(
                                                     AutoCommands.shootOnly(ctx, 5.0),
-                                                    thirdFollow.asProxy()));
-                            routine.observe(thirdFollow.done())
+                                                    fourthFollow.asProxy()));
+
+                            routine.observe(fourthFollow.done())
                                     .onTrue(Commands.sequence(AutoCommands.shootOnly(ctx, 5.0)));
 
                             return routine;
