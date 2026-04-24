@@ -77,8 +77,8 @@ public class DriveConstants {
     // cannot be null.
     // Some configs will be overwritten; check the `with*InitialConfigs()` API
     // documentation.
-    static final double DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 55.0;
-    static final double BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 30.0;
+    static final double DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 200.0;
+    static final double BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 200.0;
 
     private static final TalonFXConfiguration driveInitialConfigs =
             new TalonFXConfiguration()
