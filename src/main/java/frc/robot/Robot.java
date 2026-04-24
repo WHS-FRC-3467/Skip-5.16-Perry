@@ -192,8 +192,6 @@ public class Robot extends LoggedRobot {
     public void disabledPeriodic() {
         // Update auto tab
         robotContainer.checkStartPose();
-        SmartDashboard.putBoolean(
-                "Manual Brownout Protection Enabled", robotContainer.brownoutManuallyEnabled);
     }
 
     /**
@@ -255,6 +253,8 @@ public class Robot extends LoggedRobot {
     public void teleopPeriodic() {
         // Hub State management
         HubState.getInstance().periodic();
+        SmartDashboard.putBoolean(
+                "Manual Brownout Protection Enabled", robotContainer.brownoutManuallyEnabled);
     }
 
     /** This function is called once when test mode is enabled. */
