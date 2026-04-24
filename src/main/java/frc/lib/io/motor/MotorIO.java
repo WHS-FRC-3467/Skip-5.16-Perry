@@ -228,6 +228,22 @@ public interface MotorIO extends AutoCloseable {
      */
     public default void setPID(PIDSlot slot, PID pid) {}
 
+    /**
+     * Updates the motor supply current limit.
+     *
+     * @param currentLimit Desired supply current limit.
+     */
+    public default void setSupplyCurrentLimit(Current currentLimit) {}
+
+    /**
+     * Return the total number of motors associated with this motor object
+     *
+     * @return The number of motors associated with the motor object (leader + all followers)
+     */
+    public default int getNumberOfMotors() {
+        return 1;
+    }
+
     @Override
     public default void close() {}
 }

@@ -24,6 +24,7 @@ import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 
 /**
  * Subsystem that controls the indexer floor and indexer centering mechanism for moving game pieces
@@ -32,6 +33,7 @@ import frc.lib.util.LoggerHelper;
  */
 public class Indexer extends SubsystemBase {
     private final FlywheelMechanism<?> io;
+    private boolean brownedOut = false;
 
     // private static final LoggedTunableNumber SHOOT_RPS =
     //         new LoggedTunableNumber(
@@ -62,6 +64,11 @@ public class Indexer extends SubsystemBase {
 
     private void runVelocity(AngularVelocity velocity) {
         io.runVelocity(velocity, PIDSlot.SLOT_0);
+    }
+
+    /** Register the Indexer subsystem with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName(), io);
     }
 
     /**
@@ -106,6 +113,27 @@ public class Indexer extends SubsystemBase {
 
     public AngularVelocity getVelocity() {
         return io.getVelocity();
+    }
+
+    /**
+     * Updates the indexer supply current limit for brownout protection.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        if (this.brownedOut == brownedOut) {
+            return;
+        }
+        this.brownedOut = brownedOut;
+        io.setSupplyCurrentLimit(
+                brownedOut
+                        ? IndexerConstants.BROWNOUT_SUPPLY_CURRENT_LIMIT
+                        : IndexerConstants.SUPPLY_CURRENT_LIMIT);
+    }
+
+    /** Toggles the indexer supply current limit for brownout protection. */
+    public void toggleBrownedOut() {
+        setBrownedOut(!brownedOut);
     }
 
     /**

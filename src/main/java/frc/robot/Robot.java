@@ -111,10 +111,10 @@ public class Robot extends LoggedRobot {
                     || constants.SteerMotorType != SteerMotorArrangement.TalonFX_Integrated) {
                 throw new RuntimeException(
                         "You are using an unsupported swerve configuration, which this template"
-                            + " does not support without manual customization. The 2025 release of"
-                            + " Phoenix supports some swerve configurations which were not"
-                            + " available during 2025 beta testing, preventing any development and"
-                            + " support from the AdvantageKit developers.");
+                                + " does not support without manual customization. The 2025 release of"
+                                + " Phoenix supports some swerve configurations which were not"
+                                + " available during 2025 beta testing, preventing any development and"
+                                + " support from the AdvantageKit developers.");
             }
         }
 
@@ -166,6 +166,9 @@ public class Robot extends LoggedRobot {
         // This must be called from the robot's periodic block in order for anything in
         // the Command-based framework to work.
         CommandScheduler.getInstance().run();
+
+        // Run power profile telemetry after subsystem machinery is executed
+        robotContainer.powerProfiler.periodicAfterScheduler();
 
         // Log the names of all currently running commands so we can review them in
         // AdvantageScope log files
