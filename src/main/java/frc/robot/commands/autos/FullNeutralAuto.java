@@ -102,7 +102,8 @@ public class FullNeutralAuto {
                                                             Set.of()),
                                                     secondFollow.asProxy()));
 
-                            routine.observe(secondFollow.done()).onTrue(thirdFollow.asProxy());
+                            routine.observe(secondFollow.done())
+                                    .onTrue(Commands.sequence(thirdFollow.asProxy()));
                             routine.observe(thirdFollow.done())
                                     .onTrue(
                                             Commands.sequence(

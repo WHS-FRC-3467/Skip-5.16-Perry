@@ -49,12 +49,12 @@ public record ChoreoTraj(
         new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708)),
         new Pose2d(3.11879, 5.40836, Rotation2d.fromRadians(-1.5708))
     );
-    public static final ChoreoTraj FullNeutral4 = new ChoreoTraj(
-        "FullNeutral4",
+    public static final ChoreoTraj FullNeutral3 = new ChoreoTraj(
+        "FullNeutral3",
         OptionalInt.empty(),
-        3.84043,
-        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136)),
-        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136))
+        1.49194,
+        new Pose2d(3.11879, 5.40836, Rotation2d.fromRadians(-1.5708)),
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.38109))
     );
     public static final ChoreoTraj Neutral2ML_1 = new ChoreoTraj(
         "Neutral2ML_1",
@@ -76,6 +76,13 @@ public record ChoreoTraj(
         5.19065,
         new Pose2d(6.7, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.12514, 7.30892, Rotation2d.fromRadians(-1.15368))
+    );
+    public static final ChoreoTraj FullNeutral4 = new ChoreoTraj(
+        "FullNeutral4",
+        OptionalInt.empty(),
+        3.84043,
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136)),
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136))
     );
     public static final ChoreoTraj Depot1 = new ChoreoTraj(
         "Depot1",
@@ -147,6 +154,34 @@ public record ChoreoTraj(
         new Pose2d(3.65, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708))
     );
+    public static final ChoreoTraj FullNeutral = new ChoreoTraj(
+        "FullNeutral",
+        OptionalInt.empty(),
+        12.37225,
+        new Pose2d(3.65, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136))
+    );
+    public static final ChoreoTraj FullNeutral$0 = new ChoreoTraj(
+        "FullNeutral",
+        OptionalInt.of(0),
+        6.11148,
+        new Pose2d(3.65, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708))
+    );
+    public static final ChoreoTraj FullNeutral$1 = new ChoreoTraj(
+        "FullNeutral",
+        OptionalInt.of(1),
+        2.56156,
+        new Pose2d(6.18074, 5.40836, Rotation2d.fromRadians(-1.5708)),
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136))
+    );
+    public static final ChoreoTraj FullNeutral$2 = new ChoreoTraj(
+        "FullNeutral",
+        OptionalInt.of(2),
+        3.699209999999999,
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136)),
+        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.37136))
+    );
     public static final ChoreoTraj Neutral2ML_0_Safe1 = new ChoreoTraj(
         "Neutral2ML_0_Safe1",
         OptionalInt.empty(),
@@ -161,13 +196,6 @@ public record ChoreoTraj(
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187))
     );
-    public static final ChoreoTraj FullNeutral3 = new ChoreoTraj(
-        "FullNeutral3",
-        OptionalInt.empty(),
-        1.30279,
-        new Pose2d(3.11879, 5.40836, Rotation2d.fromRadians(-1.5708)),
-        new Pose2d(1.34888, 5.34536, Rotation2d.fromRadians(-0.39706))
-    );
 
     /**
      * A map between trajectory names and their corresponding data.
@@ -178,10 +206,11 @@ public record ChoreoTraj(
         Map.entry("C16782", C16782),
         Map.entry("Neutral2ML_0", Neutral2ML_0),
         Map.entry("FullNeutral2", FullNeutral2),
-        Map.entry("FullNeutral4", FullNeutral4),
+        Map.entry("FullNeutral3", FullNeutral3),
         Map.entry("Neutral2ML_1", Neutral2ML_1),
         Map.entry("C16783", C16783),
         Map.entry("Neutral2ML_0_Safe3", Neutral2ML_0_Safe3),
+        Map.entry("FullNeutral4", FullNeutral4),
         Map.entry("Depot1", Depot1),
         Map.entry("C1678Safe1", C1678Safe1),
         Map.entry("Neutral2ML_1_Safe1", Neutral2ML_1_Safe1),
@@ -192,9 +221,12 @@ public record ChoreoTraj(
         Map.entry("Neutral2ML_1_Safe2", Neutral2ML_1_Safe2),
         Map.entry("B3", B3),
         Map.entry("FullNeutral1", FullNeutral1),
+        Map.entry("FullNeutral", FullNeutral),
+        Map.entry("FullNeutral$0", FullNeutral$0),
+        Map.entry("FullNeutral$1", FullNeutral$1),
+        Map.entry("FullNeutral$2", FullNeutral$2),
         Map.entry("Neutral2ML_0_Safe1", Neutral2ML_0_Safe1),
-        Map.entry("C16781", C16781),
-        Map.entry("FullNeutral3", FullNeutral3)
+        Map.entry("C16781", C16781)
     );
 
     /**
