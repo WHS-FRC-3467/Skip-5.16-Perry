@@ -49,7 +49,7 @@ public class FieldConstants {
 
     public static void noOp(double d) {}
 
-    public static final FieldType FIELD_TYPE = FieldType.ANDYMARK;
+    public static final FieldType FIELD_TYPE = FieldType.WELDED;
 
     public static final AprilTagLayoutType DEFAULT_APRIL_TAG_TYPE = AprilTagLayoutType.OFFICIAL;
 
