@@ -112,11 +112,11 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final RotaryMechanism<?, ?> hoodIO;
     private final FlywheelMechanism<?> flywheelIO;
 
-    private final Debouncer profileCompleteDebouncer = new Debouncer(0.1, DebounceType.kRising);
-    public final LoggedTrigger profileComplete =
+    private final Debouncer nearGoalDebouncer = new Debouncer(0.1, DebounceType.kRising);
+    public final LoggedTrigger isNearGoal =
             new LoggedTrigger(
-                    this.getName() + "/ProfileComplete",
-                    () -> profileCompleteDebouncer.calculate(isProfileComplete()));
+                    this.getName() + "/isNearGoal",
+                    () -> nearGoalDebouncer.calculate(isNearGoal()));
 
     private final LoggedTunableBoolean tuningMode =
             new LoggedTunableBoolean(getName() + "/Tuning/Enable", false);
@@ -126,8 +126,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
             new LoggedTunableNumber(getName() + "/Tuning/HoodAngleDegrees", 0.0);
 
     // Default trim to apply
+    // private final AlwaysTunableNumber flywheelTrimDefaultRPS =
+    //         new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
     private final AlwaysTunableNumber flywheelTrimDefaultRPS =
-            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
+            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 0.0);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
@@ -135,7 +137,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public final LoggedTrigger readyToShootAtCurrentTarget =
             new LoggedTrigger(
                     "RobotState/ReadyToShootAtCurrentTarget",
-                    profileComplete.and(
+                    isNearGoal.and(
                             robotState
                                     .shouldFeed
                                     .and(robotState.facingFeedTarget)
@@ -159,7 +161,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public final LoggedTrigger staticShotState =
             new LoggedTrigger(
                     getName() + "/StaticShotState",
-                    () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
+                    () -> robotState.atStaticShootingPosition.and(isNearGoal).getAsBoolean());
 
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
@@ -229,10 +231,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         hoodIO.runUnprofiledPosition(angle, PIDSlot.SLOT_0);
     }
 
-    private boolean isProfileComplete() {
+    private boolean isNearGoal() {
         return flywheelIO
-                .getVelocitySetpoint()
-                .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(0.2));
+                .getVelocity()
+                .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(2.0));
     }
 
     /**

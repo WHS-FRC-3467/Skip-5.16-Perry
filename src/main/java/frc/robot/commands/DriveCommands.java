@@ -70,7 +70,7 @@ public class DriveCommands {
     private static final LoggedTunableNumber ANGLE_KD =
             new LoggedTunableNumber("Drive/AngleD", 0.6);
     private static final LoggedTunableNumber ANGLE_TOLERANCE_DEGREES =
-            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 1.0);
+            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 2.5d);
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 2.0; // Volts/Sec
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.2; // Rad/Sec

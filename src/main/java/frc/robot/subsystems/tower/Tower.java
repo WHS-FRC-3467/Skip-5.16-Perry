@@ -15,15 +15,13 @@
 
 package frc.robot.subsystems.tower;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
-import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
 import frc.lib.util.PowerProfiler;
@@ -35,19 +33,11 @@ import frc.lib.util.PowerProfiler;
  */
 public class Tower extends SubsystemBase {
 
-    private static final LoggedTunableNumber SHOOT_RPS =
-            new LoggedTunableNumber(
-                    TowerConstants.NAME + "/ShootRPS",
-                    TowerConstants.MAX_VELOCITY.in(RotationsPerSecond));
+    private static final LoggedTunableNumber SHOOT_TORQUE_CURRENT =
+            new LoggedTunableNumber(TowerConstants.NAME + "/ShootTorqueCurrent", 40.0);
 
-    private static final LoggedTunableNumber EJECT_RPS =
-            new LoggedTunableNumber(TowerConstants.NAME + "/EjectRPS", -20.0);
-
-    // Tuning Mode
-    private static final LoggedTunableBoolean tuningMode =
-            new LoggedTunableBoolean(TowerConstants.NAME + "/Tuning/Enable", false);
-    private static final LoggedTunableNumber tuningFlywheelSpeedRPS =
-            new LoggedTunableNumber(TowerConstants.NAME + "/Tuning/SpeedRPS", 0.0);
+    private static final LoggedTunableNumber EJECT_TORQUE_CURRENT =
+            new LoggedTunableNumber(TowerConstants.NAME + "/EjectTorqueCurrent", -40.0);
 
     private final FlywheelMechanism<?> io;
 
@@ -62,12 +52,6 @@ public class Tower extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (tuningMode.get()) {
-            if (tuningMode.hasChanged(hashCode())
-                    || tuningFlywheelSpeedRPS.hasChanged(hashCode())) {
-                runVelocity(RotationsPerSecond.of(tuningFlywheelSpeedRPS.get()));
-            }
-        }
         LoggerHelper.recordCurrentCommand(this.getName(), this);
         io.periodic();
     }
@@ -85,10 +69,6 @@ public class Tower extends SubsystemBase {
         return io.getVelocityError().lte(TowerConstants.TOLERANCE);
     }
 
-    private void runVelocity(AngularVelocity velocity) {
-        io.runVelocity(velocity, PIDSlot.SLOT_0);
-    }
-
     /**
      * Gets the current velocity of the tower motor.
      *
@@ -103,10 +83,6 @@ public class Tower extends SubsystemBase {
         powerProfiler.registerMechanism(getName(), io);
     }
 
-    public Command fountain() {
-        return this.runOnce(() -> runVelocity(RotationsPerSecond.of(5.0)));
-    }
-
     /**
      * Creates a command to run the tower at shooting velocity to transfer game pieces to the
      * shooter. The tower will stop when the command is interrupted or cancelled.
@@ -114,8 +90,7 @@ public class Tower extends SubsystemBase {
      * @return a command that runs the tower at shooting speed
      */
     public Command shoot() {
-        return this.startEnd(
-                        () -> runVelocity(RotationsPerSecond.of(SHOOT_RPS.get())), () -> stop())
+        return this.startEnd(() -> io.runCurrent(Amps.of(SHOOT_TORQUE_CURRENT.get())), () -> stop())
                 .withName("Shoot");
     }
 
@@ -126,8 +101,7 @@ public class Tower extends SubsystemBase {
      * @return a command that runs the tower in reverse
      */
     public Command eject() {
-        return this.startEnd(
-                        () -> runVelocity(RotationsPerSecond.of(EJECT_RPS.get())), () -> stop())
+        return this.startEnd(() -> io.runCurrent(Amps.of(EJECT_TORQUE_CURRENT.get())), () -> stop())
                 .withName("Eject");
     }
 

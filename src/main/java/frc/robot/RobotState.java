@@ -55,7 +55,7 @@ import java.util.Optional;
 public class RobotState {
 
     private static final LoggedTunableNumber SHOOT_TOLERANCE_DEGREES =
-            new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 2.0);
+            new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 4.0);
 
     private static final LoggedTunableNumber FEED_TOLERANCE_DEGREES =
             new LoggedTunableNumber("RobotState/FeedToleranceDegrees", 6.0);

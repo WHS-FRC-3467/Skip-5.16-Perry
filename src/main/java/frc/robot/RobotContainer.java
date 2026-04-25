@@ -19,6 +19,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
@@ -29,12 +30,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.util.CommandXboxControllerExtended;
-import frc.lib.util.Count;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
 import frc.lib.util.LoggedTunableNumber;
@@ -113,6 +112,8 @@ public class RobotContainer {
 
     private boolean disableAutomaticBrownoutMitigation = false;
 
+    public boolean brownoutManuallyEnabled = false;
+
     /** The container for the robot. Contains subsystems, IO devices, and commands. */
     public RobotContainer() {
         drive = DriveConstants.get();
@@ -156,6 +157,8 @@ public class RobotContainer {
         C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
         C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
 
+        FullNeutralAuto.create(ctx)
+                .ifPresent(a -> autoChooser.addOption("FollowTheLeader-Left", a));
         C1678AutoSafe.create(ctx, false)
                 .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
         C1678AutoSafe.create(ctx, true)
@@ -229,12 +232,10 @@ public class RobotContainer {
                                                         () -> -controller.getLeftX() * 0.6,
                                                         robotState.feedLookaheadSeconds,
                                                         false),
-                                                DriveCommands.joystickDriveFacingFutureTarget(
+                                                DriveCommands.joystickDriveFacingTarget(
                                                         drive,
                                                         () -> -controller.getLeftY() * 0.4,
-                                                        () -> -controller.getLeftX() * 0.4,
-                                                        robotState.hubLookaheadSeconds,
-                                                        true),
+                                                        () -> -controller.getLeftX() * 0.4),
                                                 robotState.shouldFeed),
                                         shooter.setShooterContinuous(),
                                         Commands.sequence(
@@ -265,7 +266,17 @@ public class RobotContainer {
 
         // Left or Right Bumper: Retract Intake
         controller.leftBumper().onTrue(intake.retractIntake());
-        controller.rightBumper().onTrue(intake.retractIntake());
+
+        controller
+                .rightTrigger()
+                .negate()
+                .and(controller.rightBumper())
+                .whileTrue(
+                        Commands.parallel(
+                                DriveCommands.joystickDriveFacingTarget(
+                                        drive,
+                                        () -> -controller.getLeftY(),
+                                        () -> -controller.getLeftX())));
 
         // Left Trigger: Intake
         controller
@@ -313,7 +324,7 @@ public class RobotContainer {
                                 shooter.setShooterToFixedDistance(
                                         FieldConstants.FIELD_CENTER.getMeasureX(), true),
                                 Commands.sequence(
-                                        Commands.waitUntil(shooter.profileComplete),
+                                        Commands.waitUntil(shooter.isNearGoal),
                                         Commands.parallel(indexer.shoot(), tower.shoot()))))
                 .onFalse(
                         Commands.parallel(
@@ -375,7 +386,8 @@ public class RobotContainer {
                 .onTrue(
                         Commands.runOnce(
                                 () -> {
-                                    disableAutomaticBrownoutMitigation = true;
+                                    // disableAutomaticBrownoutMitigation = true;
+                                    brownoutManuallyEnabled = !brownoutManuallyEnabled;
                                     drive.toggleBrownedOut();
                                     indexer.toggleBrownedOut();
                                     shooter.toggleBrownedOut();
@@ -400,18 +412,22 @@ public class RobotContainer {
                 .and(new Trigger(DriverStation::isDisabled))
                 .whileTrue(controller.rumble(1.0).ignoringDisable(true));
 
-        SmartDashboard.putBoolean("Browned Out!", false);
-        new Trigger(Count.over(1.0, RobotController::isBrownedOut).greaterThanEquals(5))
-                .onTrue(
-                        Commands.runOnce(
-                                () -> {
-                                    SmartDashboard.putBoolean("Browned Out!", true);
+        new Trigger(RobotController::isBrownedOut)
+                .debounce(0.5, DebounceType.kFalling)
+                .whileTrue(controller.rumble(1.0));
 
-                                    if (disableAutomaticBrownoutMitigation) return;
-                                    drive.setBrownedOut(true);
-                                    indexer.setBrownedOut(true);
-                                    shooter.setBrownedOut(true);
-                                }));
+        // SmartDashboard.putBoolean("Browned Out!", false);
+        // new Trigger(Count.over(1.0, RobotController::isBrownedOut).greaterThanEquals(5))
+        //         .onTrue(
+        //                 Commands.runOnce(
+        //                         () -> {
+        //                             SmartDashboard.putBoolean("Browned Out!", true);
+
+        //                             if (disableAutomaticBrownoutMitigation) return;
+        //                             drive.setBrownedOut(true);
+        //                             indexer.setBrownedOut(true);
+        //                             shooter.setBrownedOut(true);
+        //                         }));
     }
 
     /**
@@ -455,23 +471,6 @@ public class RobotContainer {
                             indexer.setBrownedOut(false);
                             shooter.setBrownedOut(false);
                         }));
-
-        SmartDashboard.putData(
-                "Fountain",
-                Commands.sequence(
-                                Commands.sequence(
-                                        Commands.parallel(
-                                                shooter.fountain(),
-                                                indexer.fountain(),
-                                                tower.fountain())),
-                                Commands.parallel(shooter.idle(), indexer.idle(), tower.idle()))
-                        .finallyDo(
-                                () ->
-                                        CommandScheduler.getInstance()
-                                                .schedule(
-                                                        shooter.stopAndStow(),
-                                                        indexer.stopCommand(),
-                                                        tower.stopCommand())));
     }
 
     /**
