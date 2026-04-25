@@ -304,14 +304,27 @@ public class RobotContainer {
                 .x()
                 .whileTrue(
                         Commands.parallel(
-                                DriveCommands.joystickDrive(
-                                        drive,
-                                        () -> -controller.getLeftY() * 0.7,
-                                        () -> -controller.getLeftX() * 0.7,
-                                        () -> -controller.getRightX() * 0.7),
-                                shooter.setShooterToFixedDistance(
-                                        FieldConstants.TRENCH_SHOT_DISTANCE, false),
-                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                        DriveCommands.joystickDrive(
+                                                drive,
+                                                () -> -controller.getLeftY() * 0.7,
+                                                () -> -controller.getLeftX() * 0.7,
+                                                () -> -controller.getRightX() * 0.7),
+                                        shooter.setShooterToFixedDistance(
+                                                FieldConstants.TRENCH_SHOT_DISTANCE, false),
+                                        Commands.sequence(
+                                                Commands.defer(
+                                                        () ->
+                                                                Commands.parallel(
+                                                                                tower.eject(),
+                                                                                indexer.eject())
+                                                                        .withTimeout(0.2)
+                                                                        .withInterruptBehavior(
+                                                                                InterruptionBehavior
+                                                                                        .kCancelSelf),
+                                                        Set.of(tower)),
+                                                Commands.waitUntil(shooter.isNearGoal),
+                                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
@@ -321,11 +334,22 @@ public class RobotContainer {
                 .y()
                 .whileTrue(
                         Commands.parallel(
-                                shooter.setShooterToFixedDistance(
-                                        FieldConstants.FIELD_CENTER.getMeasureX(), true),
-                                Commands.sequence(
-                                        Commands.waitUntil(shooter.isNearGoal),
-                                        Commands.parallel(indexer.shoot(), tower.shoot()))))
+                                        shooter.setShooterToFixedDistance(
+                                                FieldConstants.FIELD_CENTER.getMeasureX(), true),
+                                        Commands.sequence(
+                                                Commands.defer(
+                                                        () ->
+                                                                Commands.parallel(
+                                                                                tower.eject(),
+                                                                                indexer.eject())
+                                                                        .withTimeout(0.2)
+                                                                        .withInterruptBehavior(
+                                                                                InterruptionBehavior
+                                                                                        .kCancelSelf),
+                                                        Set.of(tower)),
+                                                Commands.waitUntil(shooter.isNearGoal),
+                                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
@@ -335,14 +359,27 @@ public class RobotContainer {
                 .a()
                 .whileTrue(
                         Commands.parallel(
-                                DriveCommands.joystickDrive(
-                                        drive,
-                                        () -> -controller.getLeftY() * 0.7,
-                                        () -> -controller.getLeftX() * 0.7,
-                                        () -> -controller.getRightX() * 0.7),
-                                shooter.setShooterToFixedDistance(
-                                        FieldConstants.Tower.TOWER_SHOT_DISTANCE, false),
-                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                        DriveCommands.joystickDrive(
+                                                drive,
+                                                () -> -controller.getLeftY() * 0.7,
+                                                () -> -controller.getLeftX() * 0.7,
+                                                () -> -controller.getRightX() * 0.7),
+                                        shooter.setShooterToFixedDistance(
+                                                FieldConstants.Tower.TOWER_SHOT_DISTANCE, false),
+                                        Commands.sequence(
+                                                Commands.defer(
+                                                        () ->
+                                                                Commands.parallel(
+                                                                                tower.eject(),
+                                                                                indexer.eject())
+                                                                        .withTimeout(0.2)
+                                                                        .withInterruptBehavior(
+                                                                                InterruptionBehavior
+                                                                                        .kCancelSelf),
+                                                        Set.of(tower)),
+                                                Commands.waitUntil(shooter.isNearGoal),
+                                                Commands.parallel(indexer.shoot(), tower.shoot())))
+                                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
                 .onFalse(
                         Commands.parallel(
                                 shooter.stopAndStow(), indexer.stopCommand(), tower.stopCommand()));
