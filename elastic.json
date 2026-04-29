@@ -234,14 +234,26 @@
             }
           },
           {
-            "title": "Robot Pose Field Map",
+            "title": "Alerts",
+            "x": 1200.0,
+            "y": 0.0,
+            "width": 300.0,
+            "height": 550.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Auto Preview",
             "x": 0.0,
             "y": 0.0,
             "width": 900.0,
             "height": 400.0,
             "type": "Field",
             "properties": {
-              "topic": "/SmartDashboard/Robot Pose Field Map",
+              "topic": "/SmartDashboard/Auto Preview",
               "period": 0.06,
               "field_game": "Rebuilt",
               "robot_width": 0.85,
@@ -252,18 +264,6 @@
               "robot_color": 4294198070,
               "trajectory_color": 4294967295,
               "show_robot_outside_widget": true
-            }
-          },
-          {
-            "title": "Alerts",
-            "x": 1200.0,
-            "y": 0.0,
-            "width": 300.0,
-            "height": 550.0,
-            "type": "Alerts",
-            "properties": {
-              "topic": "/SmartDashboard/Alerts",
-              "period": 0.06
             }
           }
         ]
