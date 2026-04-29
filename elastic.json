@@ -164,6 +164,47 @@
                 }
               }
             ]
+          },
+          {
+            "title": "Auto",
+            "x": 1050.0,
+            "y": 0.0,
+            "width": 150.0,
+            "height": 400.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "BumpDelay",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/TunableNumbers/Auto/BumpDelay",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": true
+                }
+              },
+              {
+                "title": "StartDelay",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 150.0,
+                "height": 150.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/SmartDashboard/TunableNumbers/Auto/StartDelay",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": true
+                }
+              }
+            ]
           }
         ],
         "containers": [
@@ -176,22 +217,14 @@
             "type": "List Layout",
             "properties": {
               "topic": "/SmartDashboard/Auto Preview",
-              "period": 0.06,
-              "field_game": "Reefscape",
-              "robot_width": 0.85,
-              "robot_length": 0.85,
-              "show_other_objects": true,
-              "show_trajectories": true,
-              "field_rotation": 0.0,
-              "robot_color": 4294198070,
-              "trajectory_color": 4294967295
+              "period": 0.06
             }
           },
           {
             "title": "Auto Choices",
             "x": 0.0,
             "y": 400.0,
-            "width": 300.0,
+            "width": 1200.0,
             "height": 150.0,
             "type": "ComboBox Chooser",
             "properties": {
@@ -201,91 +234,36 @@
             }
           },
           {
-            "title": "Inches from Start",
-            "x": 450.0,
-            "y": 400.0,
-            "width": 450.0,
-            "height": 300.0,
-            "type": "Large Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Auto Pose Check/Inches from Start",
-              "period": 0.06,
-              "data_type": "double"
-            }
-          },
-          {
-            "title": "Degrees from Start",
+            "title": "Robot Pose Field Map",
             "x": 0.0,
-            "y": 400.0,
-            "width": 450.0,
-            "height": 300.0,
-            "type": "Large Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/Auto Pose Check/Degrees from Start",
-              "period": 0.06,
-              "data_type": "double"
-            }
-          },
-          {
-            "title": "Position Good",
-            "x": 900.0,
             "y": 0.0,
-            "width": 300.0,
+            "width": 900.0,
             "height": 400.0,
-            "type": "Boolean Box",
+            "type": "Field",
             "properties": {
-              "topic": "/SmartDashboard/Auto Pose Check/Robot Position within 2.9999999999999996 inches",
+              "topic": "/SmartDashboard/Robot Pose Field Map",
               "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "Checkmark",
-              "false_icon": "Exclamation Point"
+              "field_game": "Rebuilt",
+              "robot_width": 0.85,
+              "robot_length": 0.85,
+              "show_other_objects": true,
+              "show_trajectories": true,
+              "field_rotation": 0.0,
+              "robot_color": 4294198070,
+              "trajectory_color": 4294967295,
+              "show_robot_outside_widget": true
             }
           },
           {
-            "title": "Rotation Good",
+            "title": "Alerts",
             "x": 1200.0,
             "y": 0.0,
             "width": 300.0,
-            "height": 400.0,
-            "type": "Boolean Box",
+            "height": 550.0,
+            "type": "Alerts",
             "properties": {
-              "topic": "/SmartDashboard/Auto Pose Check/Robot Rotation within 5.0 degrees",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "Checkmark",
-              "false_icon": "Exclamation Point"
-            }
-          },
-          {
-            "title": "`StartDelay`",
-            "x": 900.0,
-            "y": 550.0,
-            "width": 150.0,
-            "height": 150.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/TunableNumbers/Auto/StartDelay",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "BumpDelay",
-            "x": 1050.0,
-            "y": 550.0,
-            "width": 150.0,
-            "height": 150.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/SmartDashboard/TunableNumbers/Auto/BumpDelay",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
             }
           }
         ]
@@ -316,7 +294,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Roller/Eject",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -329,7 +308,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Roller/Intake",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -342,7 +322,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Roller/Stop",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               }
             ]
@@ -368,7 +349,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Coast",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -381,7 +363,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Cycle",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -394,7 +377,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Extend",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -407,7 +391,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Retract",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               }
             ]
@@ -433,7 +418,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Expel",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -446,7 +432,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Feed",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -459,7 +446,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Shoot",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -472,7 +460,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Stop",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               }
             ]
@@ -506,7 +495,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Cycle",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -519,7 +509,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Extend",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -532,7 +523,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Linear/Retract",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               }
             ]
@@ -558,7 +550,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Roller/Eject",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -571,7 +564,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Roller/Intake",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -584,7 +578,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Intake Roller/Stop",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               }
             ]
@@ -610,7 +605,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Expel",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -623,7 +619,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Feed",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -636,7 +633,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Shoot",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               },
               {
@@ -649,7 +647,8 @@
                 "properties": {
                   "topic": "/SmartDashboard/Indexer/Stop",
                   "period": 0.06,
-                  "show_type": true
+                  "show_type": true,
+                  "maximize_button_space": false
                 }
               }
             ]
@@ -666,7 +665,8 @@
             "properties": {
               "topic": "/SmartDashboard/Ready Shooter",
               "period": 0.06,
-              "show_type": true
+              "show_type": true,
+              "maximize_button_space": false
             }
           },
           {
@@ -679,7 +679,8 @@
             "properties": {
               "topic": "/SmartDashboard/Reset Fuel",
               "period": 0.06,
-              "show_type": true
+              "show_type": true,
+              "maximize_button_space": false
             }
           },
           {
@@ -692,7 +693,8 @@
             "properties": {
               "topic": "/SmartDashboard/Set flywheel to 30",
               "period": 0.06,
-              "show_type": true
+              "show_type": true,
+              "maximize_button_space": false
             }
           },
           {
@@ -705,7 +707,8 @@
             "properties": {
               "topic": "/SmartDashboard/Set hood to 45 deg",
               "period": 0.06,
-              "show_type": true
+              "show_type": true,
+              "maximize_button_space": false
             }
           },
           {
@@ -718,7 +721,8 @@
             "properties": {
               "topic": "/SmartDashboard/Shoot Fuel",
               "period": 0.06,
-              "show_type": true
+              "show_type": true,
+              "maximize_button_space": false
             }
           }
         ]
