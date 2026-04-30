@@ -18,7 +18,7 @@ public final class ChoreoVars {
     public static final class Poses {
         public static final Pose2d BumpEntrance = new Pose2d(6.180738, 5.408361, Rotation2d.fromRadians(4.712389));
         public static final Pose2d BumpExit = new Pose2d(3.8853905, 5.408361, Rotation2d.fromRadians(4.712389));
-        public static final Pose2d C1678Shoot = new Pose2d(3.1, 5.2, Rotation2d.fromRadians(-0.68187));
+        public static final Pose2d C1678Shoot = new Pose2d(3.1, 5.408361, Rotation2d.fromRadians(-0.68187));
         public static final Pose2d FullNeutralMid = new Pose2d(6.5138288, 4.2193413, Rotation2d.fromRadians(4.712389));
         public static final Pose2d FullNeutralShoot = new Pose2d(1.9977475, 5.351594, Rotation2d.fromRadians(-0.4571401));
         public static final Pose2d FullNeutralStart = new Pose2d(3.65, 7.3992772, Rotation2d.fromRadians(1.5707963));
