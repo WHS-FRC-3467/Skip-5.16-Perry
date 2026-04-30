@@ -71,7 +71,7 @@ public class ResilientTrajectoryFollower extends Command {
     }
 
     private static final LoggedTunableNumber PAUSE_THRESHOLD_METERS =
-            new LoggedTunableNumber("Auto/ResilientFollower/PauseThresholdMeters", 0.25);
+            new LoggedTunableNumber("Auto/ResilientFollower/PauseThresholdMeters", 0.37);
     private static final LoggedTunableNumber RESUME_THRESHOLD_METERS =
             new LoggedTunableNumber("Auto/ResilientFollower/ResumeThresholdMeters", 0.15);
     private static final LoggedTunableNumber PAUSE_DEBOUNCE_SECONDS =
