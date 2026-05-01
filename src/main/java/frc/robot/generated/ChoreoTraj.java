@@ -21,6 +21,13 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
+    public static final ChoreoTraj AggresiveAuto1 = new ChoreoTraj(
+        "AggresiveAuto1",
+        OptionalInt.empty(),
+        5.82172,
+        new Pose2d(4.45292, 7.45197, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.1, 5.40836, Rotation2d.fromRadians(-0.68187))
+    );
     public static final ChoreoTraj B1 = new ChoreoTraj(
         "B1",
         OptionalInt.empty(),
@@ -105,19 +112,13 @@ public record ChoreoTraj(
         new Pose2d(1.99775, 5.35159, Rotation2d.fromRadians(-0.45714)),
         new Pose2d(1.99775, 5.35159, Rotation2d.fromRadians(-0.45714))
     );
-    public static final ChoreoTraj AggresiveAuto1 = new ChoreoTraj(
-        "AggresiveAuto1",
-        OptionalInt.empty(),
-        5.82172,
-        new Pose2d(4.45292, 7.45197, Rotation2d.fromRadians(1.5708)),
-        new Pose2d(3.1, 5.40836, Rotation2d.fromRadians(-0.68187))
-    );
 
     /**
      * A map between trajectory names and their corresponding data.
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
+        Map.entry("AggresiveAuto1", AggresiveAuto1),
         Map.entry("B1", B1),
         Map.entry("B1Unsafe", B1Unsafe),
         Map.entry("B2", B2),
@@ -129,8 +130,7 @@ public record ChoreoTraj(
         Map.entry("Depot1", Depot1),
         Map.entry("FullNeutral1", FullNeutral1),
         Map.entry("FullNeutral2", FullNeutral2),
-        Map.entry("FullNeutral3", FullNeutral3),
-        Map.entry("AggresiveAuto1", AggresiveAuto1)
+        Map.entry("FullNeutral3", FullNeutral3)
     );
 
     /**
