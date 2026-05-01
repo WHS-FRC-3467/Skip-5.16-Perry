@@ -44,7 +44,10 @@ public class BAutoSuperDuperUnsafe {
 
     public static Optional<AutoOption> create(AutoContext ctx, boolean shouldMirror) {
         List<String> names =
-                List.of(ChoreoTraj.AggresiveAuto1.name(), ChoreoTraj.B2.name(), ChoreoTraj.C16783.name());
+                List.of(
+                        ChoreoTraj.AggresiveAuto1.name(),
+                        ChoreoTraj.B2.name(),
+                        ChoreoTraj.C16783.name());
 
         List<Trajectory<SwerveSample>> trajectories =
                 AutoUtil.loadTrajectories(names, shouldMirror).orElse(null);
