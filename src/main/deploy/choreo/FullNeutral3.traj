@@ -1062,5 +1062,6 @@
  },
  "events":[
    {"name":"ExtendIntake", "from":{"target":0, "targetTimestamp":0.0, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
-   {"name":"Spinup", "from":{"target":2, "targetTimestamp":2.03106, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
+   {"name":"Spinup", "from":{"target":2, "targetTimestamp":2.03106, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
+   {"name":"RetractIntake", "from":{"target":3, "targetTimestamp":3.27956, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
 }
