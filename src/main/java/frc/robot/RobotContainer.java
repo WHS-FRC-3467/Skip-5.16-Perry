@@ -153,19 +153,15 @@ public class RobotContainer {
         //         .ifPresent(a -> autoChooser.addOption("ML-Neutral-Safe-Left", a));
 
         // Citrus Autos
-        testCommand = C1678Auto.create(ctx, false).get();
-        C1678Auto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralAuto-Left", a));
-        C1678Auto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralAuto-Right", a));
-
         FullNeutralAuto.create(ctx)
                 .ifPresent(a -> autoChooser.addOption("FollowTheLeader-Left", a));
-        C1678AutoSafe.create(ctx, false)
-                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
-        C1678AutoSafe.create(ctx, true)
-                .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Right", a));
 
         BAuto.create(ctx, false).ifPresent(a -> autoChooser.addOption("DNBAuto-Left", a));
         BAuto.create(ctx, true).ifPresent(a -> autoChooser.addOption("DNBAuto-Right", a));
+        BAutoUnsafe.create(ctx, false).ifPresent(a -> autoChooser.addOption("DNBAutoUnsafe-Left", a));
+        BAutoUnsafe.create(ctx, true).ifPresent(a -> autoChooser.addOption("DNBAutoUnsafe-Right", a));
+
+        testCommand = BAuto.create(ctx, false).get();
 
         // C1678Auto.create(ctx, false, true)
         //         .ifPresent(a -> autoChooser.addOption("NeutralAuto-Safe-Left", a));
@@ -425,7 +421,7 @@ public class RobotContainer {
                                 () -> {
                                     // disableAutomaticBrownoutMitigation = true;
                                     brownoutManuallyEnabled = !brownoutManuallyEnabled;
-                                    drive.toggleBrownedOut();
+                                    // drive.toggleBrownedOut();
                                     indexer.toggleBrownedOut();
                                     shooter.toggleBrownedOut();
                                 }));

@@ -28,6 +28,13 @@ public record ChoreoTraj(
         new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.1, 5.40836, Rotation2d.fromRadians(-0.68187))
     );
+    public static final ChoreoTraj B1Unsafe = new ChoreoTraj(
+        "B1Unsafe",
+        OptionalInt.empty(),
+        5.18957,
+        new Pose2d(4.45, 7.39928, Rotation2d.fromRadians(1.5708)),
+        new Pose2d(3.1, 5.40836, Rotation2d.fromRadians(-0.68187))
+    );
     public static final ChoreoTraj B2 = new ChoreoTraj(
         "B2",
         OptionalInt.empty(),
@@ -105,6 +112,7 @@ public record ChoreoTraj(
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
         Map.entry("B1", B1),
+        Map.entry("B1Unsafe", B1Unsafe),
         Map.entry("B2", B2),
         Map.entry("B3", B3),
         Map.entry("C16781", C16781),
