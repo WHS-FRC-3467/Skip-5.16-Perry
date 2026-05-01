@@ -24,7 +24,7 @@ public record ChoreoTraj(
     public static final ChoreoTraj AggresiveAuto1 = new ChoreoTraj(
         "AggresiveAuto1",
         OptionalInt.empty(),
-        5.86039,
+        5.78477,
         new Pose2d(4.45292, 7.45197, Rotation2d.fromRadians(1.5708)),
         new Pose2d(3.1, 5.40836, Rotation2d.fromRadians(-0.68187))
     );
