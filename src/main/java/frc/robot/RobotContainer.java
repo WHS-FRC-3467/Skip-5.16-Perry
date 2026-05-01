@@ -19,12 +19,6 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -38,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import frc.lib.util.CommandXboxControllerExtended;
 import frc.lib.util.FieldUtil;
 import frc.lib.util.LoggedDashboardChooser;
@@ -66,6 +61,12 @@ import frc.robot.subsystems.tower.Tower;
 import frc.robot.subsystems.tower.TowerConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.RobotSim;
+
+import org.littletonrobotics.junction.Logger;
+
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Container class for the robot that holds all subsystems, controllers, and command bindings. This
@@ -161,9 +162,12 @@ public class RobotContainer {
 
         BAuto.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralSafeLeft", a));
         BAuto.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralSafeRight", a));
-        BAutoUnsafe.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralLeft", a));        BAutoUnsafe.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralRight", a));
-        BAutoSuperDuperUnsafe.create(ctx, false).ifPresent(a -> autoChooser.addOption("AggressiveLeft", a));
-        BAutoSuperDuperUnsafe.create(ctx, true).ifPresent(a -> autoChooser.addOption("AggressiveRight", a));
+        BAutoUnsafe.create(ctx, false).ifPresent(a -> autoChooser.addOption("NeutralLeft", a));
+        BAutoUnsafe.create(ctx, true).ifPresent(a -> autoChooser.addOption("NeutralRight", a));
+        BAutoSuperDuperUnsafe.create(ctx, false)
+                .ifPresent(a -> autoChooser.addOption("AggressiveLeft", a));
+        BAutoSuperDuperUnsafe.create(ctx, true)
+                .ifPresent(a -> autoChooser.addOption("AggressiveRight", a));
 
         testCommand = BAuto.create(ctx, false).get();
 
