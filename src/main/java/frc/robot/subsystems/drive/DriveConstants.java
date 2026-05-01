@@ -73,8 +73,7 @@ public class DriveConstants {
     // This needs to be tuned to your individual robot
     private static final Current kSlipCurrent = Amps.of(94.0);
 
-    private static final TalonFXConfiguration driveInitialConfigs =
-            new TalonFXConfiguration();
+    private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
     private static final TalonFXConfiguration steerInitialConfigs =
             new TalonFXConfiguration()
                     .withCurrentLimits(

@@ -102,7 +102,7 @@ public class FullNeutralAuto {
                             routine.observe(secondFollow.done())
                                     .onTrue(
                                             Commands.sequence(
-                                                    AutoCommands.shootOnly(ctx, 5.0),
+                                                    AutoCommands.shootOnly(ctx, 2.0),
                                                     thirdFollow.asProxy()));
 
                             routine.observe(thirdFollow.done())
