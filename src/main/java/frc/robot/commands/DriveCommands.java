@@ -457,10 +457,11 @@ public class DriveCommands {
                                                                         positions[i]
                                                                                 - state.positions[
                                                                                         i]);
-                                                        thisWheelDelta = (state.gyroDelta
-                                                                            * Drive
-                                                                                    .DRIVE_BASE_RADIUS)
-                                                                    / thisWheelDelta;
+                                                        thisWheelDelta =
+                                                                (state.gyroDelta
+                                                                                * Drive
+                                                                                        .DRIVE_BASE_RADIUS)
+                                                                        / thisWheelDelta;
                                                         System.out.println(
                                                                 i + " " + thisWheelDelta);
 
