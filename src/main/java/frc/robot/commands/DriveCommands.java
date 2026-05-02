@@ -452,6 +452,13 @@ public class DriveCommands {
                                                                     .getWheelRadiusCharacterizationPositions();
                                                     double wheelDelta = 0.0;
                                                     for (int i = 0; i < 4; i++) {
+                                                        double thisWheelDelta =
+                                                                Math.abs(
+                                                                                positions[i]
+                                                                                        - state.positions[
+                                                                                                i]);
+                                                        System.out.println(i + " " + thisWheelDelta);
+                                                        
                                                         wheelDelta +=
                                                                 Math.abs(
                                                                                 positions[i]
@@ -459,6 +466,7 @@ public class DriveCommands {
                                                                                                 i])
                                                                         / 4.0;
                                                     }
+
                                                     double wheelRadius =
                                                             (state.gyroDelta
                                                                             * Drive
