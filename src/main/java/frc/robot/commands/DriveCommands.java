@@ -454,11 +454,16 @@ public class DriveCommands {
                                                     for (int i = 0; i < 4; i++) {
                                                         double thisWheelDelta =
                                                                 Math.abs(
-                                                                                positions[i]
-                                                                                        - state.positions[
-                                                                                                i]);
-                                                        System.out.println(i + " " + thisWheelDelta);
-                                                        
+                                                                        positions[i]
+                                                                                - state.positions[
+                                                                                        i]);
+                                                        thisWheelDelta = (state.gyroDelta
+                                                                            * Drive
+                                                                                    .DRIVE_BASE_RADIUS)
+                                                                    / thisWheelDelta;
+                                                        System.out.println(
+                                                                i + " " + thisWheelDelta);
+
                                                         wheelDelta +=
                                                                 Math.abs(
                                                                                 positions[i]
