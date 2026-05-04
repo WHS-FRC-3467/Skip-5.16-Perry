@@ -3,14 +3,35 @@ name: Build
 on:
   push:
 
+permissions:
+  contents: read
+
 jobs:
   run_tests:
     name: Test
     runs-on: ubuntu-latest
     steps:
+      - name: Verify checkout token
+        env:
+          ACTIONS_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: |
+          if [ -z "$ACTIONS_TOKEN" ]; then
+            echo "::error::ACTIONS_TOKEN is not available to this workflow run."
+            exit 1
+          fi
+
+          AUTH_HEADER="$(printf 'x-access-token:%s' "$ACTIONS_TOKEN" | base64 -w0)"
+
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH_HEADER" \
+            ls-remote https://github.com/WHS-FRC-3467/Skip-5.16-Perry.git HEAD > /dev/null
+
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH_HEADER" \
+            ls-remote https://github.com/WHS-FRC-3467/C2.git HEAD > /dev/null
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          repository: WHS-FRC-3467/Skip-5.16-Perry
+          ref: ${{ github.ref }}
           submodules: recursive
           token: ${{ secrets.ACTIONS_TOKEN }}
       - name: Setup Java
