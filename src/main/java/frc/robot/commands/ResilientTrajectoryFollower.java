@@ -71,11 +71,11 @@ public class ResilientTrajectoryFollower extends Command {
     }
 
     private static final LoggedTunableNumber PAUSE_THRESHOLD_METERS =
-            new LoggedTunableNumber("Auto/ResilientFollower/PauseThresholdMeters", 0.4572);
+            new LoggedTunableNumber("Auto/ResilientFollower/PauseThresholdMeters", 0.37);
     private static final LoggedTunableNumber RESUME_THRESHOLD_METERS =
             new LoggedTunableNumber("Auto/ResilientFollower/ResumeThresholdMeters", 0.15);
     private static final LoggedTunableNumber PAUSE_DEBOUNCE_SECONDS =
-            new LoggedTunableNumber("Auto/ResilientFollower/PauseDebouncerSeconds", 0.5);
+            new LoggedTunableNumber("Auto/ResilientFollower/PauseDebouncerSeconds", 0.25);
 
     /**
      * When true, the follower commands zero velocity to the drive, simulating the robot being stuck
@@ -199,6 +199,7 @@ public class ResilientTrajectoryFollower extends Command {
 
     @Override
     public void initialize() {
+        double time = Timer.getFPGATimestamp();
         finished = false;
         state = State.TRACKING;
         trajectoryTime = 0.0;
@@ -214,6 +215,7 @@ public class ResilientTrajectoryFollower extends Command {
 
         Logger.recordOutput("Odometry/Trajectory", FieldUtil.apply(trajectory.getPoses()));
         Logger.recordOutput("Auto/ResilientFollower/State", state.name());
+        Logger.recordOutput("Auto/Init Delay", Timer.getFPGATimestamp() - time);
     }
 
     @Override

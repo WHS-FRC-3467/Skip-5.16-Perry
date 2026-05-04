@@ -30,7 +30,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.lib.posestimator.PoseEstimator;
@@ -56,7 +55,7 @@ import java.util.Optional;
 public class RobotState {
 
     private static final LoggedTunableNumber SHOOT_TOLERANCE_DEGREES =
-            new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 2.0);
+            new LoggedTunableNumber("RobotState/ShootToleranceDegrees", 4.0);
 
     private static final LoggedTunableNumber FEED_TOLERANCE_DEGREES =
             new LoggedTunableNumber("RobotState/FeedToleranceDegrees", 6.0);
@@ -223,10 +222,6 @@ public class RobotState {
      * @param observation the vision observation to add
      */
     public void addVisionObservation(VisionPoseObservation observation) {
-        if (DriverStation.isDisabled()) {
-            poseEstimator.resetPose(observation.robotPose());
-            return;
-        }
         poseEstimator.addVisionObservation(observation);
     }
 

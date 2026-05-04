@@ -65,7 +65,7 @@ public class VisionSubsystem extends SubsystemBase {
     public static final double SINGLE_TAG_ANGULAR_STDDEV = Double.POSITIVE_INFINITY;
 
     /** Maximum allowable height (Z-axis) of a detected pose to be considered valid. */
-    public static final double MAX_Z_METERS = 0.75;
+    public static final double MAX_Z_METERS = 0.3;
 
     /** Maximum allowable distance from a target to be considered valid. */
     public static final double MAX_DISTANCE_METERS = 8.0;

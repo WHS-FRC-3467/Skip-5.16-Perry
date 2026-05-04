@@ -70,7 +70,7 @@ public class DriveCommands {
     private static final LoggedTunableNumber ANGLE_KD =
             new LoggedTunableNumber("Drive/AngleD", 0.6);
     private static final LoggedTunableNumber ANGLE_TOLERANCE_DEGREES =
-            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 1.0);
+            new LoggedTunableNumber("Drive/AngleToleranceDegrees", 2.5d);
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 2.0; // Volts/Sec
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.2; // Rad/Sec
@@ -452,6 +452,19 @@ public class DriveCommands {
                                                                     .getWheelRadiusCharacterizationPositions();
                                                     double wheelDelta = 0.0;
                                                     for (int i = 0; i < 4; i++) {
+                                                        double thisWheelDelta =
+                                                                Math.abs(
+                                                                        positions[i]
+                                                                                - state.positions[
+                                                                                        i]);
+                                                        thisWheelDelta =
+                                                                (state.gyroDelta
+                                                                                * Drive
+                                                                                        .DRIVE_BASE_RADIUS)
+                                                                        / thisWheelDelta;
+                                                        System.out.println(
+                                                                i + " " + thisWheelDelta);
+
                                                         wheelDelta +=
                                                                 Math.abs(
                                                                                 positions[i]
@@ -459,6 +472,7 @@ public class DriveCommands {
                                                                                                 i])
                                                                         / 4.0;
                                                     }
+
                                                     double wheelRadius =
                                                             (state.gyroDelta
                                                                             * Drive

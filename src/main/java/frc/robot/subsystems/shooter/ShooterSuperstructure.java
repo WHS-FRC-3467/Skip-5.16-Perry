@@ -44,6 +44,7 @@ import frc.lib.util.LoggedTrigger;
 import frc.lib.util.LoggedTunableBoolean;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 import frc.robot.RobotState;
 import frc.robot.util.ShotTracker;
 
@@ -111,11 +112,11 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private final RotaryMechanism<?, ?> hoodIO;
     private final FlywheelMechanism<?> flywheelIO;
 
-    private final Debouncer profileCompleteDebouncer = new Debouncer(0.1, DebounceType.kRising);
-    public final LoggedTrigger profileComplete =
+    private final Debouncer nearGoalDebouncer = new Debouncer(0.1, DebounceType.kRising);
+    public final LoggedTrigger isNearGoal =
             new LoggedTrigger(
-                    this.getName() + "/ProfileComplete",
-                    () -> profileCompleteDebouncer.calculate(isProfileComplete()));
+                    this.getName() + "/isNearGoal",
+                    () -> nearGoalDebouncer.calculate(isNearGoal()));
 
     private final LoggedTunableBoolean tuningMode =
             new LoggedTunableBoolean(getName() + "/Tuning/Enable", false);
@@ -126,7 +127,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // Default trim to apply
     private final AlwaysTunableNumber flywheelTrimDefaultRPS =
-            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -1.0);
+            new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", -0.5);
+    // private final AlwaysTunableNumber flywheelTrimDefaultRPS =
+    //         new AlwaysTunableNumber(getName() + "/FlywheelTrimDefaultRPS", 0.0);
     // How much to add or subtract on each button press
     private final LoggedTunableNumber flywheelTrimStepRPS =
             new LoggedTunableNumber(getName() + "/FlywheelTrimStepRPS", 0.5);
@@ -134,7 +137,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public final LoggedTrigger readyToShootAtCurrentTarget =
             new LoggedTrigger(
                     "RobotState/ReadyToShootAtCurrentTarget",
-                    profileComplete.and(
+                    isNearGoal.and(
                             robotState
                                     .shouldFeed
                                     .and(robotState.facingFeedTarget)
@@ -149,6 +152,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
 
     // A dedicated utility helper to quantify shooter performance
     private ShotTracker shotTracker;
+    private boolean brownedOut = false;
 
     /**
      * Trigger for whether we are at the static shooting state (robot steadily stationary, steadily
@@ -157,7 +161,7 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     public final LoggedTrigger staticShotState =
             new LoggedTrigger(
                     getName() + "/StaticShotState",
-                    () -> robotState.atStaticShootingPosition.and(profileComplete).getAsBoolean());
+                    () -> robotState.atStaticShootingPosition.and(isNearGoal).getAsBoolean());
 
     /**
      * Gets the total flywheel trim to apply, including both default and user-defined runtime trim
@@ -217,7 +221,9 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
     private void setFlywheelVelocity(AngularVelocity velocity) {
         flywheelIO.runVelocity(
                 velocity.plus(getFlywheelTrim()),
-                FlywheelConstants.MAX_ACCELERATION,
+                brownedOut
+                        ? FlywheelConstants.BROWNOUT_MAX_ACCELERATION
+                        : FlywheelConstants.MAX_ACCELERATION,
                 PIDSlot.SLOT_0);
     }
 
@@ -225,10 +231,10 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
         hoodIO.runUnprofiledPosition(angle, PIDSlot.SLOT_0);
     }
 
-    private boolean isProfileComplete() {
+    private boolean isNearGoal() {
         return flywheelIO
-                .getVelocitySetpoint()
-                .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(0.2));
+                .getVelocity()
+                .isNear(flywheelIO.getVelocityGoal(), RotationsPerSecond.of(2.0));
     }
 
     /**
@@ -290,6 +296,26 @@ public class ShooterSuperstructure extends SubsystemBase implements AutoCloseabl
      */
     public Power getFlywheelPowerDraw() {
         return flywheelIO.getAppliedVoltage().times(flywheelIO.getSupplyCurrent());
+    }
+
+    /**
+     * Slows the flywheel Motion Magic ramp during brownout recovery.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        this.brownedOut = brownedOut;
+    }
+
+    /** Toggles whether to use brownout-recovery motion profiles or not */
+    public void toggleBrownedOut() {
+        this.brownedOut = !brownedOut;
+    }
+
+    /** Register the Shooter subsystem with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName() + "/Flywheel", flywheelIO);
+        powerProfiler.registerMechanism(getName() + "/Hood", hoodIO);
     }
 
     /**

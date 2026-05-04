@@ -14,16 +14,16 @@
  */
 package frc.robot.subsystems.indexer;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Amps;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.lib.io.motor.MotorIO.PIDSlot;
 import frc.lib.mechanisms.flywheel.FlywheelMechanism;
 import frc.lib.util.LoggedTunableNumber;
 import frc.lib.util.LoggerHelper;
+import frc.lib.util.PowerProfiler;
 
 /**
  * Subsystem that controls the indexer floor and indexer centering mechanism for moving game pieces
@@ -32,14 +32,13 @@ import frc.lib.util.LoggerHelper;
  */
 public class Indexer extends SubsystemBase {
     private final FlywheelMechanism<?> io;
+    private boolean brownedOut = false;
 
-    // private static final LoggedTunableNumber SHOOT_RPS =
-    //         new LoggedTunableNumber(
-    //                 IndexerConstants.NAME + "/ShootRPS",
-    //                 IndexerConstants.MAX_VELOCITY.in(RotationsPerSecond));
+    private static final LoggedTunableNumber SHOOT_TORQUE_CURRENT =
+            new LoggedTunableNumber(IndexerConstants.NAME + "/ShootTorqueCurrent", 40.0);
 
-    private static final LoggedTunableNumber EJECT_RPS =
-            new LoggedTunableNumber(IndexerConstants.NAME + "/EjectRPS", -30.0);
+    private static final LoggedTunableNumber EJECT_TORQUE_CURRENT =
+            new LoggedTunableNumber(IndexerConstants.NAME + "/EjectTorqueCurrent", -40.0);
 
     /**
      * Constructs an Indexer subsystem.
@@ -60,8 +59,9 @@ public class Indexer extends SubsystemBase {
         io.runCoast();
     }
 
-    private void runVelocity(AngularVelocity velocity) {
-        io.runVelocity(velocity, PIDSlot.SLOT_0);
+    /** Register the Indexer subsystem with the power profiler. */
+    public void registerMechanisms(PowerProfiler powerProfiler) {
+        powerProfiler.registerMechanism(getName(), io);
     }
 
     /**
@@ -74,22 +74,14 @@ public class Indexer extends SubsystemBase {
     }
 
     /**
-     * Run the indexer at the fountain velocity
-     *
-     * @return a command to fountain
-     */
-    public Command fountain() {
-        return this.runOnce(() -> runVelocity(RotationsPerSecond.of(5.0)));
-    }
-
-    /**
      * Creates a command to run the indexer at shooting velocities. The indexer will stop when the
      * command is interrupted or cancelled.
      *
      * @return a command that runs the indexer at shooting speed
      */
     public Command shoot() {
-        return this.startEnd(() -> io.runDutyCycle(0.8, false), () -> stop()).withName("Shoot");
+        return this.startEnd(() -> io.runCurrent(Amps.of(SHOOT_TORQUE_CURRENT.get())), () -> stop())
+                .withName("Shoot");
     }
 
     /**
@@ -99,13 +91,33 @@ public class Indexer extends SubsystemBase {
      * @return a command that runs the indexer in reverse
      */
     public Command eject() {
-        return this.startEnd(
-                        () -> runVelocity(RotationsPerSecond.of(EJECT_RPS.get())), () -> stop())
+        return this.startEnd(() -> io.runCurrent(Amps.of(EJECT_TORQUE_CURRENT.get())), () -> stop())
                 .withName("Eject");
     }
 
     public AngularVelocity getVelocity() {
         return io.getVelocity();
+    }
+
+    /**
+     * Updates the indexer supply current limit for brownout protection.
+     *
+     * @param brownedOut True when the robot is actively browned out
+     */
+    public void setBrownedOut(boolean brownedOut) {
+        if (this.brownedOut == brownedOut) {
+            return;
+        }
+        this.brownedOut = brownedOut;
+        io.setSupplyCurrentLimit(
+                brownedOut
+                        ? IndexerConstants.BROWNOUT_SUPPLY_CURRENT_LIMIT
+                        : IndexerConstants.SUPPLY_CURRENT_LIMIT);
+    }
+
+    /** Toggles the indexer supply current limit for brownout protection. */
+    public void toggleBrownedOut() {
+        setBrownedOut(!brownedOut);
     }
 
     /**

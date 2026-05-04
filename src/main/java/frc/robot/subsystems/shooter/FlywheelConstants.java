@@ -41,6 +41,8 @@ public class FlywheelConstants {
 
     public static final AngularVelocity MAX_VELOCITY = RotationsPerSecond.of(69.0);
     public static final AngularAcceleration MAX_ACCELERATION = RotationsPerSecondPerSecond.of(30.0);
+    public static final AngularAcceleration BROWNOUT_MAX_ACCELERATION =
+            RotationsPerSecondPerSecond.of(15.0);
 
     private static final double GEARING = (32.0 / 24.0);
 
@@ -53,7 +55,8 @@ public class FlywheelConstants {
 
     private static PID getPID() {
         if (RobotBase.isReal()) {
-            return new PID(16.0, 0.0, 0.0).withS(5.5).withA(0.8);
+            return new PID(16.0, 0.0, 0.0).withS(5.5).withA(0.8); // Flywheel tunings
+            // return new PID(20.0, 0.0, 0.0).withS(3).withA(0.47).withV(.11); // No flywheel tuning
         } else {
             return new PID(10.0, 0.0, 0.0).withV(1.8);
         }
@@ -141,7 +144,15 @@ public class FlywheelConstants {
                                 TOLERANCE);
                 break;
             case REPLAY:
-                mechanism = new FlywheelMechanism<>(NAME, new MotorIO() {}) {};
+                mechanism =
+                        new FlywheelMechanism<>(
+                                NAME,
+                                new MotorIO() {
+                                    @Override
+                                    public int getNumberOfMotors() {
+                                        return 4;
+                                    }
+                                }) {};
                 break;
             default:
                 throw new IllegalStateException("Unrecognized Robot Mode");
