@@ -341,29 +341,29 @@ public class ModuleIOTalonFX implements ModuleIO {
                         });
     }
 
-    @Override
-    public void setBrownedOut(boolean brownedOut) {
-        if (this.brownedOut == brownedOut) {
-            return;
-        }
-        this.brownedOut = brownedOut;
+    // @Override
+    // public void setBrownedOut(boolean brownedOut) {
+    //     if (this.brownedOut == brownedOut) {
+    //         return;
+    //     }
+    //     this.brownedOut = brownedOut;
 
-        driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        driveConfig.CurrentLimits.SupplyCurrentLimit =
-                brownedOut
-                        ? DriveConstants.BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS
-                        : DriveConstants.DRIVE_SUPPLY_CURRENT_LIMIT_AMPS;
-        driveConfig.CurrentLimits.SupplyCurrentLowerLimit =
-                brownedOut ? DriveConstants.BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS : 40.0;
+    //     driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    //     driveConfig.CurrentLimits.SupplyCurrentLimit =
+    //             brownedOut
+    //                     ? DriveConstants.BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS
+    //                     : DriveConstants.DRIVE_SUPPLY_CURRENT_LIMIT_AMPS;
+    //     driveConfig.CurrentLimits.SupplyCurrentLowerLimit =
+    //             brownedOut ? DriveConstants.BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS : 40.0;
 
-        updateThread
-                .ctreCheckErrorAndRetry(() -> driveTalon.getConfigurator().apply(driveConfig))
-                .exceptionally(
-                        ex -> {
-                            LOGGER.log(Level.SEVERE, ex.toString(), ex);
-                            return null;
-                        });
-    }
+    //     updateThread
+    //             .ctreCheckErrorAndRetry(() -> driveTalon.getConfigurator().apply(driveConfig))
+    //             .exceptionally(
+    //                     ex -> {
+    //                         LOGGER.log(Level.SEVERE, ex.toString(), ex);
+    //                         return null;
+    //                     });
+    // }
 
     @Override
     public void toggleBrownedOut() {

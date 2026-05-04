@@ -75,7 +75,7 @@ public class ResilientTrajectoryFollower extends Command {
     private static final LoggedTunableNumber RESUME_THRESHOLD_METERS =
             new LoggedTunableNumber("Auto/ResilientFollower/ResumeThresholdMeters", 0.15);
     private static final LoggedTunableNumber PAUSE_DEBOUNCE_SECONDS =
-            new LoggedTunableNumber("Auto/ResilientFollower/PauseDebouncerSeconds", 0.5);
+            new LoggedTunableNumber("Auto/ResilientFollower/PauseDebouncerSeconds", 0.25);
 
     /**
      * When true, the follower commands zero velocity to the drive, simulating the robot being stuck

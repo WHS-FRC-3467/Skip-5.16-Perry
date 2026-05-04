@@ -73,22 +73,7 @@ public class DriveConstants {
     // This needs to be tuned to your individual robot
     private static final Current kSlipCurrent = Amps.of(94.0);
 
-    // Initial configs for the drive and steer motors and the azimuth encoder; these
-    // cannot be null.
-    // Some configs will be overwritten; check the `with*InitialConfigs()` API
-    // documentation.
-    static final double DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 200.0;
-    static final double BROWNOUT_DRIVE_SUPPLY_CURRENT_LIMIT_AMPS = 200.0;
-
-    private static final TalonFXConfiguration driveInitialConfigs =
-            new TalonFXConfiguration()
-                    .withCurrentLimits(
-                            // Default is 70
-                            // https://www.chiefdelphi.com/t/methodologies-to-reduce-power-draw-without-impacting-robot-performance/516076/8
-                            new CurrentLimitsConfigs()
-                                    .withSupplyCurrentLimitEnable(true)
-                                    .withSupplyCurrentLimit(
-                                            Amps.of(DRIVE_SUPPLY_CURRENT_LIMIT_AMPS)));
+    private static final TalonFXConfiguration driveInitialConfigs = new TalonFXConfiguration();
     private static final TalonFXConfiguration steerInitialConfigs =
             new TalonFXConfiguration()
                     .withCurrentLimits(
@@ -115,7 +100,7 @@ public class DriveConstants {
 
     private static final double kDriveGearRatio = 6.0;
     private static final double kSteerGearRatio = 24.0;
-    private static final Distance kWheelRadius = Inches.of(1.988);
+    private static final Distance kWheelRadius = Inches.of(2.022);
 
     private static final boolean kInvertLeftSide = false;
     private static final boolean kInvertRightSide = true;
@@ -200,7 +185,7 @@ public class DriveConstants {
     private static final int kBackRightDriveMotorId = 11;
     private static final int kBackRightSteerMotorId = 13;
     private static final int kBackRightEncoderId = 12;
-    private static final Angle kBackRightEncoderOffset = Rotations.of(-0.101806640625);
+    private static final Angle kBackRightEncoderOffset = Rotations.of(0.48388671875);
     private static final boolean kBackRightSteerMotorInverted = false;
     private static final boolean kBackRightEncoderInverted = false;
 
